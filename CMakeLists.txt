@@ -165,10 +165,6 @@ FILE(GLOB_RECURSE TOGROUP
 function (add_sample NAME EXT)
     add_executable (${NAME} ${TOGROUP})
 
-
-    
-
-
     source_group (TREE ${CMAKE_SOURCE_DIR} FILES ${TOGROUP})
 
     #add flecs

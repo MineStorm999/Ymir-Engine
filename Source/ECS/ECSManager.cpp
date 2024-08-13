@@ -1,5 +1,5 @@
 #include "ECSManager.h"
-
+/*
 flecs::world curWorld;
 
 flecs::world& EntityManager::GetWorld()
@@ -12,15 +12,21 @@ void EntityManager::SetWorld(flecs::world w)
     curWorld = w;
 }
 
-flecs::world& EntityManager::LoadWorld(nlohmann::json& j)
+flecs::world& EntityManager::LoadWorld(nlohmann::json& json)
 {
-    flecs::world ret;
+    flecs::world* ret = new flecs::world();
+
+    // temp!!!!
+    json.is_binary();
     //ret.from_json();
-    return ret;
+    return *ret;
 }
 
 nlohmann::json EntityManager::SerializeWorld(flecs::world& w)
 {
-    flecs::string val = w.to_json();
-    return nlohmann::json(val);
+    // temp
+    w.entity("Your Mom (Temp)");
+    //flecs::string val = w.to_json();
+    return nlohmann::json();
 }
+*/

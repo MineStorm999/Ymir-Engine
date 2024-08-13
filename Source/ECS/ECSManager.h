@@ -1,5 +1,6 @@
 #pragma once
 
+/*
 #include "flecs.h"
 
 #include "../JSON/json.hpp"
@@ -10,8 +11,8 @@ public:
 
 	static void SetWorld(flecs::world w);
 
-	static flecs::world& LoadWorld(nlohmann::json& j);
+	static flecs::world& LoadWorld(nlohmann::json& json);
 	static nlohmann::json SerializeWorld(flecs::world& w);
 
-	
-};
+
+};*/
