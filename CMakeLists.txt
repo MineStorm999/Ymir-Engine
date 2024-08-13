@@ -152,20 +152,21 @@ if (NOT DISABLE_SHADER_COMPILATION)
     set_property (TARGET ${PROJECT_NAME}_Shaders PROPERTY FOLDER ${PROJECT_NAME})
 endif ()
 
+FILE(GLOB_RECURSE TOGROUP 
+    #"Source/${NAME}.${EXT}"
+    ${CMAKE_SOURCE_DIR}/Source/*.h
+    ${CMAKE_SOURCE_DIR}/Source/*.c
+    ${CMAKE_SOURCE_DIR}/Source/*.hpp
+    ${CMAKE_SOURCE_DIR}/Source/*.cpp
+)
+
 # Samples
 function (add_sample NAME EXT)
-    add_executable (${NAME} "Source/${NAME}.${EXT}")
+    add_executable (${NAME} ${TOGROUP})
 
-    set (TOGROUP 
-        #"Source/${NAME}.${EXT}"
-        "Source/*.h"
-        "Source/*.c"
-        "Source/*.hpp"
-        "Source/*.cpp"
-        
-    )
+    
 
-    source_group (TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES TOGROUP)
+    source_group (TREE ${CMAKE_SOURCE_DIR} FILES ${TOGROUP})
 
    
 
@@ -175,6 +176,7 @@ function (add_sample NAME EXT)
     endif ()
 
     target_include_directories (${NAME} PRIVATE "External/NRIFramework/Include")
+
     target_include_directories (${NAME} PRIVATE "External/NRIFramework/External")
     target_include_directories (${NAME} PRIVATE "External/NRIFramework/External/NRI/Include")
     target_compile_definitions (${NAME} PRIVATE ${COMPILE_DEFINITIONS} PROJECT_NAME=${NAME})
