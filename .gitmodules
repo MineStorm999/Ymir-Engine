@@ -3,3 +3,6 @@
 	url = https://github.com/NVIDIAGameWorks/NRIFramework.git
 	branch = main
 	update = merge
+[submodule "External/flecs"]
+	path = External/flecs
+	url = https://github.com/SanderMertens/flecs.git
