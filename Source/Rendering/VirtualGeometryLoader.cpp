@@ -17,6 +17,7 @@ void VGeomLoader::Init()
 
 }
 
+
 void VGeomLoader::Load(uint32_t modelID, void* buffer, uint32_t clusterOffset, uint32_t clusterlenght)
 {
 	if (models.find(modelID) == models.end()) {

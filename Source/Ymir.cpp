@@ -14,6 +14,8 @@ constexpr float CLEAR_DEPTH = 0.0f;
 constexpr uint32_t TEXTURES_PER_MATERIAL = 4;
 constexpr uint32_t BUFFER_COUNT = 3;
 
+
+
 enum SceneBuffers
 {
     // HOST_UPLOAD
