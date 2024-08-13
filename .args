@@ -1,0 +1,87 @@
+{
+  "FileVersion": 2,
+  "Items": [
+    {
+      "Command": "API",
+      "Items": [
+        {
+          "Command": "--api=D3D11"
+        },
+        {
+          "Command": "--api=D3D12"
+        },
+        {
+          "Command": "--api=VULKAN"
+        }
+      ]
+    },
+    {
+      "Command": "RESOLUTION",
+      "Items": [
+        {
+          "Command": "--width=800 --height=600"
+        },
+        {
+          "Command": "--width=1280 --height=720"
+        },
+        {
+          "Command": "--width=1920 --height=1080"
+        },
+        {
+          "Command": "--width=2560 --height=1440"
+        },
+        {
+          "Command": "--width=3440 --height=1440"
+        },
+        {
+          "Command": "--width=5120 --height=1440"
+        },
+        {
+          "Command": "--width=3840 --height=2160"
+        }
+      ]
+    },
+    {
+      "Command": "VSYNC",
+      "Items": [
+        {
+          "Command": "--vsyncInterval=0"
+        },
+        {
+          "Command": "--vsyncInterval=1"
+        }
+      ]
+    },
+    {
+      "Command": "DPI",
+      "Items": [
+        {
+          "Command": "--dpiMode=0"
+        },
+        {
+          "Command": "--dpiMode=1"
+        },
+        {
+          "Command": "--dpiMode=2"
+        }
+      ]
+    },
+    {
+      "Command": "OTHER",
+      "Items": [
+        {
+          "Command": "--debugAPI"
+        },
+        {
+          "Command": "--debugNRI"
+        },
+        {
+          "Command": "--testMode"
+        },
+        {
+          "Command": "--frameNum=9999999"
+        }
+      ]
+    }
+  ]
+}
