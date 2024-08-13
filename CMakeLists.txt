@@ -155,7 +155,20 @@ endif ()
 # Samples
 function (add_sample NAME EXT)
     add_executable (${NAME} "Source/${NAME}.${EXT}")
-    source_group ("" FILES "Source/${NAME}.${EXT}")
+
+    set (TOGROUP 
+        #"Source/${NAME}.${EXT}"
+        "Source/*.h"
+        "Source/*.c"
+        "Source/*.hpp"
+        "Source/*.cpp"
+        
+    )
+
+    source_group (TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES TOGROUP)
+
+   
+
 
     if (NOT DISABLE_SHADER_COMPILATION)
         add_dependencies (${NAME} ${PROJECT_NAME}_Shaders)
@@ -177,24 +190,14 @@ function (add_sample NAME EXT)
     endif ()
 endfunction ()
 
-add_sample (AsyncCompute cpp)
-add_sample (Clear cpp)
-add_sample (CTest c)
-add_sample (DeviceInfo cpp)
-add_sample (LowLatency cpp)
-add_sample (MultiThreading cpp)
-add_sample (RayTracingTriangle cpp)
-add_sample (RayTracingBoxes cpp)
-add_sample (Readback cpp)
-add_sample (SceneViewer cpp)
-add_sample (BindlessSceneViewer cpp)
-add_sample (Triangle cpp)
-add_sample (Wrapper cpp)
-add_sample (Resize cpp)
+add_sample (Ymir cpp)
+
+
+
 
 # Samples - special
-if (WIN32)
-    target_link_libraries (Wrapper PRIVATE d3d11 d3d12)
-endif ()
+#if (WIN32)
+#    target_link_libraries (Wrapper PRIVATE d3d11 d3d12)
+#endif ()
 
-target_include_directories (Wrapper PRIVATE "External/NRIFramework/External/NRI/External/vulkan/include")
+#target_include_directories (Wrapper PRIVATE "External/NRIFramework/External/NRI/External/vulkan/include")
