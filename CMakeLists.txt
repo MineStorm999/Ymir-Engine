@@ -154,6 +154,7 @@ endif ()
 
 FILE(GLOB_RECURSE TOGROUP 
     #"Source/${NAME}.${EXT}"
+
     ${CMAKE_SOURCE_DIR}/Source/*.h
     ${CMAKE_SOURCE_DIR}/Source/*.c
     ${CMAKE_SOURCE_DIR}/Source/*.hpp
@@ -168,7 +169,9 @@ function (add_sample NAME EXT)
 
     source_group (TREE ${CMAKE_SOURCE_DIR} FILES ${TOGROUP})
 
-   
+    #add flecs
+    add_subdirectory(External/flecs)
+    target_link_libraries(${NAME} PRIVATE flecs::flecs_static)
 
 
     if (NOT DISABLE_SHADER_COMPILATION)
