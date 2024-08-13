@@ -35,7 +35,7 @@ void VGeomLoader::Load(uint32_t modelID, void* buffer, uint32_t clusterOffset, u
 	fread(buffer, clusterlenght, 1, f);
 }
 
-void UnInit() {
+void VGeomLoader::UnInit() {
 	for (auto const& [key, val] : models)
 	{
 		fclose(val);
