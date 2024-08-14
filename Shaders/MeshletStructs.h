@@ -21,11 +21,15 @@ struct MeshletDesc {
 	uint32_t vertTriCount; // 16bit vertex, 16bit index 
 
 	uint32_t modelID;
+
+	// only for loading
+	uint32_t clusterOffset;
+	uint32_t clusterLenght;
 };
 
 struct MeshletLoadDesc {
 	uint32_t offset;
-	uint32_t vertTriCount; // 16bit vertex, 16bit index 
+	//uint32_t vertTriCount; // 16bit vertex, 16bit index 
 
 	uint32_t modelID;
 	uint32_t clusterOffset;

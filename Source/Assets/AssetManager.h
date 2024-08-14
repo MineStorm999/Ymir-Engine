@@ -4,10 +4,13 @@
 #include "../JSON/json.hpp"
 #include <memory>
 
+#include "../../../Shaders/MeshletStructs.h"
+
+
 enum AssetType
 {
 	None,
-	VModel,
+	VirtualModel,
 	Texture,
 	Material,
 	Audio
@@ -18,7 +21,7 @@ namespace std {
 	inline string to_string(AssetType t) {
 		switch (t)
 		{
-		case AssetType::VModel:
+		case AssetType::VirtualModel:
 			return "VModel";
 		case AssetType::Texture:
 			return "Texture";
@@ -40,10 +43,12 @@ public:
 
 class VModel : AssetBase {
 public:
-	VModel() { type = AssetType::VModel; };
+	VModel() { type = AssetType::VirtualModel; };
 
 	uint32_t ID{};
 	uint32_t DefaultTexture{};
+
+	std::vector<MeshletDesc> meshlets;
 };
 
 class Material : AssetBase

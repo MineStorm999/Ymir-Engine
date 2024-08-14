@@ -4,7 +4,7 @@
 
 
 #define EDITOR
-namespace SV {
+
 
 	bool m_useTerminal;
 	bool m_MakeTable; // todo
@@ -303,4 +303,3 @@ namespace SV {
 #endif // EDITOR
 	}
 
-}

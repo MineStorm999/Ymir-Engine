@@ -13,7 +13,6 @@
 #include <ctime>
 #include <iomanip>
 
-namespace SV {
 	class Log
 	{
 	public:
@@ -51,4 +50,3 @@ namespace SV {
 
 		static void Show();
 	};
-}
