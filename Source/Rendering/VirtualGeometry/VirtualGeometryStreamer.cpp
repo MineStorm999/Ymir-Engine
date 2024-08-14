@@ -1,7 +1,7 @@
 #include "VirtualGeometryStreamer.h"
 
 #include "NRIFramework.h"
-#include "../../../Shaders/MeshletStructs.h"
+#include "MeshletStructs.h"
 
 #include <unordered_map>
 #include <string.h>

@@ -4,7 +4,8 @@
 
 #include "NRICompatibility.hlsli"
 #include "../Shaders/SceneViewerBindlessStructs.h"
-
+#include "Rendering/VirtualGeometry/VirtualGeometryBuilder.h"
+#include "Log/Log.h"
 #include <array>
 #include <chrono>
 
@@ -143,6 +144,7 @@ Sample::~Sample()
 
 bool Sample::Initialize(nri::GraphicsAPI graphicsAPI)
 {
+    Log::Init();
     if (graphicsAPI == nri::GraphicsAPI::D3D11) {
         printf("This sample supports only D3D12 and Vulkan.");
         return false;
@@ -733,6 +735,8 @@ bool Sample::Initialize(nri::GraphicsAPI graphicsAPI)
     auto f_secs = std::chrono::duration_cast<std::chrono::duration<float>>(dur);
 
     std::cout << "Buffer Creation & stuff took: " << f_secs.count() << "seconds\n";
+
+    VirtualGeometryBuilder::BuildVG(sceneFile, "Test", true);
 
     return InitUI(NRI, NRI, *m_Device, swapChainFormat);
 }

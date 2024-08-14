@@ -4,7 +4,7 @@
 #include "../JSON/json.hpp"
 #include <memory>
 
-#include "../../../Shaders/MeshletStructs.h"
+#include "../Rendering/VirtualGeometry/MeshletStructs.h"
 
 
 enum AssetType
