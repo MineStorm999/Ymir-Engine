@@ -21,6 +21,7 @@ set (CMAKE_CXX_STANDARD 17)
 set (CMAKE_CXX_STANDARD_REQUIRED ON)
 set (CMAKE_C_STANDARD 99)
 
+
 if (MSVC)
     set (CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 endif ()
@@ -174,6 +175,7 @@ function (add_sample NAME EXT)
     #add MeshOpt
     add_subdirectory(External/meshoptimizer)
     target_link_libraries(${NAME} PRIVATE meshoptimizer)
+
 
     if (NOT DISABLE_SHADER_COMPILATION)
         add_dependencies (${NAME} ${PROJECT_NAME}_Shaders)

@@ -8,5 +8,5 @@ class VirtualGeometryBuilder {
 public:
 	VirtualGeometryBuilder() {};
 
-	static AssetBase* BuildVG(std::string inPath, bool forceUpdate);
+	static void BuildVG(std::string inPath, std::string name, bool forceUpdate);
 };
