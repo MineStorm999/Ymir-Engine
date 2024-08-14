@@ -3,3 +3,12 @@
 	url = https://github.com/NVIDIAGameWorks/NRIFramework.git
 	branch = main
 	update = merge
+[submodule "External/EnTT"]
+	path = External/EnTT
+	url = https://github.com/skypjack/entt.git
+[submodule "External/meshoptimizer"]
+	path = External/meshoptimizer
+	url = https://github.com/zeux/meshoptimizer.git
+[submodule "Source/MeshOptimizer"]
+	path = Source/MeshOptimizer
+	url = https://github.com/zeux/meshoptimizer.git

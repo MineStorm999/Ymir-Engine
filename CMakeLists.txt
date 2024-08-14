@@ -167,10 +167,13 @@ function (add_sample NAME EXT)
 
     source_group (TREE ${CMAKE_SOURCE_DIR} FILES ${TOGROUP})
 
-    #add flecs
-    add_subdirectory(External/flecs)
-    target_link_libraries(${NAME} PRIVATE flecs::flecs_static)
+    #add EnTT
+    add_subdirectory(External/EnTT)
+    target_link_libraries(${NAME} PRIVATE EnTT::EnTT)
 
+    #add EnTT
+    add_subdirectory(External/EnTT)
+    target_link_libraries(${NAME} PRIVATE EnTT::EnTT)
 
     if (NOT DISABLE_SHADER_COMPILATION)
         add_dependencies (${NAME} ${PROJECT_NAME}_Shaders)
