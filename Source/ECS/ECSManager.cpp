@@ -1,20 +1,28 @@
 #include "ECSManager.h"
-/*
-flecs::world curWorld;
 
-flecs::world& EntityManager::GetWorld()
+
+#include <functional>
+#include "components.h"
+#include <unordered_map>
+
+
+ECSWorld* curWorld;
+
+
+ECSWorld& EntityManager::GetWorld()
 {
-    return curWorld;
+    return *curWorld;
 }
 
-void EntityManager::SetWorld(flecs::world w)
+void EntityManager::SetWorld(ECSWorld* w)
 {
     curWorld = w;
+    Init();
 }
 
-flecs::world& EntityManager::LoadWorld(nlohmann::json& json)
+ECSWorld& EntityManager::LoadWorld(nlohmann::json& json)
 {
-    flecs::world* ret = new flecs::world();
+    ECSWorld* ret = new ECSWorld();
 
     // temp!!!!
     json.is_binary();
@@ -22,11 +30,61 @@ flecs::world& EntityManager::LoadWorld(nlohmann::json& json)
     return *ret;
 }
 
-nlohmann::json EntityManager::SerializeWorld(flecs::world& w)
+nlohmann::json EntityManager::SerializeWorld(ECSWorld& w)
 {
     // temp
-    w.entity("Your Mom (Temp)");
+    entt::entity e = w.create();
+    w.emplace<Transform>(e);
     //flecs::string val = w.to_json();
     return nlohmann::json();
 }
-*/
+
+void EntityManager::UpdateMatrizes()
+{
+    auto t = GetWorld().group<Transform>();
+    t.each([](Transform& t){
+        if (t.changed) {
+            t.localMat.SetupByRotationYPR(t.localRot.x, t.localRot.y, t.localRot.z);
+            
+            t.localMat.SetTranslation(t.localPos);
+            
+            t.localMat.AddScale(t.localScale);
+        }
+        t.changed = false;
+        });
+}
+
+
+void EntityManager::Init()
+{
+    if (!curWorld) {
+        return;
+    }
+
+    auto transforms = curWorld->group<Transform>();
+    auto renderer = curWorld->group<Transform, MeshInstance>();
+}
+
+entt::entity EntityManager::CreateEntity(std::string name)
+{
+    entt::entity e = curWorld->create();
+    Identity& id = curWorld->emplace<Identity>(e);
+    id.name = name;
+
+    curWorld->emplace<Transform>(e);
+    return e;
+}
+
+entt::entity EntityManager::CreateEntity(std::string name, entt::entity parent)
+{
+    entt::entity e = curWorld->create();
+    Identity& id = curWorld->emplace<Identity>(e);
+    id.name = name;
+    id.parent = parent;
+
+    curWorld->emplace<Transform>(e);
+    return e;
+}
+
+
+

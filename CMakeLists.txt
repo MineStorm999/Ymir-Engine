@@ -171,9 +171,9 @@ function (add_sample NAME EXT)
     add_subdirectory(External/EnTT)
     target_link_libraries(${NAME} PRIVATE EnTT::EnTT)
 
-    #add EnTT
-    add_subdirectory(External/EnTT)
-    target_link_libraries(${NAME} PRIVATE EnTT::EnTT)
+    #add MeshOpt
+    add_subdirectory(External/meshoptimizer)
+    target_link_libraries(${NAME} PRIVATE meshoptimizer)
 
     if (NOT DISABLE_SHADER_COMPILATION)
         add_dependencies (${NAME} ${PROJECT_NAME}_Shaders)

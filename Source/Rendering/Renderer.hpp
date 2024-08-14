@@ -1,4 +1,4 @@
-#include "#include "NRIFramework.h"
+#include "NRIFramework.h"
 
 #include "NRICompatibility.hlsli""
 

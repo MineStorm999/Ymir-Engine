@@ -1,7 +1,7 @@
 #pragma once
 #include <memory>
 
-class VGeomLoader {
+class VirualGeometryStreamer {
 
 	static void Init();
 

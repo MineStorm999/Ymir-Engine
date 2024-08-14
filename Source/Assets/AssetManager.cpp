@@ -4,7 +4,7 @@
 #include <functional>
 
 using AssetMap = std::unordered_map<std::string, AssetBase*>;
-using LoadMap = std::unordered_map<AssetType, std::function<AssetBase*>(std::string)>;
+using LoadMap = std::unordered_map<AssetType, std::function<AssetBase*(std::string)>>;
 
 AssetMap map;
 LoadMap loadMap;

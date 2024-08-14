@@ -40,7 +40,7 @@ public:
 
 class VModel : AssetBase {
 public:
-	VModel() { type == AssetType::VModel; };
+	VModel() { type = AssetType::VModel; };
 
 	uint32_t ID{};
 	uint32_t DefaultTexture{};
@@ -49,7 +49,7 @@ public:
 class Material : AssetBase
 {
 public:
-	Material() { type == AssetType::Material; };
+	Material() { type = AssetType::Material; };
 	uint32_t ID{};
 };
 

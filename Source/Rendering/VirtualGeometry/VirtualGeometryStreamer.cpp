@@ -1,24 +1,24 @@
-#include "VirtualGeometryLoader.h"
+#include "VirtualGeometryStreamer.h"
 
 #include "NRIFramework.h"
-#include "../../Shaders/MeshletStructs.h"
+#include "../../../Shaders/MeshletStructs.h"
 
 #include <unordered_map>
 #include <string.h>
 
- 
+
 
 using ModelMap = std::unordered_map<uint32_t, FILE*>;
 
 ModelMap models;
 
-void VGeomLoader::Init()
+void VirualGeometryStreamer::Init()
 {
 
 }
 
 
-void VGeomLoader::Load(uint32_t modelID, void* buffer, uint32_t clusterOffset, uint32_t clusterlenght)
+void VirualGeometryStreamer::Load(uint32_t modelID, void* buffer, uint32_t clusterOffset, uint32_t clusterlenght)
 {
 	if (models.find(modelID) == models.end()) {
 		return;
@@ -35,7 +35,7 @@ void VGeomLoader::Load(uint32_t modelID, void* buffer, uint32_t clusterOffset, u
 	fread(buffer, clusterlenght, 1, f);
 }
 
-void VGeomLoader::UnInit() {
+void VirualGeometryStreamer::UnInit() {
 	for (auto const& [key, val] : models)
 	{
 		fclose(val);
