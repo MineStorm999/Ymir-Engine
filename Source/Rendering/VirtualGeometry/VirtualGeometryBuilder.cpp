@@ -8,7 +8,7 @@
 
 #include "MeshletStructs.h"
 
-
+#include "Utils.h"
 
 
 VModel* VirtualGeometryBuilder::BuildVG(std::string inPath, std::string name, bool forceUpdate)
@@ -90,7 +90,7 @@ VModel* VirtualGeometryBuilder::BuildVG(std::string inPath, std::string name, bo
 
 
 
-    std::string outPath;
+    std::string outPath = utils::GetFullPath(name, utils::DataFolder::VIRTUALMESH);
 
     FILE* virtualModel = fopen(inPath.c_str(), "r");
     if (virtualModel) {
@@ -104,7 +104,7 @@ VModel* VirtualGeometryBuilder::BuildVG(std::string inPath, std::string name, bo
         }
     }
 
-    //virtualModel = fopen(inPath.c_str(), "w");
+    virtualModel = fopen(inPath.c_str(), "w");
     scene.UnloadGeometryData();
     scene.UnloadTextureData();
     return vModelDesc;

@@ -412,7 +412,10 @@ std::string utils::GetFullPath(const std::string& localPath, DataFolder dataFold
         path += "Scenes/";
     else if (dataFolder == DataFolder::TESTS)
         path = "Tests/"; // special folder stored in Git
-
+    else if (dataFolder == DataFolder::VIRTUALMESH)
+        path = "IMPORTANT_RESOURCES_DO_NOT_DELETE/VirtualMeshes";
+    else if (dataFolder == DataFolder::VIRTUALTEXTURE)
+        path = "IMPORTANT_RESOURCES_DO_NOT_DELETE/VirtualTexture";
     return path + localPath;
 }
 

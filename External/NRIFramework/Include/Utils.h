@@ -40,7 +40,9 @@ namespace utils
         SHADERS,
         TEXTURES,
         SCENES,
-        TESTS
+        TESTS,
+        VIRTUALMESH,
+        VIRTUALTEXTURE
     };
 
     enum class AnimationTrackType : uint8_t
