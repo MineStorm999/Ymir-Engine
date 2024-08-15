@@ -28,7 +28,7 @@ struct MeshletDesc {
 	uint32_t childOff;
 	uint32_t childCount;
 
-	uint32_t vertTriCount; // 16bit vertex, 16bit index 
+	uint32_t vertTriCount; // 16bit vertex, 8bit triCount(packed in 8bit), 8bit trieCount (round to 32bit for loading)  
 
 	uint32_t modelID;
 
@@ -39,7 +39,7 @@ struct MeshletDesc {
 
 struct MeshletLoadDesc {
 	uint32_t offset;
-	//uint32_t vertTriCount; // 16bit vertex, 16bit index 
+	//uint32_t vertTriCount; // 16bit vertex, 8bit triCount(packed in 8bit), 8bit trieCount (round to 32bit for loading)   
 
 	uint32_t modelID;
 	uint32_t clusterOffset;
@@ -48,7 +48,7 @@ struct MeshletLoadDesc {
 
 struct RenderCmd {
 	uint32_t offset;
-	uint32_t vertTriCount; // 16bit vertex, 16bit index 
+	uint32_t vertTriCount; // 16bit vertex, 8bit triCount(packed in 8bit), 8bit trieCount (round to 32bit for loading)  
 
 	uint32_t instanceID;
 };

@@ -122,7 +122,7 @@ public:
 
 protected:
     nri::MemoryAllocatorInterface m_MemoryAllocatorInterface = {};
-    std::string m_SceneFile = "Kitchen/kitchen.gltf";
+    std::string m_SceneFile = "MCRN_Donager/scene.gltf";
     GLFWwindow* m_Window = nullptr;
     Camera m_Camera;
     Timer m_Timer;

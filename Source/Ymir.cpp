@@ -736,7 +736,7 @@ bool Sample::Initialize(nri::GraphicsAPI graphicsAPI)
 
     std::cout << "Buffer Creation & stuff took: " << f_secs.count() << "seconds\n";
 
-    VirtualGeometryBuilder::BuildVG(sceneFile, "Test", true);
+    VirtualGeometryBuilder::BuildVG(sceneFile, "Test", true, false);
 
     return InitUI(NRI, NRI, *m_Device, swapChainFormat);
 }
