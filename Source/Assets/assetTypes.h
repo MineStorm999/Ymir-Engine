@@ -3,6 +3,8 @@
 #include <memory>
 #include "../Rendering/VirtualGeometry/MeshletStructs.h"
 
+
+
 struct MeshletDesc;
 
 enum AssetType
@@ -73,4 +75,38 @@ public:
 	// std::string matName;																		todo future
 
 	std::vector<struct MeshletDesc> meshlets;
+};
+
+
+struct Node
+{
+	Node(std::string n, Node* p) {
+		parent = p;
+		vName = n;
+		realName = "--Directory--";
+		if (parent) {
+			parent->childs.push_back(this);
+		}
+		type = AssetType::None;
+	};
+	Node(std::string n, Node* p, std::string rN, AssetType t) {
+		parent = p;
+		vName = n;
+
+		realName = rN;
+
+		if (parent) {
+			parent->childs.push_back(this);
+		}
+
+		type = t;
+	};
+	std::string vName;
+
+	Node* parent;
+	std::vector<Node*> childs;
+
+	AssetType type;
+
+	std::string realName;
 };

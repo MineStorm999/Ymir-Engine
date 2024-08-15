@@ -22,6 +22,8 @@ using LoadMap = std::unordered_map<AssetType, std::function<AssetBase*(std::stri
 
 using ExtendToType = std::unordered_map<std::string, AssetType>;
 
+using TypeToTextureMap = std::unordered_map<AssetType, AssetBase*>;
+
 AssetMap map;
 
 LoadMap loadMap;
@@ -30,9 +32,11 @@ LoadMap loadMap;
 ExtendToType extToTypeMap = { {"gltf", AssetType::VirtualModel}, {".gltf", AssetType::VirtualModel} };
 
 
-
+Node* curDir = nullptr;
 void AssetManager::Init()
 {
+    curDir = new Node("Root", nullptr);
+    
     // load map
     loadMap[AssetType::VirtualModel] = [](std::string name) {
         
@@ -103,18 +107,100 @@ AssetType importedType;
 std::string extend;
 std::string pt;
 
+std::string virtualPath;
+//std::string DirName = "--Directory--";
+
+AssetBase* curInspected = nullptr;
+
+
+
 void AssetManager::Update()
 {
+    AssetImporter();
+    AssetExplorer();
+    AssetInspector();
+}
+
+void AssetManager::GoBack()
+{
+    if (curDir->parent) {
+        curDir = curDir->parent;
+    }
+}
+
+void AssetManager::Open(Node* n)
+{
+    if (!n) {
+        return;
+    }
+
+    if (n->realName == "--Directory--") {
+        curDir = n;
+    }
+    else {
+        curInspected = map[n->realName];
+    }
+}
+float size = 1;
+void AssetManager::AssetExplorer()
+{
     
+
     ImGui::Begin("AssetManager");
-                                            // todo
+
+    if (ImGui::Button("<---")) {
+        GoBack();
+    }
+
+    ImGui::SameLine();
+    ImGui::SliderFloat("Size", &size, .1f, 3);
+    ImGui::SameLine();
+    if (ImGui::Button("New Folder")) {
+        AddFolder("new folder");
+    }
+    ImGui::SameLine();
+    
     if (ImGui::Button("Import Asset")) {
         importedType = AssetType::None;
         isImPorting = true;
     }
+    
+
+    float width = ImGui::GetContentRegionAvail().x;
+    unsigned int wouldFit = width / (size * 144);
+
+    uint32_t x = 0;
+    uint32_t i = 0;
+
+    for (Node* n : curDir->childs)
+    {
+        if (x >= wouldFit) {
+            x = 0;
+        }
+        else {
+            if (i > 0) {
+                ImGui::SameLine();
+            }
+            
+        }
+        ImGui::BeginGroup();
+        ImGui::PushID(i);
+        if (ImGui::Button(n->vName.c_str(), ImVec2(144*size, 144*size))) {
+            Open(n);
+        }
+        ImGui::Text(n->vName.c_str());
+        ImGui::PopID();
+        ImGui::EndGroup();
+
+        x++;
+        i++;
+    }
 
     ImGui::End();
+}
 
+void AssetManager::AssetImporter()
+{
     if (!isImPorting) {
         return;
     }
@@ -130,7 +216,7 @@ void AssetManager::Update()
     if (pt.find(".") != std::string::npos) {
         extend = pt.substr(pt.find_last_of("."), pt.length() - pt.find_last_of("."));
     }
-    
+
 
     if (extToTypeMap.find(extend) != extToTypeMap.end()) {
         importedType = extToTypeMap[extend];
@@ -145,12 +231,12 @@ void AssetManager::Update()
         ImGui::Button("Import");
         break;
     case VirtualModel:
-        
+
         ImGui::Text("Type: Model");
         ImGui::Checkbox("Treat As Single Model", &singleModel);
 
         if (ImGui::Button("Import")) {
-            
+
             if (map.find(name) != map.end()) {
                 Log::Warning("Asset Manager", "Name Already Taken");
                 ImGui::End();
@@ -160,9 +246,14 @@ void AssetManager::Update()
             if (!singleModel) {
                 std::vector<VModel*> assets = VirtualGeometryBuilder::BuildVG(path, name, true, false);
 
-                for (uint32_t i = 0; i<assets.size();i++)
+                for (uint32_t i = 0; i < assets.size();i++)
                 {
-                    map[(std::string(name) + "_subM" + std::to_string(i))] = dynamic_cast<AssetBase*>(assets[i]);
+                    AssetBase* asset = dynamic_cast<AssetBase*>(assets[i]);
+                    if (!asset) {
+                        continue;
+                    }
+                    RegisterAsset(asset, std::string(name) + "_subM" + std::to_string(i));
+                    //map[(std::string(name) + "_subM" + std::to_string(i))] = dynamic_cast<AssetBase*>(assets[i]);
                 }
             }
             else {
@@ -172,7 +263,7 @@ void AssetManager::Update()
                     ImGui::End();
                     return;
                 }
-                map[name] = asset;
+                RegisterAsset(asset, name);
             }
 
             isImPorting = false;
@@ -188,6 +279,29 @@ void AssetManager::Update()
     ImGui::End();
 }
 
+void AssetManager::AssetInspector()
+{
+    //                                                      todo
+}
+
+void AssetManager::RegisterAsset(AssetBase* asset, std::string name)
+{
+    if (map.find(name) != map.end()) {
+        Log::Warning("Asset Manager", "Name Already Taken");
+        ImGui::End();
+        return;
+    }
+
+    map[name] = asset;
+
+    Node* n = new Node(name, curDir, name);
+}
+
+void AssetManager::AddFolder(std::string name)
+{
+    Node* n = new Node(name, curDir);
+}
+
 AssetBase* AssetManager::GetAsset(std::string name)
 {
     if (map.find(name) == map.end())
@@ -195,3 +309,8 @@ AssetBase* AssetManager::GetAsset(std::string name)
 
     return map[name];
 }
+
+
+
+
+
