@@ -42,7 +42,9 @@ namespace utils
         SCENES,
         TESTS,
         VIRTUALMESH,
-        VIRTUALTEXTURE
+        VIRTUALTEXTURE,
+        VIRTUALMESHDESC,
+        SAVEFILES
     };
 
     enum class AnimationTrackType : uint8_t

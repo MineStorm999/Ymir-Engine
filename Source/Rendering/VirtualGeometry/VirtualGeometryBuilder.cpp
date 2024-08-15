@@ -1,6 +1,6 @@
 #include "VirtualGeometryBuilder.h"
 
-#include "NRIFramework.h"
+
 
 #include "meshoptimizer.h"
 
@@ -12,13 +12,21 @@
 
 #include "../../Assets/exts.h"
 
+
+
+struct VModelDescHead
+{
+    // 
+
+    uint32_t meshletCount;
+};
+
+
+
 VModel* VirtualGeometryBuilder::BuildVGImpl(std::vector<unsigned int> indices, std::vector<utils::Vertex> vertices, std::string name, bool forceUpdate)
 {
-    
-
-    
-
     VModel* vModelDesc = new VModel();
+    
     
     std::string outPath = utils::GetFullPath(name, utils::DataFolder::VIRTUALMESH) + VModelExt;
 
@@ -27,13 +35,32 @@ VModel* VirtualGeometryBuilder::BuildVGImpl(std::vector<unsigned int> indices, s
         fclose(outData);
         if (!forceUpdate) {
             Log::Warning("File alsready Exists, stopping");
-            return nullptr;
+            //return nullptr;
         }
         else {
             Log::Message("File alsready Exists, continuing");
         }
     }
 
+    std::string vMDescP = utils::GetFullPath(name, utils::DataFolder::VIRTUALMESHDESC) + VModelDescExt;
+    FILE* vMDescCache = fopen(vMDescP.c_str(), "r");
+    if (vMDescCache) {
+        if (!forceUpdate) {
+            Log::Message("File alsready Exists, using cache");
+
+            VModelDescHead head;
+            fread(&head, sizeof(head), 1, vMDescCache);
+
+            vModelDesc->meshlets.resize(head.meshletCount);
+            fread(vModelDesc->meshlets.data(), sizeof(MeshletDesc), head.meshletCount, vMDescCache);
+            Log::Message("Cached VModel had " + std::to_string(vModelDesc->meshlets.size()) + "meshlets");
+            return vModelDesc;
+        }
+        else {
+            Log::Message("File alsready Exists, continuing");
+        }
+    }
+    vMDescCache = fopen(vMDescP.c_str(), "w");
     outData = fopen(outPath.c_str(), "w");
 
     std::vector<float> pos;
@@ -76,6 +103,8 @@ VModel* VirtualGeometryBuilder::BuildVGImpl(std::vector<unsigned int> indices, s
 
     Vertex* dummyVert = new Vertex();
     uint8_t* zero = new uint8_t(0);
+
+    uint32_t wPtr = 0;
 
     int i = 0;
     for (meshopt_Meshlet& m : meshlets)
@@ -137,6 +166,12 @@ VModel* VirtualGeometryBuilder::BuildVGImpl(std::vector<unsigned int> indices, s
             fwrite(zero, sizeof(uint8_t), rem, outData);
         }
 
+        mDesc.clusterOffset = wPtr;
+        uint32_t lenght = (sizeof(Vertex) * m.vertex_count) + (sizeof(uint8_t) * m.triangle_count * 3);
+        mDesc.clusterLenght = lenght;
+
+        wPtr += lenght;
+
         uint32_t vertTriCount = m.vertex_count;
         vertTriCount << (uint8_t)m.triangle_count;
         vertTriCount << rCount;
@@ -153,6 +188,11 @@ VModel* VirtualGeometryBuilder::BuildVGImpl(std::vector<unsigned int> indices, s
     delete zero;
 
     Log::Message("Finished Mesh");
+
+    VModelDescHead h = { vModelDesc->meshlets.size() };
+
+    fwrite(&h, sizeof(VModelDescHead), 1, vMDescCache);
+    fwrite(vModelDesc->meshlets.data(), sizeof(MeshletDesc), vModelDesc->meshlets.size(), vMDescCache);
 
     return vModelDesc;
 }
@@ -205,4 +245,41 @@ std::vector<VModel*> VirtualGeometryBuilder::BuildVG(std::string inPath, std::st
     scene.UnloadTextureData();
 
     return ret;
+}
+
+VModel* VirtualGeometryBuilder::LoadCached(std::string name)
+{
+    Log::Message("Load Cached Virtual Model: " + name);
+    VModel* vModelDesc = new VModel();
+
+
+    std::string outPath = utils::GetFullPath(name, utils::DataFolder::VIRTUALMESH) + VModelExt;
+
+    FILE* outData = fopen(outPath.c_str(), "r");
+    if (outData) {
+        fclose(outData);
+    }
+    else {
+        Log::Error("Model Data Not Cached!!!");
+        return nullptr;
+    }
+
+    std::string vMDescP = utils::GetFullPath(name, utils::DataFolder::VIRTUALMESHDESC) + VModelDescExt;
+    FILE* vMDescCache = fopen(vMDescP.c_str(), "r");
+    if (vMDescCache) {
+        VModelDescHead head;
+        fread(&head, sizeof(head), 1, vMDescCache);
+
+        vModelDesc->meshlets.resize(head.meshletCount);
+        fread(vModelDesc->meshlets.data(), sizeof(MeshletDesc), head.meshletCount, vMDescCache);
+        Log::Message("Cached VModel had " + std::to_string(vModelDesc->meshlets.size()) + "meshlets");
+        return vModelDesc;
+    }
+    Log::Error("Model Descriptors Not Cached!!!");
+    return nullptr;
+}
+
+VModel::VModel()
+{
+    type = AssetType::VirtualModel;
 }

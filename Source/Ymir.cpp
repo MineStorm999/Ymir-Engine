@@ -3,9 +3,14 @@
 #include "NRIFramework.h"
 
 #include "NRICompatibility.hlsli"
+
+#include "Assets/AssetManager.h"
+
 #include "../Shaders/SceneViewerBindlessStructs.h"
-#include "Rendering/VirtualGeometry/VirtualGeometryBuilder.h"
+
 #include "Log/Log.h"
+
+
 #include <array>
 #include <chrono>
 
@@ -36,6 +41,8 @@ enum SceneBuffers
 
     MAX_NUM
 };
+
+
 
 struct NRIInterface
     : public nri::CoreInterface
@@ -145,6 +152,7 @@ Sample::~Sample()
 bool Sample::Initialize(nri::GraphicsAPI graphicsAPI)
 {
     Log::Init();
+    AssetManager::Init();
     if (graphicsAPI == nri::GraphicsAPI::D3D11) {
         printf("This sample supports only D3D12 and Vulkan.");
         return false;
@@ -736,7 +744,7 @@ bool Sample::Initialize(nri::GraphicsAPI graphicsAPI)
 
     std::cout << "Buffer Creation & stuff took: " << f_secs.count() << "seconds\n";
 
-    VirtualGeometryBuilder::BuildVG(sceneFile, "Test", true, false);
+    
 
     return InitUI(NRI, NRI, *m_Device, swapChainFormat);
 }
@@ -744,6 +752,9 @@ bool Sample::Initialize(nri::GraphicsAPI graphicsAPI)
 void Sample::PrepareFrame(uint32_t frameIndex)
 {
     BeginUI();
+
+    Log::Show();
+    AssetManager::Update();
 
     // TODO: delay is not implemented
     nri::PipelineStatisticsDesc* pipelineStats = (nri::PipelineStatisticsDesc*)NRI.MapBuffer(*m_Buffers[READBACK_BUFFER], 0, sizeof(nri::PipelineStatisticsDesc));
