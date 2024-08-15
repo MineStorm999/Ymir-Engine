@@ -21,24 +21,38 @@ VModel* VirtualGeometryBuilder::BuildVG(std::string inPath, std::string name, bo
 
     VModel* vModelDesc = new VModel();
     
-    
+    std::string outPath = utils::GetFullPath(name, utils::DataFolder::VIRTUALMESH);
+
+    FILE* outData = fopen(inPath.c_str(), "r");
+    if (outData) {
+        fclose(outData);
+        if (!forceUpdate) {
+            Log::Warning("File alsready Exists, stopping");
+            return nullptr;
+        }
+        else {
+            Log::Message("File alsready Exists, continuing");
+        }
+    }
+
+    outData = fopen(inPath.c_str(), "w");
 
     std::vector<float> pos;
     pos.reserve(scene.vertices.size() * 3);
 
+    float id = 0;
     for (uint32_t i = 0; i< scene.vertices.size(); i++)
     {
         utils::Vertex& v = scene.vertices[i];
         pos.push_back(v.pos[0]);
         pos.push_back(v.pos[1]);
         pos.push_back(v.pos[2]);
-        pos.push_back(i);
+        pos.push_back(id);
+
+        id++;
     }
 
-    uint32_t curWritePos = 0;
-
-    //                                                                                          temp
-    curWritePos += 0;
+   
 
     uint32_t maxVerts = 64;
     uint32_t maxTries = 128;
@@ -64,28 +78,7 @@ VModel* VirtualGeometryBuilder::BuildVG(std::string inPath, std::string name, bo
 
     vModelDesc->meshlets.reserve(meshlets.size());
 
-
-    void* streamData = malloc((sizeof(Vertex) * meshlet_vertices.size()) + meshlet_triangles.size());
-    std::vector<Vertex> meshletVerts(meshlet_vertices.size());
-
-    for (uint32_t i = 0; i < meshlet_vertices.size(); i++)
-    {
-        Vertex& v = meshletVerts[i];
-        float4 posI = { meshlet_vertices[(i * 4)], meshlet_vertices[(i * 4) + 1],
-            meshlet_vertices[(i * 4) + 2],meshlet_vertices[(i * 4) + 3] };
-
-        utils::Vertex& oldV = scene.vertices[meshlet_vertices[(i * 4) + 3]];
-
-       
-        if (!(v.pos.x == posI.x && v.pos.y == posI.y && v.pos.z == posI.z)) {
-            Log::Error("New And Old Pos Not Same");
-            return nullptr;
-        }
-
-        v.pos = oldV.pos;
-        v.norm = { oldV.N, oldV.uv.x };
-        v.tangent = { oldV.T, oldV.uv.y };
-    }
+    //Vertex* dummyVert = new Vertex();
 
     int i = 0;
     for (meshopt_Meshlet& m : meshlets)
@@ -117,26 +110,28 @@ VModel* VirtualGeometryBuilder::BuildVG(std::string inPath, std::string name, bo
         //                                              todo child count
 
         vModelDesc->meshlets.push_back(mDesc);
+
+        
+        for (uint32_t ver = 0; ver < m.vertex_count; ver++)
+        {
+            uint32_t vert = meshlet_vertices[ver + m.vertex_offset];
+            float3 pso = { pos[vert * 4 + 0], pos[vert * 4 + 1], pos[vert * 4 + 2] };
+            uint32_t id = pos[vert * 4 + 3];
+
+            //uint32_t id = meshlet_vertices[m.vertex_offset + (vert * 4) + 3];
+            if (!(scene.vertices[id].pos[0] == pso.x && scene.vertices[id].pos[1] == pso.y && scene.vertices[id].pos[2] == pso.z)) {
+
+            }
+        }
+        //fwrite( dummyVert, sizeof(Vertex), 1, outData);
     }
     
     // create 
 
 
-    std::string outPath = utils::GetFullPath(name, utils::DataFolder::VIRTUALMESH);
+    
 
-    FILE* virtualModel = fopen(inPath.c_str(), "r");
-    if (virtualModel) {
-        fclose(virtualModel);
-        if (!forceUpdate) {
-            Log::Warning("File alsready Exists, stopping");
-            return nullptr;
-        }
-        else {
-            Log::Message("File alsready Exists, continuing");
-        }
-    }
-
-    virtualModel = fopen(inPath.c_str(), "w");
+    
     scene.UnloadGeometryData();
     scene.UnloadTextureData();
     return vModelDesc;
