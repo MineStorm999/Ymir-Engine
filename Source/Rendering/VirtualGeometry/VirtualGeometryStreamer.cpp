@@ -3,31 +3,66 @@
 #include "NRIFramework.h"
 #include "MeshletStructs.h"
 
-#include <unordered_map>
+
 #include <string.h>
 
+#include "../../Assets/exts.h"
 
+#include "../../Assets/AssetManager.h"
 
-using ModelMap = std::unordered_map<uint32_t, FILE*>;
-
-ModelMap models;
-
-void VirualGeometryStreamer::Init()
+void VirtualGeometryStreamer::Init()
 {
+	UnInit();
 
+	AssetMap& map = AssetManager::GetMap();
+
+	for (auto& asset : map)
+	{
+		if (asset.second->type != AssetType::VirtualModel) {
+			continue;
+		}
+		VModel* m = dynamic_cast<VModel*>(asset.second);
+		if (!m) {
+			continue;
+		}
+
+		std::string path = utils::GetFullPath(m->name, utils::DataFolder::VIRTUALMESH) + VModelExt;
+		FILE* modelData = fopen(path.c_str(), "r");
+
+		if (!modelData) {
+			continue;
+		}
+		
+		m->ID = models.size();
+
+		ModelDesc mD;
+
+		mD.meshletOffset = meshletDescs.size();
+		mD.meshletCount = m->meshlets.size();
+
+		meshletDescs.reserve(m->meshlets.size());
+		for (MeshletDesc& mlD : m->meshlets)
+		{
+			meshletDescs.push_back(mlD);
+		}
+
+		modelDescs.push_back(mD);
+
+		models.push_back(modelData);
+	}
 }
 
 
-void VirualGeometryStreamer::Load(uint32_t modelID, void* buffer, uint32_t clusterOffset, uint32_t clusterlenght)
+void VirtualGeometryStreamer::Load(uint32_t modelID, void* buffer, uint32_t clusterOffset, uint32_t clusterlenght)
 {
-	if (models.find(modelID) == models.end()) {
+	if (modelID >= models.size()|| modelID < 0) {
 		return;
 	}
 
 	FILE* f = models[modelID];
 
 	if (f == NULL) {
-		models.erase(modelID);
+		models.erase(models.begin() + modelID);
 		return;
 	}
 
@@ -35,9 +70,14 @@ void VirualGeometryStreamer::Load(uint32_t modelID, void* buffer, uint32_t clust
 	fread(buffer, clusterlenght, 1, f);
 }
 
-void VirualGeometryStreamer::UnInit() {
-	for (auto const& [key, val] : models)
+void VirtualGeometryStreamer::UnInit() {
+	for (auto& file : models)
 	{
-		fclose(val);
+		fclose(file);
 	}
+	models.clear();
+	modelDescs.clear();
+	meshletDescs.clear();
+
+	// needs to clear bindles buffers on GPU
 }

@@ -7,7 +7,7 @@
 
 #include "assetTypes.h"
 
-
+using AssetMap = std::unordered_map<AssetID, AssetBase*>;
 
 class AssetManager {
 public:
@@ -17,7 +17,7 @@ public:
 
 	static void Show();
 
-	
+	static AssetMap& GetMap();
 
 private:
 	static void GoBack();

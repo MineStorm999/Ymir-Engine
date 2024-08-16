@@ -48,8 +48,6 @@ enum SceneBuffers
     MAX_NUM
 };
 
-
-
 struct NRIInterface
     : public nri::CoreInterface
     , public nri::HelperInterface
@@ -107,6 +105,8 @@ private:
     std::vector<nri::Buffer*> m_Buffers;
     std::vector<nri::Memory*> m_MemoryAllocations;
     std::vector<nri::Descriptor*> m_Descriptors;
+
+    
 
     bool m_UseGPUDrawGeneration = true;
     nri::Format m_DepthFormat = nri::Format::UNKNOWN;

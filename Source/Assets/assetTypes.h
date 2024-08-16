@@ -8,6 +8,7 @@
 struct MeshletDesc;
 using AssetID = uint32_t;
 
+
 enum AssetType
 {
 	None,

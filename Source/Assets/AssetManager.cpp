@@ -15,8 +15,6 @@
 #include "Imgui/imgui.h"
 //#include "Imgui/misc/cpp/imgui_stdlib.h"
 
-using AssetMap = std::unordered_map<AssetID, AssetBase*>;
-
 using LoadMap = std::unordered_map<AssetType, std::function<AssetBase*(std::string, std::string)>>;
 
 
@@ -153,6 +151,11 @@ void AssetManager::Show()
 {
     AssetImporter();
     AssetExplorer();
+}
+
+AssetMap& AssetManager::GetMap()
+{
+    return map;
 }
 
 void AssetManager::GoBack()

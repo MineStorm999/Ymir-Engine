@@ -16,7 +16,7 @@
 
 struct VModelDescHead
 {
-    // 
+    //
 
     uint32_t meshletCount;
 };
@@ -160,11 +160,7 @@ VModel* VirtualGeometryBuilder::BuildVGImpl(std::vector<unsigned int> indices, s
 
 
         fwrite(&meshlet_triangles[m.triangle_offset], m.triangle_count * 3 * sizeof(uint8_t), 1, outData);
-        uint8_t rem = m.triangle_count % 4;
-        uint8_t rCount = (uint8_t)ceil((float)m.triangle_count / 4.f);
-        if (rem > 0) {
-            fwrite(zero, sizeof(uint8_t), rem, outData);
-        }
+        
 
         mDesc.clusterOffset = wPtr;
         uint32_t lenght = (sizeof(Vertex) * m.vertex_count) + (sizeof(uint8_t) * m.triangle_count * 3);
@@ -172,8 +168,8 @@ VModel* VirtualGeometryBuilder::BuildVGImpl(std::vector<unsigned int> indices, s
 
         wPtr += lenght;
 
-        uint16_t triCounts = ((uint16_t)m.triangle_count << 8) | rCount;
-        uint32_t vertTriCount = (m.vertex_count << 16) | triCounts;
+        
+        uint32_t vertTriCount = (m.vertex_count << 16) | (uint16_t)m.triangle_count;
         
         mDesc.vertTriCount = vertTriCount;
         vModelDesc->meshlets.push_back(mDesc);

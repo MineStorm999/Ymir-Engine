@@ -1,11 +1,24 @@
 #pragma once
 #include <memory>
+#include <unordered_map>
 
-class VirualGeometryStreamer {
+#include "../../Assets/AssetManager.h"
+#include "MeshletStructs.h"
 
-	static void Init();
+using ModelMap = std::vector<FILE*>;
 
-	static void Load(uint32_t modelID, void* buffer, uint32_t clusterOffset, uint32_t clusterlenght);
+class VirtualGeometryStreamer {
+public:
+	void Init();
 
-	static void UnInit();
+	void Load(uint32_t modelID, void* buffer, uint32_t clusterOffset, uint32_t clusterlenght);
+
+	void UnInit();
+
+public:
+	std::vector<ModelDesc> modelDescs;
+	std::vector<MeshletDesc> meshletDescs;
+	
+private:
+	ModelMap models;
 };

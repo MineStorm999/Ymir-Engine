@@ -23,6 +23,7 @@ set (CMAKE_C_STANDARD 99)
 
 
 
+
 if (MSVC)
     set (CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 endif ()
