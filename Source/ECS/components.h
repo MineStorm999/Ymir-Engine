@@ -1,7 +1,7 @@
 #pragma once
 
 #include "NRIFramework.h"
-
+#include "entt/entt.hpp"
 struct Transform {
 	float4x4 localMat;
 	

@@ -12,10 +12,10 @@
 class AssetManager {
 public:
 	static void Init();
-	static AssetBase* Import(std::string path, std::string name);
+	//static AssetBase* Import(std::string path, AssetID name);
 	static void Save();
 
-	static void Update();
+	static void Show();
 
 	
 
@@ -25,10 +25,14 @@ private:
 
 	static void AssetExplorer();
 	static void AssetImporter();
-	static void AssetInspector();
-	static void RegisterAsset(AssetBase* asset, std::string name);
+	
+	
+	static AssetID RegisterAsset(AssetBase* asset);
 	static void AddFolder(std::string name);
+	static void Delete(AssetID name);
 
+	static nlohmann::json SaveDir(Node* n);
+	static Node* LoadDir(nlohmann::json& j, Node* parent);
 
-	static AssetBase* GetAsset(std::string name);
+	static AssetBase* GetAsset(AssetID name);
 };

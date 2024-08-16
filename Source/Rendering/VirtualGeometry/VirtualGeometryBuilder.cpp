@@ -23,7 +23,7 @@ struct VModelDescHead
 
 
 
-VModel* VirtualGeometryBuilder::BuildVGImpl(std::vector<unsigned int> indices, std::vector<utils::Vertex> vertices, std::string name, bool forceUpdate)
+VModel* VirtualGeometryBuilder::BuildVGImpl(std::vector<unsigned int> indices, std::vector<utils::Vertex> vertices, std::string name, bool forceUpdate, std::string path)
 {
     VModel* vModelDesc = new VModel();
     
@@ -194,6 +194,8 @@ VModel* VirtualGeometryBuilder::BuildVGImpl(std::vector<unsigned int> indices, s
     fwrite(&h, sizeof(VModelDescHead), 1, vMDescCache);
     fwrite(vModelDesc->meshlets.data(), sizeof(MeshletDesc), vModelDesc->meshlets.size(), vMDescCache);
 
+    vModelDesc->name = name;
+    vModelDesc->path = path;
     return vModelDesc;
 }
 
@@ -209,7 +211,7 @@ std::vector<VModel*> VirtualGeometryBuilder::BuildVG(std::string inPath, std::st
     if (buildAsSingleMesh) {
         
 
-        ret.push_back(BuildVGImpl(scene.indices, scene.vertices, name, forceUpdate));
+        ret.push_back(BuildVGImpl(scene.indices, scene.vertices, name, forceUpdate, inPath));
 
         scene.UnloadGeometryData();
         scene.UnloadTextureData();
@@ -236,7 +238,23 @@ std::vector<VModel*> VirtualGeometryBuilder::BuildVG(std::string inPath, std::st
             vertices.push_back(scene.vertices[i + m.vertexOffset]);
         }
         
-        ret.push_back(BuildVGImpl(indices, vertices, name + "_subM" + std::to_string(mID), forceUpdate));
+        VModel* re = BuildVGImpl(indices, vertices, name + "_subM" + std::to_string(mID), forceUpdate, inPath);
+        if (!re) {
+            continue;
+        }
+
+        for (utils::Instance& inst : scene.instances)
+        {
+            if (inst.meshInstanceIndex == mID) {
+                Transform t{};
+                t.localPos = inst.position;
+                t.localRot = inst.rotation.GetRotationYPR();
+                t.localScale = inst.scale;
+                re->defaultTransforms.push_back(t);
+            }
+        }
+
+        ret.push_back(re);
 
         mID++;
     }
@@ -247,7 +265,7 @@ std::vector<VModel*> VirtualGeometryBuilder::BuildVG(std::string inPath, std::st
     return ret;
 }
 
-VModel* VirtualGeometryBuilder::LoadCached(std::string name)
+VModel* VirtualGeometryBuilder::LoadCached(std::string name, std::string path)
 {
     Log::Message("Load Cached Virtual Model: " + name);
     VModel* vModelDesc = new VModel();

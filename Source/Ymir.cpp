@@ -1,5 +1,7 @@
 // © 2021 NVIDIA Corporation
 
+
+
 #include "NRIFramework.h"
 
 #include "NRICompatibility.hlsli"
@@ -7,10 +9,14 @@
 #include "Assets/AssetManager.h"
 
 #include "../Shaders/SceneViewerBindlessStructs.h"
+#include "Rendering/VirtualGeometry/MeshletStructs.h"
+#include "Rendering/VirtualGeometry/VirtualGeometryStreamer.h"
+
+#include "../Shaders/cpu_gpu_shared.h"
 
 #include "Log/Log.h"
 
-
+#include "Editor/ToolBarWindowManager.h"
 #include <array>
 #include <chrono>
 
@@ -151,8 +157,8 @@ Sample::~Sample()
 
 bool Sample::Initialize(nri::GraphicsAPI graphicsAPI)
 {
-    Log::Init();
-    AssetManager::Init();
+    WindowManager::Init();
+
     if (graphicsAPI == nri::GraphicsAPI::D3D11) {
         printf("This sample supports only D3D12 and Vulkan.");
         return false;
@@ -753,8 +759,7 @@ void Sample::PrepareFrame(uint32_t frameIndex)
 {
     BeginUI();
 
-    Log::Show();
-    AssetManager::Update();
+    WindowManager::Show();
 
     // TODO: delay is not implemented
     nri::PipelineStatisticsDesc* pipelineStats = (nri::PipelineStatisticsDesc*)NRI.MapBuffer(*m_Buffers[READBACK_BUFFER], 0, sizeof(nri::PipelineStatisticsDesc));

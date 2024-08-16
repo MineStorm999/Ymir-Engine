@@ -1,0 +1,22 @@
+{
+    "Head": {
+        "Count": 0
+    },
+    "LastID": 0,
+    "VirtualFSys": {
+        "ChildCount": 1,
+        "Childs": {
+            "0": {
+                "ChildCount": 0,
+                "RealName": 4294967295,
+                "Test": true,
+                "Type": "None",
+                "VName": "Test"
+            }
+        },
+        "RealName": 4294967295,
+        "Test": true,
+        "Type": "None",
+        "VName": ""
+    }
+}

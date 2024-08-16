@@ -418,7 +418,7 @@ std::string utils::GetFullPath(const std::string& localPath, DataFolder dataFold
         path = "IMPORTANT_RESOURCES_DO_NOT_DELETE/VirtualTexture/";
     else if (dataFolder == DataFolder::VIRTUALMESHDESC)
         path = "IMPORTANT_RESOURCES_DO_NOT_DELETE/VirtualMesheDesc/";
-    else if (dataFolder == DataFolder::VIRTUALTEXTURE)
+    else if (dataFolder == DataFolder::SAVEFILES)
         path = "_SaveFiles/";
 
     return path + localPath;

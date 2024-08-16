@@ -36,10 +36,12 @@ void Camera::Update(const CameraDesc& desc, uint32_t frameIndex)
     float3 delta = desc.dLocal * desc.timeScale;
     delta.z *= desc.isPositiveZ ? 1.0f : -1.0f;
 
-    state.globalPosition += double3(vRight * delta.x);
-    state.globalPosition += double3(vUp * delta.y);
-    state.globalPosition += double3(vForward * delta.z);
-    state.globalPosition += double3(desc.dUser);
+    float speed = 100.f;
+
+    state.globalPosition += double3(vRight * delta.x * speed);
+    state.globalPosition += double3(vUp * delta.y * speed);
+    state.globalPosition += double3(vForward * delta.z * speed);
+    state.globalPosition += double3(desc.dUser * speed);
 
     if (desc.limits.IsValid())
         state.globalPosition = clamp(state.globalPosition, double3(desc.limits.vMin), double3(desc.limits.vMax));

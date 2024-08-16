@@ -36,7 +36,7 @@
 
 	void Log::Init()
 	{
-		m_useTerminal = true;
+		m_useTerminal = false;
 		m_MakeTable = false;
 
 		showMessages = true;
@@ -206,13 +206,17 @@
 			if (ShowFilter) {
 				ImGui::Checkbox("Show Messages", &showMessages);
 				ImGui::SameLine();
-				ImGui::Checkbox("Show Messages", &showErrors);
-				ImGui::SameLine();
 				ImGui::Checkbox("Show Warnings", &showWarnings);
+				ImGui::SameLine();
+				ImGui::Checkbox("Show Errors", &showErrors);
 
 				ImGui::Text("Show ");
 				for (auto& kv : filter)
 				{
+					if (kv.first == "") {
+						ImGui::Checkbox("Unknown", &kv.second);
+						continue;
+					}
 					ImGui::Checkbox(kv.first.c_str(), &kv.second);
 				}
 			}

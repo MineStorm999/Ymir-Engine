@@ -7,7 +7,7 @@
 
 
 ECSWorld* curWorld;
-
+entt::entity root;
 
 ECSWorld& EntityManager::GetWorld()
 {
@@ -17,6 +17,12 @@ ECSWorld& EntityManager::GetWorld()
 void EntityManager::SetWorld(ECSWorld* w)
 {
     curWorld = w;
+    if (w->group<Root>().size() <= 0) {
+        root = CreateEntity("Root");
+    }
+    else {
+        root = w->group<Root>()[0];
+    }
     Init();
 }
 
