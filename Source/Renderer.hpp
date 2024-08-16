@@ -4,6 +4,12 @@
 #include "../Shaders/cpu_gpu_shared.h"
 #include "Rendering/VirtualGeometry/VirtualGeometryStreamer.h"
 
+constexpr uint32_t GLOBAL_DESCRIPTOR_SET = 0;
+constexpr uint32_t MATERIAL_DESCRIPTOR_SET = 1;
+constexpr float CLEAR_DEPTH = 0.0f;
+constexpr uint32_t TEXTURES_PER_MATERIAL = 4;
+constexpr uint32_t BUFFER_COUNT = 3;
+
 struct NRIInterface
     : public nri::CoreInterface
     , public nri::HelperInterface
@@ -17,9 +23,15 @@ struct ResidentBuffers {
     //nri::Buffer* MeshletChildIDBuffer;
 };
 
+struct VisibilityBuffer
+{
+    nri::Texture* depth;
+    nri::Texture* data;
+};
+
 struct BufferSet {
-    nri::Buffer* RenderCMDBuff;
     nri::Buffer* RenderDataBuff;
+    nri::Buffer* RenderCMDBuff;
 };
 
 struct Frame
@@ -35,6 +47,8 @@ public:
     bool Initialize(nri::GraphicsAPI graphicsAPI) override;
     void PrepareFrame(uint32_t frameIndex) override;
     void RenderFrame(uint32_t frameIndex) override;
+
+    void ReloadRenderer();
 
     inline uint32_t GetDrawIndexedCommandSize()
     {
@@ -54,8 +68,15 @@ private:
     nri::Descriptor* m_IndirectBufferCountStorageAttachement = nullptr;
     nri::Descriptor* m_IndirectBufferStorageAttachement = nullptr;
     nri::QueryPool* m_QueryPool = nullptr;
-    nri::Pipeline* m_Pipeline = nullptr;
-    nri::Pipeline* m_ComputePipeline = nullptr;
+
+
+    // pipelines
+    nri::Pipeline* m_cachedRenderPass = nullptr;
+    nri::Pipeline* m_cullingPass = nullptr;
+    nri::Pipeline* m_visibilityBuffRenderPass = nullptr;
+    nri::Pipeline* m_materialRenderPass = nullptr;
+    nri::Pipeline* m_mergePass = nullptr;
+
 
     std::array<Frame, BUFFERED_FRAME_MAX_NUM> m_Frames = {};
     std::vector<BackBuffer> m_SwapChainBuffers;
@@ -67,8 +88,16 @@ private:
 
 
 
+    
     nri::Format m_DepthFormat = nri::Format::UNKNOWN;
 
 private:
     VirtualGeometryStreamer* m_vGeomStreamer;
+
+    BufferSet firstBuff;
+    BufferSet secondBuff;
+
+    ResidentBuffers residentBuffer;
+
+    VisibilityBuffer visBuff;
 };
