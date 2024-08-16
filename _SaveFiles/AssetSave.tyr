@@ -1,13 +1,30 @@
 {
+    "Assets": {
+        "0": {
+            "ID": 0,
+            "Name": "Tests",
+            "Path": "F:\\GameEngines\\NRISamples\\_Data\\Scenes\\MCRN_Donager\\scene.gltf",
+            "Type": "Model"
+        }
+    },
     "Head": {
-        "Count": 0
+        "Count": 1
     },
     "LastID": 0,
     "VirtualFSys": {
         "ChildCount": 1,
         "Childs": {
             "0": {
-                "ChildCount": 0,
+                "ChildCount": 1,
+                "Childs": {
+                    "0": {
+                        "ChildCount": 0,
+                        "RealName": 0,
+                        "Test": true,
+                        "Type": "Model",
+                        "VName": "Tests"
+                    }
+                },
                 "RealName": 4294967295,
                 "Test": true,
                 "Type": "None",

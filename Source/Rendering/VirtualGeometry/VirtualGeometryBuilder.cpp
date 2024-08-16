@@ -172,9 +172,9 @@ VModel* VirtualGeometryBuilder::BuildVGImpl(std::vector<unsigned int> indices, s
 
         wPtr += lenght;
 
-        uint32_t vertTriCount = m.vertex_count;
-        vertTriCount << (uint8_t)m.triangle_count;
-        vertTriCount << rCount;
+        uint16_t triCounts = ((uint16_t)m.triangle_count << 8) | rCount;
+        uint32_t vertTriCount = (m.vertex_count << 16) | triCounts;
+        
         mDesc.vertTriCount = vertTriCount;
         vModelDesc->meshlets.push_back(mDesc);
     }
