@@ -47,6 +47,7 @@ struct MeshletLoadDesc {
 };
 
 struct RenderCmd {
+	uint32_t realClusterID;
 	uint32_t offset;
 	uint32_t vertTriCount;  // 16bit vertex, 16bit triCount(packed in 8bit)
 

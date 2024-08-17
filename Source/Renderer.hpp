@@ -38,7 +38,7 @@ enum BufferLocs {
     INSTANCES = 7,
     IMSTANCESLAST = 8,
 
-    
+    CONSTANTBUFFER = 9
 };
 
 struct VisibilityBuffer
@@ -138,6 +138,6 @@ private:
     VisibilityBuffer m_visBuff;
 
 
-    uint32_t GetStructuredBuffCount() { return 4; };
+    uint32_t GetStructuredBuffCount() { return 6; };
     uint32_t GetRWStructuredBuffCount() { return 2; };
 };

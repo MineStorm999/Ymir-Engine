@@ -123,20 +123,21 @@ bool Renderer::Initialize(nri::GraphicsAPI graphicsAPI)
             visBuffDescRange[0] = { 0, 2, nri::DescriptorType::TEXTURE, nri::StageBits::ALL, true, true };
             visBuffDescRange[1] = { 0, 1, nri::DescriptorType::SAMPLER, nri::StageBits::ALL };
 
-            nri::DescriptorRangeDesc textureDescriptorRange[1] = {};
-            textureDescriptorRange[0] = { 0, 512, nri::DescriptorType::TEXTURE, nri::StageBits::ALL, true, true };
+            // need to add texture and material support
+            //nri::DescriptorRangeDesc textureDescriptorRange[1] = {};
+            //textureDescriptorRange[0] = { 0, 512, nri::DescriptorType::TEXTURE, nri::StageBits::ALL, true, true };
 
             //nri::DescriptorRangeDesc readbackDescriptorRange[1] = {};
             //readbackDescriptorRange[0] = { 0, 512, nri::DescriptorType::, nri::StageBits::ALL, true, true };
 
-            nri::DescriptorRangeDesc cachedInstanceDescriptorRange[5] = {};
-            cachedInstanceDescriptorRange[0] = { 0, 1, nri::DescriptorType::STRUCTURED_BUFFER, nri::StageBits::ALL };
+            /*nri::DescriptorRangeDesc cachedInstanceDescriptorRange[1] = {};
+            cachedInstanceDescriptorRange[0] = { 0, 1, nri::DescriptorType::STRUCTURED_BUFFER, nri::StageBits::ALL };*/
 
             nri::DescriptorSetDesc defaultDescriptorSetDescs[] =
             {
                 {0, globalDescriptorRange, helper::GetCountOf(globalDescriptorRange)},
                 {1, visBuffDescRange, helper::GetCountOf(visBuffDescRange)},
-                {2, cachedInstanceDescriptorRange, helper::GetCountOf(cachedInstanceDescriptorRange) }
+                //{2, cachedInstanceDescriptorRange, helper::GetCountOf(cachedInstanceDescriptorRange) }
             };
 
             nri::DescriptorSetDesc mergeDescriptorSetDescs[] =
@@ -148,7 +149,7 @@ bool Renderer::Initialize(nri::GraphicsAPI graphicsAPI)
             {
                 {0, globalDescriptorRange, helper::GetCountOf(globalDescriptorRange)},
                 {1, visBuffDescRange, helper::GetCountOf(visBuffDescRange)},
-                {2, cachedInstanceDescriptorRange, helper::GetCountOf(cachedInstanceDescriptorRange) }
+                //{2, cachedInstanceDescriptorRange, helper::GetCountOf(cachedInstanceDescriptorRange) }
                 //{3, textureDescriptorRange, helper::GetCountOf(textureDescriptorRange) }
 
             };
@@ -207,7 +208,7 @@ bool Renderer::Initialize(nri::GraphicsAPI graphicsAPI)
 
             NRI_ABORT_ON_FAILURE(NRI.CreatePipelineLayout(*m_Device, mergeLayoutDesc, m_cachedRenderLayout));
         }
-
+    
         // merge stage
         Log::Message("Renderer", "Create merge pipeline");
         {
@@ -392,7 +393,14 @@ bool Renderer::Initialize(nri::GraphicsAPI graphicsAPI)
             NRI_ABORT_ON_FAILURE(NRI.CreateBuffer(*m_Device, bufferDesc, buffer));
             m_buffers.push_back(buffer);
 
-            //CreateInstaceBuffer();
+
+            // constant buffer
+            nri::BufferDesc bufferDesc = {};
+            bufferDesc.size = constantBufferSize * BUFFERED_FRAME_MAX_NUM;
+            bufferDesc.usageMask = nri::BufferUsageBits::CONSTANT_BUFFER;
+            nri::Buffer* buffer;
+            NRI_ABORT_ON_FAILURE(NRI.CreateBuffer(*m_Device, bufferDesc, buffer));
+            m_buffers.push_back(buffer);
         }
 
         // Memory
@@ -401,7 +409,7 @@ bool Renderer::Initialize(nri::GraphicsAPI graphicsAPI)
             nri::ResourceGroupDesc resourceGroupDesc = {};
             size_t baseAllocation = m_memoryAllocations.size();
 
-
+            
             // resident buffers
             resourceGroupDesc.memoryLocation = nri::MemoryLocation::DEVICE;
             resourceGroupDesc.bufferNum = 2;
@@ -434,7 +442,14 @@ bool Renderer::Initialize(nri::GraphicsAPI graphicsAPI)
 
             NRI_ABORT_ON_FAILURE(NRI.AllocateAndBindMemory(*m_Device, resourceGroupDesc, m_memoryAllocations.data() + baseAllocation));
             
-            
+            // readback
+            resourceGroupDesc.memoryLocation = nri::MemoryLocation::HOST_READBACK;
+            resourceGroupDesc.bufferNum = 1;
+            resourceGroupDesc.buffers = &m_buffers[READBACK];
+
+            baseAllocation = m_memoryAllocations.size();
+            m_memoryAllocations.resize(baseAllocation + 1, nullptr);
+            NRI_ABORT_ON_FAILURE(NRI.AllocateAndBindMemory(*m_Device, resourceGroupDesc, m_memoryAllocations.data() + baseAllocation));
 
             // instances
             resourceGroupDesc.memoryLocation = nri::MemoryLocation::DEVICE;
@@ -446,6 +461,15 @@ bool Renderer::Initialize(nri::GraphicsAPI graphicsAPI)
 
             NRI_ABORT_ON_FAILURE(NRI.AllocateAndBindMemory(*m_Device, resourceGroupDesc, m_memoryAllocations.data() + baseAllocation));
             
+
+            // constant buffer
+            resourceGroupDesc.memoryLocation = nri::MemoryLocation::HOST_UPLOAD;
+            resourceGroupDesc.bufferNum = 1;
+            resourceGroupDesc.buffers = &m_buffers[CONSTANTBUFFER];
+
+            size_t baseAllocation = m_memoryAllocations.size();
+            m_memoryAllocations.resize(baseAllocation + 1, nullptr);
+            NRI_ABORT_ON_FAILURE(NRI.AllocateAndBindMemory(*m_Device, resourceGroupDesc, m_memoryAllocations.data() + baseAllocation));
 
             // visbuffer
             //  data
@@ -472,7 +496,7 @@ bool Renderer::Initialize(nri::GraphicsAPI graphicsAPI)
         Log::Message("Renderer", "Create Descriptors");
         nri::Descriptor* anisotropicSampler = nullptr;
         nri::Descriptor* constantBufferViews[BUFFERED_FRAME_MAX_NUM] = {};
-        nri::Descriptor* resourceViews[2] = {};
+        nri::Descriptor* resourceViews = {};
         {
             Log::Message("Renderer", "Need to add texture and material support");
 
@@ -494,6 +518,133 @@ bool Renderer::Initialize(nri::GraphicsAPI graphicsAPI)
 
 
             // buffer n stuff
+            nri::BufferViewDesc bufferViewDesc = {};
+            bufferViewDesc.viewType = nri::BufferViewType::SHADER_RESOURCE;
+            bufferViewDesc.offset = 0;
+
+
+            // model desc view
+            bufferViewDesc.buffer = m_buffers[MODELDESC];
+            bufferViewDesc.size = m_vGeomStreamer->modelDescs.size() * sizeof(ModelDesc);
+            NRI_ABORT_ON_FAILURE(NRI.CreateBufferView(bufferViewDesc, resourceViews));
+            m_descriptors.push_back(resourceViews);
+
+            // meshlet desc view
+            bufferViewDesc.buffer = m_buffers[MESHLETDESC];
+            bufferViewDesc.size = m_vGeomStreamer->meshletDescs.size() * sizeof(MeshletDesc);
+            NRI_ABORT_ON_FAILURE(NRI.CreateBufferView(bufferViewDesc, resourceViews));
+            m_descriptors.push_back(resourceViews);
+
+            // render data 0 view
+            bufferViewDesc.buffer = m_buffers[RENDERDATA0];
+            bufferViewDesc.size = 1;
+            NRI_ABORT_ON_FAILURE(NRI.CreateBufferView(bufferViewDesc, resourceViews));
+            m_descriptors.push_back(resourceViews);
+
+            // render data 1 view
+            bufferViewDesc.buffer = m_buffers[RENDERDATA1];
+            bufferViewDesc.size = 1;
+            NRI_ABORT_ON_FAILURE(NRI.CreateBufferView(bufferViewDesc, resourceViews));
+            m_descriptors.push_back(resourceViews);
+
+            // render cmd 0 view
+            bufferViewDesc.viewType = nri::BufferViewType::SHADER_RESOURCE_STORAGE;
+            bufferViewDesc.buffer = m_buffers[RENDERCMD0];
+            bufferViewDesc.size = sizeof(RenderCmd) * RENDERCMDS;
+            NRI_ABORT_ON_FAILURE(NRI.CreateBufferView(bufferViewDesc, resourceViews));
+            m_descriptors.push_back(resourceViews);
+
+            // render cmd 1 view
+            bufferViewDesc.buffer = m_buffers[RENDERCMD1];
+            bufferViewDesc.size = sizeof(RenderCmd) * RENDERCMDS;
+            NRI_ABORT_ON_FAILURE(NRI.CreateBufferView(bufferViewDesc, resourceViews));
+            m_descriptors.push_back(resourceViews);
+
+            // readback                                                         // mabe todo
+            m_descriptors.push_back(nullptr);
+
+            // instance view
+            bufferViewDesc.viewType = nri::BufferViewType::SHADER_RESOURCE;
+            bufferViewDesc.buffer = m_buffers[INSTANCES];
+            bufferViewDesc.size = sizeof(InstanceDesc) * MAXMESHINSTANCES;
+            NRI_ABORT_ON_FAILURE(NRI.CreateBufferView(bufferViewDesc, resourceViews));
+            m_descriptors.push_back(resourceViews);
+
+            // old instance indexes
+            bufferViewDesc.viewType = nri::BufferViewType::SHADER_RESOURCE;
+            bufferViewDesc.buffer = m_buffers[IMSTANCESLAST];
+            bufferViewDesc.size = sizeof(uint32_t) * MAXMESHINSTANCES;
+            NRI_ABORT_ON_FAILURE(NRI.CreateBufferView(bufferViewDesc, resourceViews));
+            m_descriptors.push_back(resourceViews);
+
+            for (uint32_t i = 0; i < BUFFERED_FRAME_MAX_NUM; i++)
+            {
+                m_Frames[i].globalConstantBufferViewOffsets = i * constantBufferSize;
+                bufferViewDesc.buffer = m_buffers[CONSTANTBUFFER];
+                bufferViewDesc.viewType = nri::BufferViewType::CONSTANT;
+                bufferViewDesc.offset = i * constantBufferSize;
+                bufferViewDesc.size = constantBufferSize;
+                NRI_ABORT_ON_FAILURE(NRI.CreateBufferView(bufferViewDesc, constantBufferViews[i]));
+                m_descriptors.push_back(constantBufferViews[i]);
+            }
+        }
+#define TEST 100
+
+        // descriptor pool
+        Log::Message("Renderer", "Create Descriptor pool");
+        {
+            nri::DescriptorPoolDesc descriptorPoolDesc = {};
+            descriptorPoolDesc.descriptorSetMaxNum = TEST + BUFFERED_FRAME_MAX_NUM + 2;
+            descriptorPoolDesc.textureMaxNum = TEST * TEXTURES_PER_MATERIAL;
+            descriptorPoolDesc.samplerMaxNum = BUFFERED_FRAME_MAX_NUM;
+            descriptorPoolDesc.storageStructuredBufferMaxNum = 1 * 2 * TEST;
+            descriptorPoolDesc.storageBufferMaxNum = 1 * 2 * TEST;
+            descriptorPoolDesc.bufferMaxNum = 3 * 2 * TEST;
+            descriptorPoolDesc.structuredBufferMaxNum = 4 * 2 * TEST;
+            descriptorPoolDesc.constantBufferMaxNum = BUFFERED_FRAME_MAX_NUM;
+
+            NRI_ABORT_ON_FAILURE(NRI.CreateDescriptorPool(*m_Device, descriptorPoolDesc, m_DescriptorPool));
+        }
+
+        // descriptor sets
+        Log::Message("Renderer", "Create Descriptor Sets");
+        {
+            m_DescriptorSets.resize(BUFFERED_FRAME_MAX_NUM * );
+
+            // Global
+            NRI_ABORT_ON_FAILURE(NRI.AllocateDescriptorSets(*m_DescriptorPool, *m_PipelineLayout, GLOBAL_DESCRIPTOR_SET,
+                &m_DescriptorSets[0], BUFFERED_FRAME_MAX_NUM, 0));
+
+            for (uint32_t i = 0; i < BUFFERED_FRAME_MAX_NUM; i++)
+            {
+                nri::DescriptorRangeUpdateDesc descriptorRangeUpdateDescs[3] = {};
+                descriptorRangeUpdateDescs[0].descriptorNum = 1;
+                descriptorRangeUpdateDescs[0].descriptors = &constantBufferViews[i];
+                descriptorRangeUpdateDescs[1].descriptorNum = 1;
+                descriptorRangeUpdateDescs[1].descriptors = &anisotropicSampler;
+                descriptorRangeUpdateDescs[2].descriptorNum = BUFFER_COUNT;
+                descriptorRangeUpdateDescs[2].descriptors = resourceViews;
+
+                NRI.UpdateDescriptorRanges(*m_DescriptorSets[i], 0, helper::GetCountOf(descriptorRangeUpdateDescs), descriptorRangeUpdateDescs);
+            }
+
+            // Material
+            NRI_ABORT_ON_FAILURE(NRI.AllocateDescriptorSets(*m_DescriptorPool, *m_PipelineLayout, MATERIAL_DESCRIPTOR_SET,
+                &m_DescriptorSets[BUFFERED_FRAME_MAX_NUM], 1, textureNum));
+            nri::DescriptorRangeUpdateDesc descriptorRangeUpdateDesc = {};
+            descriptorRangeUpdateDesc.descriptorNum = textureNum;
+            descriptorRangeUpdateDesc.descriptors = m_Descriptors.data();
+            NRI.UpdateDescriptorRanges(*m_DescriptorSets[BUFFERED_FRAME_MAX_NUM], 0, 1, &descriptorRangeUpdateDesc);
+
+            // Culling
+            nri::Descriptor* storageDescriptors[2] = { m_IndirectBufferCountStorageAttachement, m_IndirectBufferStorageAttachement };
+            NRI_ABORT_ON_FAILURE(NRI.AllocateDescriptorSets(*m_DescriptorPool, *m_ComputePipelineLayout, 0, &m_DescriptorSets[BUFFERED_FRAME_MAX_NUM + 1], 1, 0));
+            nri::DescriptorRangeUpdateDesc rangeUpdateDescs[2] = {};
+            rangeUpdateDescs[0].descriptorNum = helper::GetCountOf(rangeUpdateDescs);
+            rangeUpdateDescs[0].descriptors = storageDescriptors;
+            rangeUpdateDescs[1].descriptorNum = BUFFER_COUNT;
+            rangeUpdateDescs[1].descriptors = resourceViews;
+            NRI.UpdateDescriptorRanges(*m_DescriptorSets[BUFFERED_FRAME_MAX_NUM + 1], 0, 2, rangeUpdateDescs);
         }
     }
 
