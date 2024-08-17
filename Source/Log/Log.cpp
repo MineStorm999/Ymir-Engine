@@ -36,7 +36,7 @@
 
 	void Log::Init()
 	{
-		m_useTerminal = false;
+		m_useTerminal = true;
 		m_MakeTable = false;
 
 		showMessages = true;

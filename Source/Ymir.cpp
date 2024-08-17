@@ -12,7 +12,7 @@
 #include "Rendering/VirtualGeometry/MeshletStructs.h"
 #include "Rendering/VirtualGeometry/VirtualGeometryStreamer.h"
 
-#include "../Shaders/cpu_gpu_shared.h"
+#include "../Shaders/YMIR_cpu_gpu_shared.h"
 
 #include "Log/Log.h"
 

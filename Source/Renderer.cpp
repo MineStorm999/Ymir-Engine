@@ -1,5 +1,6 @@
 #include "Renderer.hpp"
 #include "Editor/ToolBarWindowManager.h"
+#include "Log/Log.h"
 
 bool Renderer::Initialize(nri::GraphicsAPI graphicsAPI)
 {
@@ -74,8 +75,11 @@ bool Renderer::Initialize(nri::GraphicsAPI graphicsAPI)
     // Buffered resources
     for (Frame& frame : m_Frames)
     {
-        NRI_ABORT_ON_FAILURE(NRI.CreateCommandAllocator(*m_CommandQueue, frame.commandAllocator));
-        NRI_ABORT_ON_FAILURE(NRI.CreateCommandBuffer(*frame.commandAllocator, frame.commandBuffer));
+        NRI_ABORT_ON_FAILURE(NRI.CreateCommandAllocator(*m_CommandQueue, frame.cmdAllocEvalStage));
+        NRI_ABORT_ON_FAILURE(NRI.CreateCommandBuffer(*frame.cmdAllocEvalStage, frame.cmdBuffEvalStage));
+
+        NRI_ABORT_ON_FAILURE(NRI.CreateCommandAllocator(*m_CommandQueue, frame.cmdAllocRenderStage));
+        NRI_ABORT_ON_FAILURE(NRI.CreateCommandBuffer(*frame.cmdAllocRenderStage, frame.cmdBuffRenderStage));
     }
 
     // pipelines
@@ -83,7 +87,223 @@ bool Renderer::Initialize(nri::GraphicsAPI graphicsAPI)
     utils::ShaderCodeStorage shaderCodeStorage;
     {
         {
-            nri::DescriptorRangeDesc globalDescriptorRange[3] = {};
+            Log::Message("Renderer", "Create pipline layouts");
+            // global descriptor ranges
+            nri::DescriptorRangeDesc globalDescriptorRange[5] = {};
+            globalDescriptorRange[0] = { (uint32_t)((deviceDesc.graphicsAPI == nri::GraphicsAPI::D3D12) ? 0 : 0), 1, nri::DescriptorType::CONSTANT_BUFFER, nri::StageBits::ALL };
+            globalDescriptorRange[1] = { 0, 1, nri::DescriptorType::SAMPLER, nri::StageBits::ALL };
+            globalDescriptorRange[2] = { 0, GetStructuredBuffCount(), nri::DescriptorType::STRUCTURED_BUFFER, nri::StageBits::ALL };
+            globalDescriptorRange[3] = { 0, GetRWStructuredBuffCount(), nri::DescriptorType::STORAGE_STRUCTURED_BUFFER, nri::StageBits::ALL };
+            //globalDescriptorRange[4] = { 0, 2, nri::DescriptorType::TEXTURE, nri::StageBits::ALL, true, true };
+
+
+            nri::DescriptorRangeDesc visBuffDescRange[1] = {};
+            visBuffDescRange[0] = { 0, 2, nri::DescriptorType::TEXTURE, nri::StageBits::ALL, true, true };
+
+
+            nri::DescriptorRangeDesc textureDescriptorRange[1] = {};
+            textureDescriptorRange[0] = { 0, 512, nri::DescriptorType::TEXTURE, nri::StageBits::ALL, true, true };
+
+            //nri::DescriptorRangeDesc readbackDescriptorRange[1] = {};
+            //readbackDescriptorRange[0] = { 0, 512, nri::DescriptorType::, nri::StageBits::ALL, true, true };
+
+            nri::DescriptorRangeDesc cachedInstanceDescriptorRange[5] = {};
+            cachedInstanceDescriptorRange[0] = { 0, 1, nri::DescriptorType::STRUCTURED_BUFFER, nri::StageBits::ALL };
+
+            nri::DescriptorSetDesc defaultDescriptorSetDescs[] =
+            {
+                {0, globalDescriptorRange, helper::GetCountOf(globalDescriptorRange)},
+                {1, visBuffDescRange, helper::GetCountOf(visBuffDescRange)},
+                {2, cachedInstanceDescriptorRange, helper::GetCountOf(cachedInstanceDescriptorRange) }
+            };
+
+            nri::DescriptorSetDesc mergeDescriptorSetDescs[] =
+            {
+                {0, visBuffDescRange, helper::GetCountOf(visBuffDescRange)}
+            };
+
+            nri::DescriptorSetDesc materialDescriptorSetDescs[] =
+            {
+                {0, globalDescriptorRange, helper::GetCountOf(globalDescriptorRange)},
+                {1, visBuffDescRange, helper::GetCountOf(visBuffDescRange)},
+                {2, cachedInstanceDescriptorRange, helper::GetCountOf(cachedInstanceDescriptorRange) }
+                //{3, textureDescriptorRange, helper::GetCountOf(textureDescriptorRange) }
+
+            };
+
+            /*nri::DescriptorSetDesc cachedDescSetDescs[] =
+            {
+                {0, globalDescriptorRange, helper::GetCountOf(globalDescriptorRange)},
+                {1, textureDescriptorRange, helper::GetCountOf(textureDescriptorRange)},
+                {2, cachedInstanceDescriptorRange, helper::GetCountOf(cachedInstanceDescriptorRange)}
+            };*/
+
+
+            // cached render pipeline
+            nri::PipelineLayoutDesc cachedRenderLayoutDesc = {};
+            cachedRenderLayoutDesc.descriptorSetNum = helper::GetCountOf(defaultDescriptorSetDescs);
+            cachedRenderLayoutDesc.descriptorSets = defaultDescriptorSetDescs;
+            cachedRenderLayoutDesc.shaderStages = nri::StageBits::COMPUTE_SHADER;
+            //cachedRenderLayoutDesc.enableD3D12DrawParametersEmulation = true;
+
+            NRI_ABORT_ON_FAILURE(NRI.CreatePipelineLayout(*m_Device, cachedRenderLayoutDesc, m_cachedRenderLayout));
+
+
+            // culling pipeline desc
+            nri::PipelineLayoutDesc cullingLayoutDesc = {};
+            cullingLayoutDesc.descriptorSetNum = helper::GetCountOf(defaultDescriptorSetDescs);
+            cullingLayoutDesc.descriptorSets = defaultDescriptorSetDescs;
+            cullingLayoutDesc.shaderStages = nri::StageBits::COMPUTE_SHADER;
+            //cullingLayoutDesc.enableD3D12DrawParametersEmulation = true;
+
+            NRI_ABORT_ON_FAILURE(NRI.CreatePipelineLayout(*m_Device, cullingLayoutDesc, m_cachedRenderLayout));
+
+            // vis buff pipeline desc
+            nri::PipelineLayoutDesc visBuffLayoutDesc = {};
+            cullingLayoutDesc.descriptorSetNum = helper::GetCountOf(defaultDescriptorSetDescs);
+            cullingLayoutDesc.descriptorSets = defaultDescriptorSetDescs;
+            cullingLayoutDesc.shaderStages = nri::StageBits::COMPUTE_SHADER;
+            //cullingLayoutDesc.enableD3D12DrawParametersEmulation = true;
+
+            NRI_ABORT_ON_FAILURE(NRI.CreatePipelineLayout(*m_Device, visBuffLayoutDesc, m_visibilityBuffLayout));
+
+            // material pipeline desc
+            nri::PipelineLayoutDesc materialLayoutDesc = {};
+            cullingLayoutDesc.descriptorSetNum = helper::GetCountOf(materialDescriptorSetDescs);
+            cullingLayoutDesc.descriptorSets = materialDescriptorSetDescs;
+            cullingLayoutDesc.shaderStages = nri::StageBits::COMPUTE_SHADER;
+            //cullingLayoutDesc.enableD3D12DrawParametersEmulation = true;
+
+            NRI_ABORT_ON_FAILURE(NRI.CreatePipelineLayout(*m_Device, materialLayoutDesc, m_materialLayout));
+
+            // merge pipeline desc
+            nri::PipelineLayoutDesc mergeLayoutDesc = {};
+            cullingLayoutDesc.descriptorSetNum = helper::GetCountOf(mergeDescriptorSetDescs);
+            cullingLayoutDesc.descriptorSets = mergeDescriptorSetDescs;
+            cullingLayoutDesc.shaderStages = nri::StageBits::VERTEX_SHADER | nri::StageBits::FRAGMENT_SHADER;
+            cullingLayoutDesc.enableD3D12DrawParametersEmulation = true;
+
+            NRI_ABORT_ON_FAILURE(NRI.CreatePipelineLayout(*m_Device, mergeLayoutDesc, m_cachedRenderLayout));
+        }
+
+        // merge stage
+        Log::Message("Renderer", "Create merge pipeline");
+        {
+            // vertex layout
+            nri::VertexStreamDesc vertexStreamDesc = {};
+            vertexStreamDesc.bindingSlot = 0;
+            vertexStreamDesc.stride = sizeof(utils::Vertex);
+
+            nri::VertexAttributeDesc vertexAttributeDesc[2] = {};
+            {
+                vertexAttributeDesc[0].format = nri::Format::RGB32_SFLOAT;
+                vertexAttributeDesc[0].offset = 0;
+                vertexAttributeDesc[0].d3d = { "POSITION", 0 };
+                vertexAttributeDesc[0].vk = { 0 };
+
+                vertexAttributeDesc[1].format = nri::Format::RGB32_SFLOAT;
+                vertexAttributeDesc[1].offset = 0;
+                vertexAttributeDesc[1].d3d = { "UV", 3 };
+                vertexAttributeDesc[1].vk = { 1 };
+            }
+
+            nri::VertexInputDesc vertexInputDesc = {};
+            vertexInputDesc.attributes = vertexAttributeDesc;
+            vertexInputDesc.attributeNum = (uint8_t)helper::GetCountOf(vertexAttributeDesc);
+            vertexInputDesc.streams = &vertexStreamDesc;
+            vertexInputDesc.streamNum = 1;
+
+            nri::InputAssemblyDesc inputAssemblyDesc = {};
+            inputAssemblyDesc.topology = nri::Topology::TRIANGLE_LIST;
+
+            nri::RasterizationDesc rasterizationDesc = {};
+            rasterizationDesc.viewportNum = 1;
+            rasterizationDesc.fillMode = nri::FillMode::SOLID;
+            rasterizationDesc.cullMode = nri::CullMode::NONE;
+            rasterizationDesc.frontCounterClockwise = true;
+
+            nri::MultisampleDesc multisampleDesc = {};
+            multisampleDesc.sampleNum = 1;
+            multisampleDesc.sampleMask = nri::ALL_SAMPLES;
+
+            nri::ColorAttachmentDesc colorAttachmentDesc = {};
+            colorAttachmentDesc.format = swapChainFormat;
+            colorAttachmentDesc.colorWriteMask = nri::ColorWriteBits::RGBA;
+
+            nri::OutputMergerDesc outputMergerDesc = {};
+            outputMergerDesc.colorNum = 1;
+            outputMergerDesc.color = &colorAttachmentDesc;
+            outputMergerDesc.depthStencilFormat = m_DepthFormat;
+            outputMergerDesc.depth.write = true;
+            outputMergerDesc.depth.compareFunc = CLEAR_DEPTH == 1.0f ? nri::CompareFunc::LESS : nri::CompareFunc::GREATER;
+
+            nri::ShaderDesc mergeShaderStages[] =
+            {
+                utils::LoadShader(deviceDesc.graphicsAPI, "TriangleMerge.vs", shaderCodeStorage),
+                utils::LoadShader(deviceDesc.graphicsAPI, "TriangleMerge.fs", shaderCodeStorage),
+            };
+
+
+            nri::GraphicsPipelineDesc mergePipelineDesc = {};
+            mergePipelineDesc.pipelineLayout = m_mergeLayout;
+            mergePipelineDesc.vertexInput = &vertexInputDesc;
+            mergePipelineDesc.inputAssembly = inputAssemblyDesc;
+            mergePipelineDesc.rasterization = rasterizationDesc;
+            mergePipelineDesc.multisample = &multisampleDesc;
+            mergePipelineDesc.outputMerger = outputMergerDesc;
+            mergePipelineDesc.shaders = mergeShaderStages;
+            mergePipelineDesc.shaderNum = helper::GetCountOf(mergeShaderStages);
+            NRI_ABORT_ON_FAILURE(NRI.CreateGraphicsPipeline(*m_Device, mergePipelineDesc, m_mergePipeline));
+        }
+
+        // compute stages
+        Log::Message("Renderer", "Create compute piplines");
+        {
+            // cached
+            nri::ComputePipelineDesc cachedPipelineDesc = {};
+            cachedPipelineDesc.pipelineLayout = m_cachedRenderLayout;
+            cachedPipelineDesc.shader = utils::LoadShader(deviceDesc.graphicsAPI, "YMIR_CachedSWRasterizer.cs", shaderCodeStorage);
+            NRI_ABORT_ON_FAILURE(NRI.CreateComputePipeline(*m_Device, cachedPipelineDesc, m_cachedRenderPipeline));
+
+            // culling
+            nri::ComputePipelineDesc cullingPipelineDesc = {};
+            cullingPipelineDesc.pipelineLayout = m_cullingLayout;
+            cullingPipelineDesc.shader = utils::LoadShader(deviceDesc.graphicsAPI, "YMIR_Culling.cs", shaderCodeStorage);
+            NRI_ABORT_ON_FAILURE(NRI.CreateComputePipeline(*m_Device, cullingPipelineDesc, m_cullingPipeline));
+
+            // vis buff
+            nri::ComputePipelineDesc visBuffPipelineDesc = {};
+            visBuffPipelineDesc.pipelineLayout = m_cullingLayout;
+            visBuffPipelineDesc.shader = utils::LoadShader(deviceDesc.graphicsAPI, "YMIR_SWRasterizer.cs", shaderCodeStorage);
+            NRI_ABORT_ON_FAILURE(NRI.CreateComputePipeline(*m_Device, cullingPipelineDesc, m_cullingPipeline));
+
+            // material
+            nri::ComputePipelineDesc visBuffPipelineDesc = {};
+            visBuffPipelineDesc.pipelineLayout = m_materialLayout;
+            visBuffPipelineDesc.shader = utils::LoadShader(deviceDesc.graphicsAPI, "YMIR_SWRasterizer.cs", shaderCodeStorage);
+            NRI_ABORT_ON_FAILURE(NRI.CreateComputePipeline(*m_Device, cullingPipelineDesc, m_materialPipeline));
+        }
+
+        Log::Message("Renderer", "initCam, only temporary");
+        m_Camera.Initialize(float3(0,0,0), float3(0,0,-1), false);
+
+
+        Log::Message("Renderer", "Need to add texture and material support");
+
+
+        // visibility buffer
+        Log::Message("Renderer", "Create Visibilty Buffer");
+        {
+            m_visBuff = VisibilityBuffer();
+            
+
+
+            nri::TextureDesc dataDesc = nri::Texture2D(nri::Format::R32_UINT, (uint16_t)GetWindowResolution().x, (uint16_t)GetWindowResolution().y, 10, 1);
+            nri::TextureDesc depthDesc = nri::Texture2D(nri::Format::R32_SFLOAT, (uint16_t)GetWindowResolution().x, (uint16_t)GetWindowResolution().y, 1, 1,
+                nri::TextureUsageBits::DEPTH_STENCIL_ATTACHMENT);
+
+            NRI_ABORT_ON_FAILURE(NRI.CreateTexture(*m_Device, dataDesc, m_visBuff.data));
+            NRI_ABORT_ON_FAILURE(NRI.CreateTexture(*m_Device, depthDesc, m_visBuff.depth));
         }
     }
 

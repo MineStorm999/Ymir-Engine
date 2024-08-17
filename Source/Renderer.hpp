@@ -1,7 +1,7 @@
 #include "NRIFramework.h"
 
 #include "NRICompatibility.hlsli"
-#include "../Shaders/cpu_gpu_shared.h"
+#include "../Shaders/YMIR_cpu_gpu_shared.h"
 #include "Rendering/VirtualGeometry/VirtualGeometryStreamer.h"
 
 constexpr uint32_t GLOBAL_DESCRIPTOR_SET = 0;
@@ -17,10 +17,24 @@ struct NRIInterface
     , public nri::SwapChainInterface
 {};
 
-struct ResidentBuffers {
-    nri::Buffer* ModelBuffer;
-    nri::Buffer* MeshletDescBuffer;
-    //nri::Buffer* MeshletChildIDBuffer;
+enum BufferLocs {
+
+    // resident buffs
+    MODELDESC = 0,
+    MESHLETDESC = 1,
+
+    // buff0
+    RENDERDATA0 = 2,
+    RENDERCMD0 = 3,
+
+    // buff1
+    RENDERDATA1 = 4,
+    RENDERCMD1 = 5,
+
+    // read back
+    READBACK = 6
+
+    // instance buffer
 };
 
 struct VisibilityBuffer
@@ -29,15 +43,15 @@ struct VisibilityBuffer
     nri::Texture* data;
 };
 
-struct BufferSet {
-    nri::Buffer* RenderDataBuff;
-    nri::Buffer* RenderCMDBuff;
-};
-
 struct Frame
 {
-    nri::CommandAllocator* commandAllocator;
-    nri::CommandBuffer* commandBuffer;
+
+    nri::CommandAllocator* cmdAllocEvalStage;
+    nri::CommandBuffer* cmdBuffEvalStage;
+
+    nri::CommandAllocator* cmdAllocRenderStage;
+    nri::CommandBuffer* cmdBuffRenderStage;
+
     uint32_t globalConstantBufferViewOffsets;
 };
 
@@ -62,20 +76,25 @@ private:
     nri::CommandQueue* m_CommandQueue = nullptr;
     nri::Fence* m_FrameFence = nullptr;
     nri::DescriptorPool* m_DescriptorPool = nullptr;
-    nri::PipelineLayout* m_PipelineLayout = nullptr;
-    nri::PipelineLayout* m_ComputePipelineLayout = nullptr;
+    
     nri::Descriptor* m_DepthAttachment = nullptr;
     nri::Descriptor* m_IndirectBufferCountStorageAttachement = nullptr;
     nri::Descriptor* m_IndirectBufferStorageAttachement = nullptr;
     nri::QueryPool* m_QueryPool = nullptr;
 
+    // pipeline layouts
+    nri::PipelineLayout* m_cachedRenderLayout = nullptr;
+    nri::PipelineLayout* m_cullingLayout = nullptr;
+    nri::PipelineLayout* m_visibilityBuffLayout = nullptr;
+    nri::PipelineLayout* m_materialLayout = nullptr;
+    nri::PipelineLayout* m_mergeLayout = nullptr;
 
     // pipelines
-    nri::Pipeline* m_cachedRenderPass = nullptr;
-    nri::Pipeline* m_cullingPass = nullptr;
-    nri::Pipeline* m_visibilityBuffRenderPass = nullptr;
-    nri::Pipeline* m_materialRenderPass = nullptr;
-    nri::Pipeline* m_mergePass = nullptr;
+    nri::Pipeline* m_cachedRenderPipeline = nullptr;
+    nri::Pipeline* m_cullingPipeline = nullptr;
+    nri::Pipeline* m_visibilityBuffPipeline = nullptr;
+    nri::Pipeline* m_materialPipeline = nullptr;
+    nri::Pipeline* m_mergePipeline = nullptr;
 
 
     std::array<Frame, BUFFERED_FRAME_MAX_NUM> m_Frames = {};
@@ -94,10 +113,10 @@ private:
 private:
     VirtualGeometryStreamer* m_vGeomStreamer;
 
-    BufferSet firstBuff;
-    BufferSet secondBuff;
+    std::vector<nri::Buffer*> m_buffers;
+    VisibilityBuffer m_visBuff;
 
-    ResidentBuffers residentBuffer;
 
-    VisibilityBuffer visBuff;
+    uint32_t GetStructuredBuffCount() { return 4; };
+    uint32_t GetRWStructuredBuffCount() { return 2; };
 };
