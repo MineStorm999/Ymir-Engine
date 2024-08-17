@@ -2,11 +2,33 @@
 #include "Editor/ToolBarWindowManager.h"
 #include "Log/Log.h"
 
+/// QuadLayout
+/// 
+/// 0---1
+/// |  /|
+/// | / |
+/// |/  |
+/// 2---3
+/// 
+/// QuadLayout
+
+uint32_t indices[6]{
+    0,1,2, // 1. triangle
+    3,2,1
+};
+
+Renderer::~Renderer()
+{
+    // free all memory destroy all buffers...
+}
+
 bool Renderer::Initialize(nri::GraphicsAPI graphicsAPI)
 {
+    
     // init asset manager, log
     WindowManager::Init();
-
+    Log::Error("Renderer", "You didnt implemented free frunction!!!!!");
+    exit(EXIT_FAILURE);
     // init geometry streamer, sets model render ids, creates model desc & meshlet desc buffer      // todo meshlet childs (lod hyrachie)
     m_vGeomStreamer = new VirtualGeometryStreamer();
     m_vGeomStreamer->Init();
@@ -97,9 +119,9 @@ bool Renderer::Initialize(nri::GraphicsAPI graphicsAPI)
             //globalDescriptorRange[4] = { 0, 2, nri::DescriptorType::TEXTURE, nri::StageBits::ALL, true, true };
 
 
-            nri::DescriptorRangeDesc visBuffDescRange[1] = {};
+            nri::DescriptorRangeDesc visBuffDescRange[2] = {};
             visBuffDescRange[0] = { 0, 2, nri::DescriptorType::TEXTURE, nri::StageBits::ALL, true, true };
-
+            visBuffDescRange[1] = { 0, 1, nri::DescriptorType::SAMPLER, nri::StageBits::ALL };
 
             nri::DescriptorRangeDesc textureDescriptorRange[1] = {};
             textureDescriptorRange[0] = { 0, 512, nri::DescriptorType::TEXTURE, nri::StageBits::ALL, true, true };
@@ -305,6 +327,174 @@ bool Renderer::Initialize(nri::GraphicsAPI graphicsAPI)
             NRI_ABORT_ON_FAILURE(NRI.CreateTexture(*m_Device, dataDesc, m_visBuff.data));
             NRI_ABORT_ON_FAILURE(NRI.CreateTexture(*m_Device, depthDesc, m_visBuff.depth));
         }
+
+
+        const uint32_t constantBufferSize = helper::Align((uint32_t)sizeof(GlobalConstants), deviceDesc.constantBufferOffsetAlignment);
+
+        // buffers
+        Log::Message("Renderer", "Create Buffer");
+        {
+            nri::BufferDesc bufferDesc = {};
+            nri::Buffer* buffer;
+
+            // model desc
+            bufferDesc.size = helper::GetByteSizeOf(m_vGeomStreamer->modelDescs);
+            bufferDesc.usageMask = nri::BufferUsageBits::SHADER_RESOURCE;
+            NRI_ABORT_ON_FAILURE(NRI.CreateBuffer(*m_Device, bufferDesc, buffer));
+            m_buffers.push_back(buffer);
+
+            // meshlet desc
+            bufferDesc.size = helper::GetByteSizeOf(m_vGeomStreamer->meshletDescs);
+            bufferDesc.usageMask = nri::BufferUsageBits::SHADER_RESOURCE;
+            NRI_ABORT_ON_FAILURE(NRI.CreateBuffer(*m_Device, bufferDesc, buffer));
+            m_buffers.push_back(buffer);
+
+            // render data 0
+            bufferDesc.size = 1;
+            bufferDesc.usageMask = nri::BufferUsageBits::SHADER_RESOURCE;
+            NRI_ABORT_ON_FAILURE(NRI.CreateBuffer(*m_Device, bufferDesc, buffer));
+            m_buffers.push_back(buffer);
+
+            // renderdata 1
+            bufferDesc.size = 1;
+            bufferDesc.usageMask = nri::BufferUsageBits::SHADER_RESOURCE;
+            NRI_ABORT_ON_FAILURE(NRI.CreateBuffer(*m_Device, bufferDesc, buffer));
+            m_buffers.push_back(buffer);
+
+            // render cmd 0
+            bufferDesc.size = sizeof(RenderCmd) * RENDERCMDS;
+            bufferDesc.usageMask = nri::BufferUsageBits::SHADER_RESOURCE_STORAGE;
+            NRI_ABORT_ON_FAILURE(NRI.CreateBuffer(*m_Device, bufferDesc, buffer));
+            m_buffers.push_back(buffer);
+
+            // render cmd 1
+            bufferDesc.size = sizeof(RenderCmd) * RENDERCMDS;
+            bufferDesc.usageMask = nri::BufferUsageBits::SHADER_RESOURCE_STORAGE;
+            NRI_ABORT_ON_FAILURE(NRI.CreateBuffer(*m_Device, bufferDesc, buffer));
+            m_buffers.push_back(buffer);
+
+
+            // READBACK_BUFFER
+            bufferDesc.size = sizeof(MeshletLoadDesc) * READBACKS;
+            bufferDesc.usageMask = nri::BufferUsageBits::NONE;
+            NRI_ABORT_ON_FAILURE(NRI.CreateBuffer(*m_Device, bufferDesc, buffer));
+            m_buffers.push_back(buffer);
+
+            // instance buffer 
+            bufferDesc.size = sizeof(ModelDesc) * MAXMESHINSTANCES;
+            bufferDesc.usageMask = nri::BufferUsageBits::SHADER_RESOURCE;
+            NRI_ABORT_ON_FAILURE(NRI.CreateBuffer(*m_Device, bufferDesc, buffer));
+            m_buffers.push_back(buffer);
+
+            // last frame instance buffer 
+            bufferDesc.size = sizeof(uint32_t) * MAXMESHINSTANCES;
+            bufferDesc.usageMask = nri::BufferUsageBits::SHADER_RESOURCE;
+            NRI_ABORT_ON_FAILURE(NRI.CreateBuffer(*m_Device, bufferDesc, buffer));
+            m_buffers.push_back(buffer);
+
+            //CreateInstaceBuffer();
+        }
+
+        // Memory
+        Log::Message("Renderer", "Memory Allocations");
+        {
+            nri::ResourceGroupDesc resourceGroupDesc = {};
+            size_t baseAllocation = m_memoryAllocations.size();
+
+
+            // resident buffers
+            resourceGroupDesc.memoryLocation = nri::MemoryLocation::DEVICE;
+            resourceGroupDesc.bufferNum = 2;
+            resourceGroupDesc.buffers = &m_buffers[MODELDESC];
+            
+            baseAllocation = m_memoryAllocations.size();
+            m_memoryAllocations.resize(baseAllocation + 2, nullptr);
+ 
+            NRI_ABORT_ON_FAILURE(NRI.AllocateAndBindMemory(*m_Device, resourceGroupDesc, m_memoryAllocations.data() + baseAllocation));
+
+
+            // render data
+            resourceGroupDesc.memoryLocation = nri::MemoryLocation::DEVICE;
+            resourceGroupDesc.bufferNum = 2;
+            resourceGroupDesc.buffers = &m_buffers[RENDERDATA0];
+
+            baseAllocation = m_memoryAllocations.size();
+            m_memoryAllocations.resize(baseAllocation + 2, nullptr);
+
+            NRI_ABORT_ON_FAILURE(NRI.AllocateAndBindMemory(*m_Device, resourceGroupDesc, m_memoryAllocations.data() + baseAllocation));
+
+
+            // render cmds
+            resourceGroupDesc.memoryLocation = nri::MemoryLocation::DEVICE;
+            resourceGroupDesc.bufferNum = 2;
+            resourceGroupDesc.buffers = &m_buffers[RENDERCMD0];
+
+            baseAllocation = m_memoryAllocations.size();
+            m_memoryAllocations.resize(baseAllocation + 2, nullptr);
+
+            NRI_ABORT_ON_FAILURE(NRI.AllocateAndBindMemory(*m_Device, resourceGroupDesc, m_memoryAllocations.data() + baseAllocation));
+            
+            
+
+            // instances
+            resourceGroupDesc.memoryLocation = nri::MemoryLocation::DEVICE;
+            resourceGroupDesc.bufferNum = 2;
+            resourceGroupDesc.buffers = &m_buffers[INSTANCES];
+
+            baseAllocation = m_memoryAllocations.size();
+            m_memoryAllocations.resize(baseAllocation + 2, nullptr);
+
+            NRI_ABORT_ON_FAILURE(NRI.AllocateAndBindMemory(*m_Device, resourceGroupDesc, m_memoryAllocations.data() + baseAllocation));
+            
+
+            // visbuffer
+            //  data
+            resourceGroupDesc.memoryLocation = nri::MemoryLocation::DEVICE;
+            resourceGroupDesc.bufferNum = 0;
+            resourceGroupDesc.buffers = nullptr;
+            resourceGroupDesc.textureNum = 1;
+            resourceGroupDesc.textures = &m_visBuff.data;
+
+            NRI_ABORT_ON_FAILURE(NRI.AllocateAndBindMemory(*m_Device, resourceGroupDesc, &m_visBuff.dataMem));
+
+            //  depth
+            resourceGroupDesc.memoryLocation = nri::MemoryLocation::DEVICE;
+            resourceGroupDesc.bufferNum = 0;
+            resourceGroupDesc.buffers = nullptr;
+            resourceGroupDesc.textureNum = 1;
+            resourceGroupDesc.textures = &m_visBuff.depth;
+
+            NRI_ABORT_ON_FAILURE(NRI.AllocateAndBindMemory(*m_Device, resourceGroupDesc, &m_visBuff.depthMem));
+            Log::Message("Renderer", "Need to add texture and material support");
+        }
+
+        // create descriptors
+        Log::Message("Renderer", "Create Descriptors");
+        nri::Descriptor* anisotropicSampler = nullptr;
+        nri::Descriptor* constantBufferViews[BUFFERED_FRAME_MAX_NUM] = {};
+        nri::Descriptor* resourceViews[2] = {};
+        {
+            Log::Message("Renderer", "Need to add texture and material support");
+
+            // visibility buffer
+            nri::Texture2DViewDesc texture2DViewDesc = { m_visBuff.depth, nri::Texture2DViewType::SHADER_RESOURCE_STORAGE_2D, nri::Format::R32_SFLOAT };
+            NRI_ABORT_ON_FAILURE(NRI.CreateTexture2DView(texture2DViewDesc, m_visBuff.depthDesc));
+
+            nri::Texture2DViewDesc texture2DViewDesc = { m_visBuff.data, nri::Texture2DViewType::SHADER_RESOURCE_STORAGE_2D, nri::Format::R32_UINT };
+            NRI_ABORT_ON_FAILURE(NRI.CreateTexture2DView(texture2DViewDesc, m_visBuff.dataDesc));
+            
+            // visbuffer Sampler
+            nri::SamplerDesc samplerDesc = {};
+            samplerDesc.addressModes = { nri::AddressMode::CLAMP_TO_EDGE, nri::AddressMode::CLAMP_TO_EDGE };
+            samplerDesc.filters = { nri::Filter::NEAREST, nri::Filter::NEAREST, nri::Filter::NEAREST };
+            samplerDesc.anisotropy = 8;
+            samplerDesc.mipMax = 16.0f;
+            NRI_ABORT_ON_FAILURE(NRI.CreateSampler(*m_Device, samplerDesc, m_visBuff.sampler));
+            
+
+
+            // buffer n stuff
+        }
     }
 
 
@@ -329,4 +519,11 @@ void Renderer::ReloadRenderer()
     m_vGeomStreamer->Init();
 
 
+}
+
+void Renderer::PopulateInstaceBuffer()
+{
+    // create instance buffer
+    
+    // create old instance buffer idx
 }

@@ -8,7 +8,7 @@ constexpr uint32_t GLOBAL_DESCRIPTOR_SET = 0;
 constexpr uint32_t MATERIAL_DESCRIPTOR_SET = 1;
 constexpr float CLEAR_DEPTH = 0.0f;
 constexpr uint32_t TEXTURES_PER_MATERIAL = 4;
-constexpr uint32_t BUFFER_COUNT = 3;
+constexpr uint32_t BUFFER_COUNT = 6;
 
 struct NRIInterface
     : public nri::CoreInterface
@@ -25,22 +25,34 @@ enum BufferLocs {
 
     // buff0
     RENDERDATA0 = 2,
-    RENDERCMD0 = 3,
+    RENDERDATA1 = 3,
 
     // buff1
-    RENDERDATA1 = 4,
+    RENDERCMD0 = 4,
     RENDERCMD1 = 5,
 
     // read back
-    READBACK = 6
+    READBACK = 6,
 
     // instance buffer
+    INSTANCES = 7,
+    IMSTANCESLAST = 8,
+
+    
 };
 
 struct VisibilityBuffer
 {
     nri::Texture* depth;
     nri::Texture* data;
+
+    nri::Memory* depthMem;
+    nri::Memory* dataMem;
+
+    nri::Descriptor* depthDesc;
+    nri::Descriptor* dataDesc;
+
+    nri::Descriptor* sampler;
 };
 
 struct Frame
@@ -58,11 +70,16 @@ struct Frame
 class Renderer : public SampleBase
 {
 public:
+    Renderer() {};
+    ~Renderer();
+
+
     bool Initialize(nri::GraphicsAPI graphicsAPI) override;
     void PrepareFrame(uint32_t frameIndex) override;
     void RenderFrame(uint32_t frameIndex) override;
 
     void ReloadRenderer();
+    void PopulateInstaceBuffer();
 
     inline uint32_t GetDrawIndexedCommandSize()
     {
@@ -101,9 +118,9 @@ private:
     std::vector<BackBuffer> m_SwapChainBuffers;
     std::vector<nri::DescriptorSet*> m_DescriptorSets;
     std::vector<nri::Texture*> m_Textures;
-    std::vector<nri::Buffer*> m_Buffers;
-    std::vector<nri::Memory*> m_MemoryAllocations;
-    std::vector<nri::Descriptor*> m_Descriptors;
+    //std::vector<nri::Buffer*> m_Buffers;
+    //std::vector<nri::Memory*> m_MemoryAllocations;
+    //std::vector<nri::Descriptor*> m_Descriptors;
 
 
 
@@ -114,6 +131,10 @@ private:
     VirtualGeometryStreamer* m_vGeomStreamer;
 
     std::vector<nri::Buffer*> m_buffers;
+    std::vector<nri::Memory*> m_memoryAllocations;
+    std::vector<nri::Descriptor*> m_descriptors;
+    
+    
     VisibilityBuffer m_visBuff;
 
 

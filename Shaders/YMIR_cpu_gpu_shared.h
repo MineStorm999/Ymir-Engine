@@ -1,9 +1,10 @@
 #pragma once
 
-#define ReadBacks 1000000
+//#define ReadBacks 1000000
 
-#define RenderCMDs 1000000
-#define ReadBacks 1000000
+#define RENDERCMDS 15000000
+#define READBACKS 10000000
+#define MAXMESHINSTANCES 1000000
 
 NRI_RESOURCE(cbuffer, GlobalConstants, b, 0, 0)
 {
