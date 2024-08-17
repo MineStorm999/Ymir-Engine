@@ -596,7 +596,7 @@ bool Renderer::Initialize(nri::GraphicsAPI graphicsAPI)
             nri::DescriptorPoolDesc descriptorPoolDesc = {};
             descriptorPoolDesc.descriptorSetMaxNum = TEST + BUFFERED_FRAME_MAX_NUM + 2;
             descriptorPoolDesc.textureMaxNum = TEST * TEXTURES_PER_MATERIAL;
-            descriptorPoolDesc.samplerMaxNum = BUFFERED_FRAME_MAX_NUM;
+            descriptorPoolDesc.samplerMaxNum = BUFFERED_FRAME_MAX_NUM * 2 * 5;
             descriptorPoolDesc.storageStructuredBufferMaxNum = 1 * 2 * TEST;
             descriptorPoolDesc.storageBufferMaxNum = 1 * 2 * TEST;
             descriptorPoolDesc.bufferMaxNum = 3 * 2 * TEST;
@@ -609,24 +609,64 @@ bool Renderer::Initialize(nri::GraphicsAPI graphicsAPI)
         // descriptor sets
         Log::Message("Renderer", "Create Descriptor Sets");
         {
-            m_DescriptorSets.resize(BUFFERED_FRAME_MAX_NUM * );
+            m_DescriptorSets.resize(BUFFERED_FRAME_MAX_NUM * (6/*1. 3 pipelines*/ + 2/*material pipeline*/ + 1/*merge pipeline*/));
 
-            // Global
-            NRI_ABORT_ON_FAILURE(NRI.AllocateDescriptorSets(*m_DescriptorPool, *m_PipelineLayout, GLOBAL_DESCRIPTOR_SET,
-                &m_DescriptorSets[0], BUFFERED_FRAME_MAX_NUM, 0));
+            // cached descriptor set
+            //  range 0
+            NRI_ABORT_ON_FAILURE(NRI.AllocateDescriptorSets(*m_DescriptorPool, *m_cachedRenderLayout, 0,
+                &m_DescriptorSets[BUFFERED_FRAME_MAX_NUM * 0], BUFFERED_FRAME_MAX_NUM, 0));
+            //  populate
 
-            for (uint32_t i = 0; i < BUFFERED_FRAME_MAX_NUM; i++)
+            for (uint32_t i = BUFFERED_FRAME_MAX_NUM * 0; i < BUFFERED_FRAME_MAX_NUM; i++)
             {
-                nri::DescriptorRangeUpdateDesc descriptorRangeUpdateDescs[3] = {};
+                nri::DescriptorRangeUpdateDesc descriptorRangeUpdateDescs[5] = {};
                 descriptorRangeUpdateDescs[0].descriptorNum = 1;
                 descriptorRangeUpdateDescs[0].descriptors = &constantBufferViews[i];
                 descriptorRangeUpdateDescs[1].descriptorNum = 1;
                 descriptorRangeUpdateDescs[1].descriptors = &anisotropicSampler;
-                descriptorRangeUpdateDescs[2].descriptorNum = BUFFER_COUNT;
+                descriptorRangeUpdateDescs[2].descriptorNum = GetStructuredBuffCount();
                 descriptorRangeUpdateDescs[2].descriptors = resourceViews;
 
                 NRI.UpdateDescriptorRanges(*m_DescriptorSets[i], 0, helper::GetCountOf(descriptorRangeUpdateDescs), descriptorRangeUpdateDescs);
             }
+
+            //  range 1
+            NRI_ABORT_ON_FAILURE(NRI.AllocateDescriptorSets(*m_DescriptorPool, *m_cachedRenderLayout, 1,
+                &m_DescriptorSets[BUFFERED_FRAME_MAX_NUM * 1], BUFFERED_FRAME_MAX_NUM, 2));
+
+            
+
+
+            // culling descriptor set
+            //  range 0
+            NRI_ABORT_ON_FAILURE(NRI.AllocateDescriptorSets(*m_DescriptorPool, *m_cullingLayout, 0,
+                &m_DescriptorSets[BUFFERED_FRAME_MAX_NUM * 2], BUFFERED_FRAME_MAX_NUM, 0));
+            //  range 1
+            NRI_ABORT_ON_FAILURE(NRI.AllocateDescriptorSets(*m_DescriptorPool, *m_cullingLayout, 1,
+                &m_DescriptorSets[BUFFERED_FRAME_MAX_NUM * 3], BUFFERED_FRAME_MAX_NUM, 2));
+
+            // vis buff descriptor set
+            //  range 0
+            NRI_ABORT_ON_FAILURE(NRI.AllocateDescriptorSets(*m_DescriptorPool, *m_visibilityBuffLayout, 0,
+                &m_DescriptorSets[BUFFERED_FRAME_MAX_NUM * 4], BUFFERED_FRAME_MAX_NUM, 0));
+            //  range 1
+            NRI_ABORT_ON_FAILURE(NRI.AllocateDescriptorSets(*m_DescriptorPool, *m_visibilityBuffLayout, 1,
+                &m_DescriptorSets[BUFFERED_FRAME_MAX_NUM * 5], BUFFERED_FRAME_MAX_NUM, 2));
+
+            // material descriptor set
+            //  range 0
+            NRI_ABORT_ON_FAILURE(NRI.AllocateDescriptorSets(*m_DescriptorPool, *m_materialLayout, 0,
+                &m_DescriptorSets[BUFFERED_FRAME_MAX_NUM * 6], BUFFERED_FRAME_MAX_NUM, 0));
+            //  range 1
+            NRI_ABORT_ON_FAILURE(NRI.AllocateDescriptorSets(*m_DescriptorPool, *m_materialLayout, 1,
+                &m_DescriptorSets[BUFFERED_FRAME_MAX_NUM * 7], BUFFERED_FRAME_MAX_NUM, 2));
+
+            // merge descriptor set
+            //  range 0
+            NRI_ABORT_ON_FAILURE(NRI.AllocateDescriptorSets(*m_DescriptorPool, *m_mergeLayout, 0,
+                &m_DescriptorSets[BUFFERED_FRAME_MAX_NUM * 8], BUFFERED_FRAME_MAX_NUM, 0));
+
+            
 
             // Material
             NRI_ABORT_ON_FAILURE(NRI.AllocateDescriptorSets(*m_DescriptorPool, *m_PipelineLayout, MATERIAL_DESCRIPTOR_SET,
