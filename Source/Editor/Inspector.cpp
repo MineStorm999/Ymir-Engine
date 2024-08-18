@@ -70,7 +70,7 @@ void Inspector::ShowAsset()
 	std::strcpy(name, pName.c_str());
 	ImGui::InputText("Name", name, 1024);
 
-	if (!std::strcmp(pName.c_str(), name)) {
+	if (std::strcmp(pName.c_str(), name) != 0) {
 		sAsset->vRepr->vName = name;
 		
 		sAsset->name = name;

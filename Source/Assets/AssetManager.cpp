@@ -69,7 +69,7 @@ void AssetManager::Init()
         
         nlohmann::json asset = j["Assets"][std::to_string(i)];
 
-        Log::Message("AssetManager", "Load cached asset: " + std::string(asset["Name"]) + "(" + std::to_string(i) + "/" + std::to_string(count) + ")");
+        Log::Message("AssetManager", "Load cached asset: " + std::string(asset["Name"]) + "(" + std::to_string(i+1) + "/" + std::to_string(count) + ")");
 
         AssetType tyoe = to_type(asset["Type"]);
 

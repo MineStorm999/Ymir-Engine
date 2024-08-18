@@ -1,7 +1,13 @@
 // © 2021 NVIDIA Corporation
 
-#include "Renderer.hpp"
-/*
+
+//#define REV
+
+
+#ifdef REV
+
+
+
 #include "NRIFramework.h"
 
 #include "NRICompatibility.hlsli"
@@ -55,7 +61,7 @@ struct NRIInterface
     , public nri::SwapChainInterface
 {};
 
-struct Frame
+struct Frame1
 {
     nri::CommandAllocator* commandAllocator;
     nri::CommandBuffer* commandBuffer;
@@ -98,7 +104,7 @@ private:
     nri::Pipeline* m_Pipeline = nullptr;
     nri::Pipeline* m_ComputePipeline = nullptr;
 
-    std::array<Frame, BUFFERED_FRAME_MAX_NUM> m_Frames = {};
+    std::array<Frame1, BUFFERED_FRAME_MAX_NUM> m_Frames = {};
     std::vector<BackBuffer> m_SwapChainBuffers;
     std::vector<nri::DescriptorSet*> m_DescriptorSets;
     std::vector<nri::Texture*> m_Textures;
@@ -118,7 +124,7 @@ Sample::~Sample()
 {
     NRI.WaitForIdle(*m_CommandQueue);
 
-    for (Frame& frame : m_Frames)
+    for (Frame1& frame : m_Frames)
     {
         NRI.DestroyCommandBuffer(*frame.commandBuffer);
         NRI.DestroyCommandAllocator(*frame.commandAllocator);
@@ -219,7 +225,7 @@ bool Sample::Initialize(nri::GraphicsAPI graphicsAPI)
     nri::Format swapChainFormat = NRI.GetTextureDesc(*swapChainTextures[0]).format;
 
     // Buffered resources
-    for (Frame& frame : m_Frames)
+    for (Frame1& frame : m_Frames)
     {
         NRI_ABORT_ON_FAILURE( NRI.CreateCommandAllocator(*m_CommandQueue, frame.commandAllocator) );
         NRI_ABORT_ON_FAILURE( NRI.CreateCommandBuffer(*frame.commandAllocator, frame.commandBuffer) );
@@ -590,7 +596,7 @@ bool Sample::Initialize(nri::GraphicsAPI graphicsAPI)
 
     { // Descriptor pool
         nri::DescriptorPoolDesc descriptorPoolDesc = {};
-        descriptorPoolDesc.descriptorSetMaxNum = materialNum + BUFFERED_FRAME_MAX_NUM + 2;
+        descriptorPoolDesc.descriptorSetMaxNum = ((BUFFERED_FRAME_MAX_NUM + 1) * 3) + 1 * TEST;
         descriptorPoolDesc.textureMaxNum = materialNum * TEXTURES_PER_MATERIAL;
         descriptorPoolDesc.samplerMaxNum = BUFFERED_FRAME_MAX_NUM;
         descriptorPoolDesc.storageStructuredBufferMaxNum = 1 * 2 * TEST;
@@ -797,7 +803,7 @@ void Sample::PrepareFrame(uint32_t frameIndex)
 void Sample::RenderFrame(uint32_t frameIndex)
 {
     const uint32_t bufferedFrameIndex = frameIndex % BUFFERED_FRAME_MAX_NUM;
-    const Frame& frame = m_Frames[bufferedFrameIndex];
+    const Frame1& frame = m_Frames[bufferedFrameIndex];
     const uint32_t windowWidth = GetWindowResolution().x;
     const uint32_t windowHeight = GetWindowResolution().y;
 
@@ -956,6 +962,10 @@ void Sample::RenderFrame(uint32_t frameIndex)
 
         NRI.QueueSubmit(*m_CommandQueue, queueSubmitDesc);
     }
-}*/
+}
 
+SAMPLE_MAIN(Sample, 0);
+#else
+#include "Renderer.hpp"
 SAMPLE_MAIN(Renderer, 0);
+#endif // REV

@@ -11,6 +11,7 @@
 
 #define RENDERCMDS MAXMESHINSTANCES * 10
 
+#ifndef REV
 NRI_RESOURCE(cbuffer, GlobalConstants, b, 0, 0)
 {
     float4x4 gWorldToClip;
@@ -19,3 +20,4 @@ NRI_RESOURCE(cbuffer, GlobalConstants, b, 0, 0)
     uint32_t instanceCountOld;
     uint32_t instanceCountNew;
 };
+#endif // REV

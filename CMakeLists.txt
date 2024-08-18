@@ -97,6 +97,7 @@ if (NOT DISABLE_SHADER_COMPILATION)
     file (GLOB_RECURSE SHADERS "Shaders/*.hlsl" "Shaders/*.hlsli")
     set_source_files_properties (${SHADERS} PROPERTIES VS_TOOL_OVERRIDE "None")
 
+
     if (WIN32)
         add_custom_target (${PROJECT_NAME}_Shaders ALL
             COMMAND ShaderMake --useAPI

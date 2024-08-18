@@ -16,6 +16,11 @@ uint32_t indices[6]{
     0,1,2, // 1. triangle
     3,2,1
 };
+struct QuatVertex
+{
+    float2 pos;
+    float2 uv;
+};
 
 Renderer::~Renderer()
 {
@@ -191,7 +196,7 @@ bool Renderer::Initialize(nri::GraphicsAPI graphicsAPI)
 
 
             nri::DescriptorRangeDesc visBuffDescRange[2] = {};
-            visBuffDescRange[0] = { 0, 2, nri::DescriptorType::TEXTURE, nri::StageBits::ALL, true, true };
+            visBuffDescRange[0] = { 0, 2, nri::DescriptorType::STORAGE_TEXTURE, nri::StageBits::ALL, true, true };
             visBuffDescRange[1] = { 0, 1, nri::DescriptorType::SAMPLER, nri::StageBits::ALL };
             
             // need to add texture and material support
@@ -250,7 +255,7 @@ bool Renderer::Initialize(nri::GraphicsAPI graphicsAPI)
             cullingLayoutDesc.shaderStages = nri::StageBits::COMPUTE_SHADER;
             //cullingLayoutDesc.enableD3D12DrawParametersEmulation = true;
 
-            NRI_ABORT_ON_FAILURE(NRI.CreatePipelineLayout(*m_Device, cullingLayoutDesc, m_cachedRenderLayout));
+            NRI_ABORT_ON_FAILURE(NRI.CreatePipelineLayout(*m_Device, cullingLayoutDesc, m_cullingLayout));
 
             // vis buff pipeline desc
             nri::PipelineLayoutDesc visBuffLayoutDesc = {};
@@ -275,9 +280,9 @@ bool Renderer::Initialize(nri::GraphicsAPI graphicsAPI)
             cullingLayoutDesc.descriptorSetNum = helper::GetCountOf(mergeDescriptorSetDescs);
             cullingLayoutDesc.descriptorSets = mergeDescriptorSetDescs;
             cullingLayoutDesc.shaderStages = nri::StageBits::VERTEX_SHADER | nri::StageBits::FRAGMENT_SHADER;
-            cullingLayoutDesc.enableD3D12DrawParametersEmulation = true;
+            //cullingLayoutDesc.enableD3D12DrawParametersEmulation = true;
 
-            NRI_ABORT_ON_FAILURE(NRI.CreatePipelineLayout(*m_Device, mergeLayoutDesc, m_cachedRenderLayout));
+            NRI_ABORT_ON_FAILURE(NRI.CreatePipelineLayout(*m_Device, mergeLayoutDesc, m_mergeLayout));
         }
     
         // merge stage
@@ -290,14 +295,14 @@ bool Renderer::Initialize(nri::GraphicsAPI graphicsAPI)
 
             nri::VertexAttributeDesc vertexAttributeDesc[2] = {};
             {
-                vertexAttributeDesc[0].format = nri::Format::RGB32_SFLOAT;
-                vertexAttributeDesc[0].offset = 0;
+                vertexAttributeDesc[0].format = nri::Format::RG32_SFLOAT;
+                vertexAttributeDesc[0].offset = helper::GetOffsetOf(&QuatVertex::pos);
                 vertexAttributeDesc[0].d3d = { "POSITION", 0 };
                 vertexAttributeDesc[0].vk = { 0 };
 
-                vertexAttributeDesc[1].format = nri::Format::RGB32_SFLOAT;
-                vertexAttributeDesc[1].offset = 0;
-                vertexAttributeDesc[1].d3d = { "UV", 3 };
+                vertexAttributeDesc[1].format = nri::Format::RG32_SFLOAT;
+                vertexAttributeDesc[1].offset = helper::GetOffsetOf(&QuatVertex::uv);
+                vertexAttributeDesc[1].d3d = { "UV", 0 };
                 vertexAttributeDesc[1].vk = { 1 };
             }
 
@@ -333,8 +338,8 @@ bool Renderer::Initialize(nri::GraphicsAPI graphicsAPI)
 
             nri::ShaderDesc mergeShaderStages[] =
             {
-                utils::LoadShader(deviceDesc.graphicsAPI, "TriangleMerge.vs", shaderCodeStorage),
-                utils::LoadShader(deviceDesc.graphicsAPI, "TriangleMerge.fs", shaderCodeStorage),
+                utils::LoadShader(deviceDesc.graphicsAPI, "YMIR_TriangleMerger.vs", shaderCodeStorage),
+                utils::LoadShader(deviceDesc.graphicsAPI, "YMIR_TriangleMerger.fs", shaderCodeStorage),
             };
 
 
@@ -347,9 +352,9 @@ bool Renderer::Initialize(nri::GraphicsAPI graphicsAPI)
             mergePipelineDesc.outputMerger = outputMergerDesc;
             mergePipelineDesc.shaders = mergeShaderStages;
             mergePipelineDesc.shaderNum = helper::GetCountOf(mergeShaderStages);
-            NRI_ABORT_ON_FAILURE(NRI.CreateGraphicsPipeline(*m_Device, mergePipelineDesc, m_mergePipeline));
+            //NRI_ABORT_ON_FAILURE(NRI.CreateGraphicsPipeline(*m_Device, mergePipelineDesc, m_mergePipeline));
         }
-
+        
         // compute stages
         Log::Message("Renderer", "Create compute piplines");
         {
@@ -392,9 +397,8 @@ bool Renderer::Initialize(nri::GraphicsAPI graphicsAPI)
             
 
 
-            nri::TextureDesc dataDesc = nri::Texture2D(nri::Format::R32_UINT, (uint16_t)GetWindowResolution().x, (uint16_t)GetWindowResolution().y, 10, 1);
-            nri::TextureDesc depthDesc = nri::Texture2D(nri::Format::R32_SFLOAT, (uint16_t)GetWindowResolution().x, (uint16_t)GetWindowResolution().y, 1, 1,
-                nri::TextureUsageBits::DEPTH_STENCIL_ATTACHMENT);
+            nri::TextureDesc dataDesc = nri::Texture2D(nri::Format::R32_UINT, (uint16_t)GetWindowResolution().x, (uint16_t)GetWindowResolution().y, 10, 1, nri::TextureUsageBits::SHADER_RESOURCE_STORAGE);
+            nri::TextureDesc depthDesc = nri::Texture2D(nri::Format::R32_SFLOAT, (uint16_t)GetWindowResolution().x, (uint16_t)GetWindowResolution().y, 1, 1, nri::TextureUsageBits::SHADER_RESOURCE_STORAGE);
 
             NRI_ABORT_ON_FAILURE(NRI.CreateTexture(*m_Device, dataDesc, m_visBuff.data));
             NRI_ABORT_ON_FAILURE(NRI.CreateTexture(*m_Device, depthDesc, m_visBuff.depth));
@@ -543,23 +547,21 @@ bool Renderer::Initialize(nri::GraphicsAPI graphicsAPI)
             NRI_ABORT_ON_FAILURE(NRI.AllocateAndBindMemory(*m_Device, resourceGroupDesc, m_memoryAllocations.data() + baseAllocation));
 
             // visbuffer
-            //  data
+            //  
+
+            nri::Texture* tmpTex[2] = { m_visBuff.data, m_visBuff.depth };
+            nri::Memory* tmpMem[2] = { m_visBuff.dataMem, m_visBuff.depthMem };
+
             resourceGroupDesc.memoryLocation = nri::MemoryLocation::DEVICE;
             resourceGroupDesc.bufferNum = 0;
             resourceGroupDesc.buffers = nullptr;
-            resourceGroupDesc.textureNum = 1;
-            resourceGroupDesc.textures = &m_visBuff.data;
+            resourceGroupDesc.textureNum = 2;
+            resourceGroupDesc.textures = tmpTex;
 
-            NRI_ABORT_ON_FAILURE(NRI.AllocateAndBindMemory(*m_Device, resourceGroupDesc, &m_visBuff.dataMem));
+            NRI_ABORT_ON_FAILURE(NRI.AllocateAndBindMemory(*m_Device, resourceGroupDesc, tmpMem));
+            m_visBuff.dataMem = tmpMem[0];
+            m_visBuff.depthMem = tmpMem[1];
 
-            //  depth
-            resourceGroupDesc.memoryLocation = nri::MemoryLocation::DEVICE;
-            resourceGroupDesc.bufferNum = 0;
-            resourceGroupDesc.buffers = nullptr;
-            resourceGroupDesc.textureNum = 1;
-            resourceGroupDesc.textures = &m_visBuff.depth;
-
-            NRI_ABORT_ON_FAILURE(NRI.AllocateAndBindMemory(*m_Device, resourceGroupDesc, &m_visBuff.depthMem));
             Log::Message("Renderer", "Need to add texture and material support");
         }
 
@@ -666,21 +668,22 @@ bool Renderer::Initialize(nri::GraphicsAPI graphicsAPI)
                 m_descriptors.push_back(constantBufferViews[i]);
             }
         }
-#define TEST 100
+#define TEST 10
 
         // descriptor pool
         Log::Message("Renderer", "Create Descriptor pool");
         {
             nri::DescriptorPoolDesc descriptorPoolDesc = {};
-            descriptorPoolDesc.descriptorSetMaxNum = TEST + BUFFERED_FRAME_MAX_NUM + 2;
-            descriptorPoolDesc.textureMaxNum = TEST * TEXTURES_PER_MATERIAL;
-            descriptorPoolDesc.samplerMaxNum = BUFFERED_FRAME_MAX_NUM * 2 * 5;
+            descriptorPoolDesc.descriptorSetMaxNum = ((BUFFERED_FRAME_MAX_NUM + 1) * 3) + 1;
+            descriptorPoolDesc.textureMaxNum = 3 * TEST * TEXTURES_PER_MATERIAL;                       // add texture support
+            descriptorPoolDesc.samplerMaxNum = BUFFERED_FRAME_MAX_NUM * TEST;
             descriptorPoolDesc.storageStructuredBufferMaxNum = 1 * 2 * TEST;
             descriptorPoolDesc.storageBufferMaxNum = 1 * 2 * TEST;
             descriptorPoolDesc.bufferMaxNum = 3 * 2 * TEST;
             descriptorPoolDesc.structuredBufferMaxNum = 4 * 2 * TEST;
             descriptorPoolDesc.constantBufferMaxNum = BUFFERED_FRAME_MAX_NUM;
-
+            descriptorPoolDesc.storageTextureMaxNum = 3 * TEST;
+            descriptorPoolDesc.dynamicConstantBufferMaxNum = BUFFERED_FRAME_MAX_NUM;
             NRI_ABORT_ON_FAILURE(NRI.CreateDescriptorPool(*m_Device, descriptorPoolDesc, m_DescriptorPool));
         }
 
