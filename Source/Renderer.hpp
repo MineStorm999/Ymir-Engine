@@ -4,6 +4,8 @@
 #include "../Shaders/YMIR_cpu_gpu_shared.h"
 #include "Rendering/VirtualGeometry/VirtualGeometryStreamer.h"
 
+#include "ECS/ECSManager.h"
+
 constexpr uint32_t GLOBAL_DESCRIPTOR_SET = 0;
 constexpr uint32_t MATERIAL_DESCRIPTOR_SET = 1;
 constexpr float CLEAR_DEPTH = 0.0f;
@@ -41,6 +43,8 @@ enum BufferLocs {
     CONSTANTBUFFER = 9
 };
 
+
+
 struct VisibilityBuffer
 {
     nri::Texture* depth;
@@ -67,6 +71,11 @@ struct Frame
     uint32_t globalConstantBufferViewOffsets;
 };
 
+struct CachedCluster {
+    uint32_t modelID, clusterID;
+    uint32_t clusterOffSet;
+};
+
 class Renderer : public SampleBase
 {
 public:
@@ -79,7 +88,9 @@ public:
     void RenderFrame(uint32_t frameIndex) override;
 
     void ReloadRenderer();
+
     void PopulateInstaceBuffer();
+    void UploadInstaceBuffer();
 
     inline uint32_t GetDrawIndexedCommandSize()
     {
@@ -112,11 +123,17 @@ private:
     nri::Pipeline* m_visibilityBuffPipeline = nullptr;
     nri::Pipeline* m_materialPipeline = nullptr;
     nri::Pipeline* m_mergePipeline = nullptr;
-
+    
+    std::vector<nri::DescriptorSet*> m_cachedDescriptorSets;
+    std::vector<nri::DescriptorSet*> m_cullingDescriptorSets;
+    std::vector<nri::DescriptorSet*> m_visBuffDescriptorSets;
+    std::vector<nri::DescriptorSet*> m_materialDescriptorSets;
+    std::vector<nri::DescriptorSet*> m_mergeDescriptorSets;
+    
 
     std::array<Frame, BUFFERED_FRAME_MAX_NUM> m_Frames = {};
     std::vector<BackBuffer> m_SwapChainBuffers;
-    std::vector<nri::DescriptorSet*> m_DescriptorSets;
+    
     std::vector<nri::Texture*> m_Textures;
     //std::vector<nri::Buffer*> m_Buffers;
     //std::vector<nri::Memory*> m_MemoryAllocations;
@@ -128,8 +145,6 @@ private:
     nri::Format m_DepthFormat = nri::Format::UNKNOWN;
 
 private:
-    VirtualGeometryStreamer* m_vGeomStreamer;
-
     std::vector<nri::Buffer*> m_buffers;
     std::vector<nri::Memory*> m_memoryAllocations;
     std::vector<nri::Descriptor*> m_descriptors;
@@ -137,7 +152,35 @@ private:
     
     VisibilityBuffer m_visBuff;
 
+    
+    bool useBuffer0 = true;
 
     uint32_t GetStructuredBuffCount() { return 6; };
     uint32_t GetRWStructuredBuffCount() { return 2; };
+
+    
+    // instance collection
+private:
+    void IterateChildren(entt::entity, float4x4 pMat);
+    uint32_t instanceCount0 = 0;
+    uint32_t instanceCount1 = 0;
+
+    InstanceDesc* allRenderedEntites0;
+    InstanceDesc* allRenderedEntites1;
+    
+    
+    uint32_t* lastFrameEntitiesID;
+    
+    // streaming
+private:
+    VirtualGeometryStreamer* m_vGeomStreamer;
+
+    std::vector<CachedCluster> cachedCluster;
+    uint32_t size0, size1;
+    void* VGBuffer0;
+    void* VGBuffer1;
+
+    void StreamGeom();
+    CachedCluster nullCluster;
+    CachedCluster& Contains(uint32_t MID, uint32_t CID);
 };

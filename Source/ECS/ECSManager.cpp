@@ -14,6 +14,11 @@ ECSWorld& EntityManager::GetWorld()
     return *curWorld;
 }
 
+entt::entity EntityManager::GetRoot()
+{
+    return root;
+}
+
 void EntityManager::SetWorld(ECSWorld* w)
 {
     curWorld = w;

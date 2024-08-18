@@ -1,7 +1,7 @@
 // © 2021 NVIDIA Corporation
 
-
-
+#include "Renderer.hpp"
+/*
 #include "NRIFramework.h"
 
 #include "NRICompatibility.hlsli"
@@ -642,6 +642,7 @@ bool Sample::Initialize(nri::GraphicsAPI graphicsAPI)
     }
 
     { // Upload data
+        // collect data
         std::vector<nri::TextureUploadDesc> textureData(1 + textureNum);
         std::vector<MaterialData> materialData(m_Scene.materials.size());
         std::vector<InstanceData> instanceData(m_Scene.instances.size());
@@ -955,6 +956,6 @@ void Sample::RenderFrame(uint32_t frameIndex)
 
         NRI.QueueSubmit(*m_CommandQueue, queueSubmitDesc);
     }
-}
+}*/
 
-SAMPLE_MAIN(Sample, 0);
+SAMPLE_MAIN(Renderer, 0);

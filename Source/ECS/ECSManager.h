@@ -14,6 +14,7 @@ using CallBack = std::function<ViewID(ECSWorld&)>;
 class EntityManager {
 public:
 	static ECSWorld& GetWorld();
+	static entt::entity GetRoot();
 
 	static void SetWorld(ECSWorld* w);
 

@@ -1,7 +1,7 @@
 #define NRI_ENABLE_DRAW_PARAMETERS_EMULATION
 
 #include "NRICompatibility.hlsli"
-#include "SceneViewerBindlessStructs.h"
+
 
 NRI_PUSH_CONSTANTS(CullingConstants, Constants, 0);
 NRI_RESOURCE(StructuredBuffer<MaterialData>, Materials, t, 0, 0);

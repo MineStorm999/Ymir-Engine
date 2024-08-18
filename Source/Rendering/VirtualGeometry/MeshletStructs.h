@@ -16,6 +16,8 @@ struct InstanceDesc{
 	uint32_t materialID;
 	
 	float4x4 transform;
+
+	uint32_t realID;
 };
 
 struct MeshletDesc {
