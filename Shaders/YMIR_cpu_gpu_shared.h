@@ -1,5 +1,5 @@
-#pragma once
-
+#ifndef CPUGPUSHARED
+#define CPUGPUSHARED
 //#define ReadBacks 1000000
 
 #define MESHLETDATAMAXSIZE 2944
@@ -22,3 +22,4 @@ NRI_RESOURCE(cbuffer, GlobalConstants, b, 0, 0)
     uint32_t bufferToUse;
 };
 #endif // REV
+#endif // CPUGPUSHARED

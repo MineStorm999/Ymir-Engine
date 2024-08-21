@@ -15,9 +15,9 @@ NRI_RESOURCE(StructuredBuffer<uint32_t>, RenderDataI, t, 3, 0);
 NRI_RESOURCE(StructuredBuffer<InstanceDesc>, Instances, t, 4, 0);
 NRI_RESOURCE(StructuredBuffer<uint>, InstancesLastFrame, t, 5, 0);
 
-NRI_RESOURCE(RWBuffer<RenderCmd>, RenderCMDO, u, 0, 0);
-NRI_RESOURCE(RWBuffer<RenderCmd>, RenderCMDI, u, 1, 0);
-NRI_RESOURCE(RWBuffer<MeshletLoadDesc>, ReadBack, u, 2, 0);
+NRI_RESOURCE(RWStructuredBuffer<RenderCmd>, RenderCMDO, u, 0, 0);
+NRI_RESOURCE(RWStructuredBuffer<RenderCmd>, RenderCMDI, u, 1, 0);
+NRI_RESOURCE(RWStructuredBuffer<MeshletLoadDesc>, ReadBack, u, 2, 0);
 
 
 
