@@ -2,7 +2,7 @@
 
 // todo
 
-#define CTA_SIZE 256
+#define CTA_SIZE 128
 
 [numthreads(CTA_SIZE, 1, 1)]
 void main(uint threadId : SV_DispatchThreadId)

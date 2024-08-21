@@ -14,6 +14,7 @@ NRI_RESOURCE(SamplerState, AnisotropicSampler, s, 0, 0 );
 NRI_RESOURCE(StructuredBuffer<MaterialData>, Materials, t, 0, 0);
 NRI_RESOURCE(StructuredBuffer<MeshData>, Meshes, t, 1, 0);
 NRI_RESOURCE(StructuredBuffer<InstanceData>, Instances, t, 2, 0);
+
 NRI_RESOURCE(Texture2D, Textures[], t, 0, 1);
 
 struct BindlessAttributes

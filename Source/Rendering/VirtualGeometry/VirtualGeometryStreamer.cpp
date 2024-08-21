@@ -9,6 +9,7 @@
 #include "../../Assets/exts.h"
 
 #include "../../Assets/AssetManager.h"
+#include "../../Common/utils.h"
 
 void VirtualGeometryStreamer::Init()
 {
@@ -26,7 +27,7 @@ void VirtualGeometryStreamer::Init()
 			continue;
 		}
 
-		std::string path = utils::GetFullPath(m->name, utils::DataFolder::VIRTUALMESH) + VModelExt;
+		std::string path = utils::GetCFullPath(m->name, utils::CustomFolder::VIRTUALMESH) + VModelExt;
 		FILE* modelData = fopen(path.c_str(), "r");
 
 		if (!modelData) {

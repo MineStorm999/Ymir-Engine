@@ -19,5 +19,6 @@ NRI_RESOURCE(cbuffer, GlobalConstants, b, 0, 0)
 
     uint32_t instanceCountOld;
     uint32_t instanceCountNew;
+    uint32_t bufferToUse;
 };
 #endif // REV

@@ -33,14 +33,17 @@ enum BufferLocs {
     RENDERCMD0 = 4,
     RENDERCMD1 = 5,
 
+    // loadDescs
+    LOADDESCS = 6,
+
     // read back
-    READBACK = 6,
+    READBACK = 7,
 
     // instance buffer
-    INSTANCES = 7,
-    IMSTANCESLAST = 8,
+    INSTANCES = 8,
+    INSTANCESLAST = 9,
 
-    CONSTANTBUFFER = 9
+    CONSTANTBUFFER = 10
 };
 
 
@@ -156,7 +159,7 @@ private:
     bool useBuffer0 = true;
 
     uint32_t GetStructuredBuffCount() { return 6; };
-    uint32_t GetRWStructuredBuffCount() { return 2; };
+    uint32_t GetRWStructuredBuffCount() { return 3; };
 
     
     // instance collection
@@ -176,9 +179,11 @@ private:
     VirtualGeometryStreamer* m_vGeomStreamer;
 
     std::vector<CachedCluster> cachedCluster;
+    uint32_t sizeLast, biggestSize;
+    uint8_t* VGBuffer0;
+    uint8_t* VGBuffer1;
+
     uint32_t size0, size1;
-    void* VGBuffer0;
-    void* VGBuffer1;
 
     void StreamGeom();
     CachedCluster nullCluster;

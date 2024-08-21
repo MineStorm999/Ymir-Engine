@@ -24,6 +24,7 @@ void EntityManager::SetWorld(ECSWorld* w)
     curWorld = w;
     if (w->group<Root>().size() <= 0) {
         root = CreateEntity("Root");
+        w->emplace<Root>(root);
     }
     else {
         root = w->group<Root>()[0];
@@ -52,7 +53,11 @@ nlohmann::json EntityManager::SerializeWorld(ECSWorld& w)
 
 void EntityManager::UpdateMatrizes()
 {
+
     auto t = GetWorld().group<Transform>();
+    if(t.size() < 1){
+        return;
+    }
     t.each([](Transform& t){
         if (t.changed) {
             t.localMat.SetupByRotationYPR(t.localRot.x, t.localRot.y, t.localRot.z);
@@ -72,8 +77,9 @@ void EntityManager::Init()
         return;
     }
 
-    auto transforms = curWorld->group<Transform>();
-    auto renderer = curWorld->group<Transform, MeshInstance>();
+    curWorld->group<Transform>();
+    curWorld->group<MeshInstance>();
+    curWorld->group<Identity>();
 }
 
 entt::entity EntityManager::CreateEntity(std::string name)

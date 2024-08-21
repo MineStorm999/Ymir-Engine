@@ -13,6 +13,8 @@
 #include "NRIFramework.h"
 #include "../Editor/Inspector.h"
 #include "Imgui/imgui.h"
+#include "../Common/utils.h"
+
 //#include "Imgui/misc/cpp/imgui_stdlib.h"
 
 using LoadMap = std::unordered_map<AssetType, std::function<AssetBase*(std::string, std::string)>>;
@@ -55,7 +57,7 @@ void AssetManager::Init()
         };
 
 
-    std::fstream fStream(utils::GetFullPath("AssetSave.tyr", utils::DataFolder::SAVEFILES));
+    std::fstream fStream(utils::GetCFullPath("AssetSave.tyr", utils::CustomFolder::SAVEFILES));
     if (!fStream.is_open()) {
         return;
     }
@@ -101,7 +103,7 @@ void AssetManager::Init()
 
 void AssetManager::Save()
 {
-    std::ofstream ofStream(utils::GetFullPath("AssetSave.tyr", utils::DataFolder::SAVEFILES));
+    std::ofstream ofStream(utils::GetCFullPath("AssetSave.tyr", utils::CustomFolder::SAVEFILES));
 
     if (!ofStream.is_open()) {
         Log::Error("AssetManager", "Wrong Path");

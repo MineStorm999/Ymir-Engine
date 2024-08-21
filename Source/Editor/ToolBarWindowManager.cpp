@@ -8,13 +8,13 @@
 
 #include "Imgui/imgui.h"
 
-bool ShowInspector{};
-bool ShowAssetManager{};
-bool ShowLog{};
+bool ShowInspector{true};
+bool ShowAssetManager{ true };
+bool ShowLog{ true };
 
 void WindowManager::Show()
 {
-	ImGui::BeginMainMenuBar();
+/*	ImGui::BeginMainMenuBar();
 
 	if(ImGui::BeginMenu("File")){
 		if (ImGui::MenuItem("Save")) {
@@ -38,7 +38,7 @@ void WindowManager::Show()
 	
 
 	ImGui::EndMainMenuBar();
-
+	*/
 	if (ShowAssetManager) {
 		AssetManager::Show();
 	}

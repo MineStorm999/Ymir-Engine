@@ -12,6 +12,8 @@
 /// 
 /// QuadLayout
 
+#define MESHLETDATASIZE 2000000
+
 uint32_t indices[6]{
     0,1,2, // 1. triangle
     3,2,1
@@ -25,7 +27,7 @@ struct QuatVertex
 Renderer::~Renderer()
 {
     NRI.WaitForIdle(*m_CommandQueue);
-    
+    Log::Message("Renderer", "Shutting down BiggestRequest Was: " + std::to_string(biggestSize) + "bytes");
     // free all memory
     free(allRenderedEntites0);
     free(allRenderedEntites1);
@@ -65,6 +67,8 @@ Renderer::~Renderer()
     NRI.DestroyTexture(*m_visBuff.data);
     NRI.DestroyTexture(*m_visBuff.depth);
 
+    
+
     NRI.FreeMemory(*m_visBuff.dataMem);
     NRI.FreeMemory(*m_visBuff.depthMem);
 
@@ -103,6 +107,9 @@ bool Renderer::Initialize(nri::GraphicsAPI graphicsAPI)
     nullCluster = c;
     // init asset manager, log
     WindowManager::Init();
+
+    EntityManager::SetWorld(new ECSWorld());
+
     /*Log::Error("Renderer", "You didnt implemented free frunction!!!!!");
     exit(EXIT_FAILURE);*/
     // init geometry streamer, sets model render ids, creates model desc & meshlet desc buffer      // todo meshlet childs (lod hyrachie)
@@ -123,8 +130,9 @@ bool Renderer::Initialize(nri::GraphicsAPI graphicsAPI)
     // Device
     nri::DeviceCreationDesc deviceCreationDesc = {};
     deviceCreationDesc.graphicsAPI = graphicsAPI;
-    deviceCreationDesc.enableAPIValidation = m_DebugAPI;
-    deviceCreationDesc.enableNRIValidation = m_DebugNRI;
+    deviceCreationDesc.enableGraphicsAPIValidation = true;
+    deviceCreationDesc.enableNRIValidation = true;
+
     deviceCreationDesc.enableD3D11CommandBufferEmulation = D3D11_COMMANDBUFFER_EMULATION;
     deviceCreationDesc.enableD3D12DrawParametersEmulation = true;
     deviceCreationDesc.spirvBindingOffsets = SPIRV_BINDING_OFFSETS;
@@ -141,9 +149,10 @@ bool Renderer::Initialize(nri::GraphicsAPI graphicsAPI)
     // Create streamer
     nri::StreamerDesc streamerDesc = {};
     streamerDesc.dynamicBufferMemoryLocation = nri::MemoryLocation::HOST_UPLOAD;
-    streamerDesc.dynamicBufferUsageBits = nri::BufferUsageBits::VERTEX_BUFFER | nri::BufferUsageBits::INDEX_BUFFER;
+    streamerDesc.dynamicBufferUsageBits = nri::BufferUsageBits::VERTEX_BUFFER | nri::BufferUsageBits::INDEX_BUFFER/* | nri::BufferUsageBits::SHADER_RESOURCE | nri::BufferUsageBits::SHADER_RESOURCE_STORAGE*/;
     streamerDesc.constantBufferMemoryLocation = nri::MemoryLocation::HOST_UPLOAD;
     streamerDesc.frameInFlightNum = BUFFERED_FRAME_MAX_NUM;
+    
     NRI_ABORT_ON_FAILURE(NRI.CreateStreamer(*m_Device, streamerDesc, m_Streamer));
 
     // Command queue
@@ -259,28 +268,28 @@ bool Renderer::Initialize(nri::GraphicsAPI graphicsAPI)
 
             // vis buff pipeline desc
             nri::PipelineLayoutDesc visBuffLayoutDesc = {};
-            cullingLayoutDesc.descriptorSetNum = helper::GetCountOf(defaultDescriptorSetDescs);
-            cullingLayoutDesc.descriptorSets = defaultDescriptorSetDescs;
-            cullingLayoutDesc.shaderStages = nri::StageBits::COMPUTE_SHADER;
+            visBuffLayoutDesc.descriptorSetNum = helper::GetCountOf(defaultDescriptorSetDescs);
+            visBuffLayoutDesc.descriptorSets = defaultDescriptorSetDescs;
+            visBuffLayoutDesc.shaderStages = nri::StageBits::COMPUTE_SHADER;
             //cullingLayoutDesc.enableD3D12DrawParametersEmulation = true;
 
             NRI_ABORT_ON_FAILURE(NRI.CreatePipelineLayout(*m_Device, visBuffLayoutDesc, m_visibilityBuffLayout));
 
             // material pipeline desc
             nri::PipelineLayoutDesc materialLayoutDesc = {};
-            cullingLayoutDesc.descriptorSetNum = helper::GetCountOf(materialDescriptorSetDescs);
-            cullingLayoutDesc.descriptorSets = materialDescriptorSetDescs;
-            cullingLayoutDesc.shaderStages = nri::StageBits::COMPUTE_SHADER;
+            materialLayoutDesc.descriptorSetNum = helper::GetCountOf(materialDescriptorSetDescs);
+            materialLayoutDesc.descriptorSets = materialDescriptorSetDescs;
+            materialLayoutDesc.shaderStages = nri::StageBits::COMPUTE_SHADER;
             //cullingLayoutDesc.enableD3D12DrawParametersEmulation = true;
 
             NRI_ABORT_ON_FAILURE(NRI.CreatePipelineLayout(*m_Device, materialLayoutDesc, m_materialLayout));
 
             // merge pipeline desc
             nri::PipelineLayoutDesc mergeLayoutDesc = {};
-            cullingLayoutDesc.descriptorSetNum = helper::GetCountOf(mergeDescriptorSetDescs);
-            cullingLayoutDesc.descriptorSets = mergeDescriptorSetDescs;
-            cullingLayoutDesc.shaderStages = nri::StageBits::VERTEX_SHADER | nri::StageBits::FRAGMENT_SHADER;
-            //cullingLayoutDesc.enableD3D12DrawParametersEmulation = true;
+            mergeLayoutDesc.descriptorSetNum = helper::GetCountOf(mergeDescriptorSetDescs);
+            mergeLayoutDesc.descriptorSets = mergeDescriptorSetDescs;
+            mergeLayoutDesc.shaderStages = nri::StageBits::VERTEX_SHADER | nri::StageBits::FRAGMENT_SHADER;
+            mergeLayoutDesc.enableD3D12DrawParametersEmulation = true;
 
             NRI_ABORT_ON_FAILURE(NRI.CreatePipelineLayout(*m_Device, mergeLayoutDesc, m_mergeLayout));
         }
@@ -352,7 +361,8 @@ bool Renderer::Initialize(nri::GraphicsAPI graphicsAPI)
             mergePipelineDesc.outputMerger = outputMergerDesc;
             mergePipelineDesc.shaders = mergeShaderStages;
             mergePipelineDesc.shaderNum = helper::GetCountOf(mergeShaderStages);
-            //NRI_ABORT_ON_FAILURE(NRI.CreateGraphicsPipeline(*m_Device, mergePipelineDesc, m_mergePipeline));
+            
+            NRI_ABORT_ON_FAILURE(NRI.CreateGraphicsPipeline(*m_Device, mergePipelineDesc, m_mergePipeline));
         }
         
         // compute stages
@@ -416,35 +426,48 @@ bool Renderer::Initialize(nri::GraphicsAPI graphicsAPI)
             // model desc
             bufferDesc.size = helper::GetByteSizeOf(m_vGeomStreamer->modelDescs);
             bufferDesc.usageMask = nri::BufferUsageBits::SHADER_RESOURCE;
+            bufferDesc.structureStride = sizeof(ModelDesc);
             NRI_ABORT_ON_FAILURE(NRI.CreateBuffer(*m_Device, bufferDesc, buffer));
             m_buffers.push_back(buffer);
 
             // meshlet desc
             bufferDesc.size = helper::GetByteSizeOf(m_vGeomStreamer->meshletDescs);
             bufferDesc.usageMask = nri::BufferUsageBits::SHADER_RESOURCE;
+            bufferDesc.structureStride = sizeof(MeshletDesc);
             NRI_ABORT_ON_FAILURE(NRI.CreateBuffer(*m_Device, bufferDesc, buffer));
             m_buffers.push_back(buffer);
 
             // render data 0
-            bufferDesc.size = 1;
+            bufferDesc.size = MESHLETDATASIZE * sizeof(uint32_t);
             bufferDesc.usageMask = nri::BufferUsageBits::SHADER_RESOURCE;
+            bufferDesc.structureStride = sizeof(uint32_t);
             NRI_ABORT_ON_FAILURE(NRI.CreateBuffer(*m_Device, bufferDesc, buffer));
             m_buffers.push_back(buffer);
 
             // renderdata 1
-            bufferDesc.size = 1;
+            bufferDesc.size = MESHLETDATASIZE * sizeof(uint32_t);
             bufferDesc.usageMask = nri::BufferUsageBits::SHADER_RESOURCE;
+            bufferDesc.structureStride = sizeof(uint32_t);
             NRI_ABORT_ON_FAILURE(NRI.CreateBuffer(*m_Device, bufferDesc, buffer));
             m_buffers.push_back(buffer);
 
             // render cmd 0
             bufferDesc.size = sizeof(RenderCmd) * RENDERCMDS;
             bufferDesc.usageMask = nri::BufferUsageBits::SHADER_RESOURCE_STORAGE;
+            bufferDesc.structureStride = sizeof(RenderCmd);
             NRI_ABORT_ON_FAILURE(NRI.CreateBuffer(*m_Device, bufferDesc, buffer));
             m_buffers.push_back(buffer);
 
             // render cmd 1
             bufferDesc.size = sizeof(RenderCmd) * RENDERCMDS;
+            bufferDesc.structureStride = sizeof(RenderCmd);
+            bufferDesc.usageMask = nri::BufferUsageBits::SHADER_RESOURCE_STORAGE;
+            NRI_ABORT_ON_FAILURE(NRI.CreateBuffer(*m_Device, bufferDesc, buffer));
+            m_buffers.push_back(buffer);
+
+            // load descs buffer
+            bufferDesc.size = sizeof(MeshletLoadDesc) * READBACKS;
+            bufferDesc.structureStride = sizeof(MeshletLoadDesc);
             bufferDesc.usageMask = nri::BufferUsageBits::SHADER_RESOURCE_STORAGE;
             NRI_ABORT_ON_FAILURE(NRI.CreateBuffer(*m_Device, bufferDesc, buffer));
             m_buffers.push_back(buffer);
@@ -452,27 +475,31 @@ bool Renderer::Initialize(nri::GraphicsAPI graphicsAPI)
 
             // READBACK_BUFFER
             bufferDesc.size = sizeof(MeshletLoadDesc) * READBACKS;
+            bufferDesc.structureStride = sizeof(MeshletLoadDesc);
             bufferDesc.usageMask = nri::BufferUsageBits::NONE;
             NRI_ABORT_ON_FAILURE(NRI.CreateBuffer(*m_Device, bufferDesc, buffer));
             m_buffers.push_back(buffer);
 
             // instance buffer 
-            bufferDesc.size = sizeof(ModelDesc) * MAXMESHINSTANCES;
+            bufferDesc.size = sizeof(InstanceDesc) * MAXMESHINSTANCES;
+            bufferDesc.structureStride = sizeof(InstanceDesc);
             bufferDesc.usageMask = nri::BufferUsageBits::SHADER_RESOURCE;
             NRI_ABORT_ON_FAILURE(NRI.CreateBuffer(*m_Device, bufferDesc, buffer));
             m_buffers.push_back(buffer);
 
             // last frame instance buffer 
             bufferDesc.size = sizeof(uint32_t) * MAXMESHINSTANCES;
+            bufferDesc.structureStride = sizeof(uint32_t);
             bufferDesc.usageMask = nri::BufferUsageBits::SHADER_RESOURCE;
             NRI_ABORT_ON_FAILURE(NRI.CreateBuffer(*m_Device, bufferDesc, buffer));
             m_buffers.push_back(buffer);
 
-
+            
             // constant buffer
             nri::BufferDesc constBufferDesc = {};
             constBufferDesc.size = constantBufferSize * BUFFERED_FRAME_MAX_NUM;
             constBufferDesc.usageMask = nri::BufferUsageBits::CONSTANT_BUFFER;
+            //constBufferDesc.structureStride
             nri::Buffer* constBuffer;
             NRI_ABORT_ON_FAILURE(NRI.CreateBuffer(*m_Device, constBufferDesc, constBuffer));
             m_buffers.push_back(constBuffer);
@@ -509,11 +536,11 @@ bool Renderer::Initialize(nri::GraphicsAPI graphicsAPI)
 
             // render cmds
             resourceGroupDesc.memoryLocation = nri::MemoryLocation::DEVICE;
-            resourceGroupDesc.bufferNum = 2;
+            resourceGroupDesc.bufferNum = 3;
             resourceGroupDesc.buffers = &m_buffers[RENDERCMD0];
 
             baseAllocation = m_memoryAllocations.size();
-            m_memoryAllocations.resize(baseAllocation + 2, nullptr);
+            m_memoryAllocations.resize(baseAllocation + 3, nullptr);
 
             NRI_ABORT_ON_FAILURE(NRI.AllocateAndBindMemory(*m_Device, resourceGroupDesc, m_memoryAllocations.data() + baseAllocation));
             
@@ -589,7 +616,13 @@ bool Renderer::Initialize(nri::GraphicsAPI graphicsAPI)
             samplerDesc.mipMax = 16.0f;
             NRI_ABORT_ON_FAILURE(NRI.CreateSampler(*m_Device, samplerDesc, m_visBuff.sampler));
             
-
+            // texture sampler
+            nri::SamplerDesc texSamplerDesc = {};
+            texSamplerDesc.addressModes = { nri::AddressMode::REPEAT, nri::AddressMode::REPEAT };
+            texSamplerDesc.filters = { nri::Filter::LINEAR, nri::Filter::LINEAR, nri::Filter::LINEAR };
+            texSamplerDesc.anisotropy = 8;
+            texSamplerDesc.mipMax = 16.0f;
+            NRI_ABORT_ON_FAILURE(NRI.CreateSampler(*m_Device, texSamplerDesc, anisotropicSampler));
 
             // buffer n stuff
             nri::BufferViewDesc bufferViewDesc = {};
@@ -600,6 +633,7 @@ bool Renderer::Initialize(nri::GraphicsAPI graphicsAPI)
             // model desc view
             bufferViewDesc.buffer = m_buffers[MODELDESC];
             bufferViewDesc.size = m_vGeomStreamer->modelDescs.size() * sizeof(ModelDesc);
+            
             NRI_ABORT_ON_FAILURE(NRI.CreateBufferView(bufferViewDesc, resourceView));
             m_descriptors.push_back(resourceView);
             resourceViews[0] = resourceView;
@@ -613,14 +647,14 @@ bool Renderer::Initialize(nri::GraphicsAPI graphicsAPI)
 
             // render data 0 view
             bufferViewDesc.buffer = m_buffers[RENDERDATA0];
-            bufferViewDesc.size = 1;
+            bufferViewDesc.size = MESHLETDATASIZE * sizeof(uint32_t);
             NRI_ABORT_ON_FAILURE(NRI.CreateBufferView(bufferViewDesc, resourceView));
             m_descriptors.push_back(resourceView);
             resourceViews[2] = resourceView;
 
             // render data 1 view
             bufferViewDesc.buffer = m_buffers[RENDERDATA1];
-            bufferViewDesc.size = 1;
+            bufferViewDesc.size = MESHLETDATASIZE * sizeof(uint32_t);
             NRI_ABORT_ON_FAILURE(NRI.CreateBufferView(bufferViewDesc, resourceView));
             m_descriptors.push_back(resourceView);
             resourceViews[3] = resourceView;
@@ -638,6 +672,14 @@ bool Renderer::Initialize(nri::GraphicsAPI graphicsAPI)
             NRI_ABORT_ON_FAILURE(NRI.CreateBufferView(bufferViewDesc, resourceView));
             m_descriptors.push_back(resourceView);
 
+            // load descs buffer view
+            bufferViewDesc.viewType = nri::BufferViewType::SHADER_RESOURCE_STORAGE;
+            bufferViewDesc.buffer = m_buffers[LOADDESCS];
+            bufferViewDesc.size = sizeof(uint32_t) * MAXMESHINSTANCES;
+            NRI_ABORT_ON_FAILURE(NRI.CreateBufferView(bufferViewDesc, resourceView));
+            m_descriptors.push_back(resourceView);
+            //resourceViews[5] = resourceView;
+
             // readback                                                         // mabe todo
             m_descriptors.push_back(nullptr);
 
@@ -651,11 +693,13 @@ bool Renderer::Initialize(nri::GraphicsAPI graphicsAPI)
 
             // old instance indexes
             bufferViewDesc.viewType = nri::BufferViewType::SHADER_RESOURCE;
-            bufferViewDesc.buffer = m_buffers[IMSTANCESLAST];
+            bufferViewDesc.buffer = m_buffers[INSTANCESLAST];
             bufferViewDesc.size = sizeof(uint32_t) * MAXMESHINSTANCES;
             NRI_ABORT_ON_FAILURE(NRI.CreateBufferView(bufferViewDesc, resourceView));
             m_descriptors.push_back(resourceView);
             resourceViews[5] = resourceView;
+
+            
 
             for (uint32_t i = 0; i < BUFFERED_FRAME_MAX_NUM; i++)
             {
@@ -674,16 +718,21 @@ bool Renderer::Initialize(nri::GraphicsAPI graphicsAPI)
         Log::Message("Renderer", "Create Descriptor pool");
         {
             nri::DescriptorPoolDesc descriptorPoolDesc = {};
-            descriptorPoolDesc.descriptorSetMaxNum = ((BUFFERED_FRAME_MAX_NUM + 1) * 3) + 1;
-            descriptorPoolDesc.textureMaxNum = 3 * TEST * TEXTURES_PER_MATERIAL;                       // add texture support
-            descriptorPoolDesc.samplerMaxNum = BUFFERED_FRAME_MAX_NUM * TEST;
-            descriptorPoolDesc.storageStructuredBufferMaxNum = 1 * 2 * TEST;
-            descriptorPoolDesc.storageBufferMaxNum = 1 * 2 * TEST;
-            descriptorPoolDesc.bufferMaxNum = 3 * 2 * TEST;
-            descriptorPoolDesc.structuredBufferMaxNum = 4 * 2 * TEST;
-            descriptorPoolDesc.constantBufferMaxNum = BUFFERED_FRAME_MAX_NUM;
-            descriptorPoolDesc.storageTextureMaxNum = 3 * TEST;
-            descriptorPoolDesc.dynamicConstantBufferMaxNum = BUFFERED_FRAME_MAX_NUM;
+                                                    
+            descriptorPoolDesc.descriptorSetMaxNum = ((BUFFERED_FRAME_MAX_NUM + 1) * 4)+1;
+            descriptorPoolDesc.textureMaxNum = 30 * TEXTURES_PER_MATERIAL;                       
+            descriptorPoolDesc.samplerMaxNum = BUFFERED_FRAME_MAX_NUM * 10;
+            descriptorPoolDesc.storageStructuredBufferMaxNum = 100;
+            descriptorPoolDesc.storageBufferMaxNum = 100;
+            descriptorPoolDesc.bufferMaxNum = 100;
+            descriptorPoolDesc.structuredBufferMaxNum = 100;
+            descriptorPoolDesc.constantBufferMaxNum = BUFFERED_FRAME_MAX_NUM * 4;
+            descriptorPoolDesc.storageTextureMaxNum = 100;
+            descriptorPoolDesc.dynamicConstantBufferMaxNum = BUFFERED_FRAME_MAX_NUM * 4;
+            descriptorPoolDesc.accelerationStructureMaxNum = 0;
+
+            
+
             NRI_ABORT_ON_FAILURE(NRI.CreateDescriptorPool(*m_Device, descriptorPoolDesc, m_DescriptorPool));
         }
 
@@ -789,18 +838,108 @@ bool Renderer::Initialize(nri::GraphicsAPI graphicsAPI)
         }
     }
 
-
+    Log::Message("Renderer", "Initiation Finished");
     return true;
 }
 
 void Renderer::PrepareFrame(uint32_t frameIndex)
 {
+    useBuffer0 = !useBuffer0;
 
+    BeginUI();
+    
+    WindowManager::Show();
+
+    EndUI(NRI, *m_Streamer);
+    NRI.CopyStreamerUpdateRequests(*m_Streamer);
+
+
+
+    CameraDesc desc = {};
+    desc.aspectRatio = float(GetWindowResolution().x) / float(GetWindowResolution().y);
+    desc.horizontalFov = 90.0f;
+    desc.nearZ = 0.1f;
+    desc.isReversedZ = (CLEAR_DEPTH == 0.0f);
+    GetCameraDescFromInputDevices(desc);
+
+    m_Camera.Update(desc, frameIndex);
 }
 
 void Renderer::RenderFrame(uint32_t frameIndex)
 {
+    const uint32_t bufferedFrameIndex = frameIndex % BUFFERED_FRAME_MAX_NUM;
+    const Frame& frame = m_Frames[bufferedFrameIndex];
+    const uint32_t windowWidth = GetWindowResolution().x;
+    const uint32_t windowHeight = GetWindowResolution().y;
 
+    if (frameIndex >= BUFFERED_FRAME_MAX_NUM)
+    {
+        NRI.Wait(*m_FrameFence, 1 + frameIndex - BUFFERED_FRAME_MAX_NUM);
+        NRI.ResetCommandAllocator(*frame.cmdAllocEvalStage);
+        NRI.ResetCommandAllocator(*frame.cmdAllocRenderStage);
+    }
+
+    const uint32_t currentTextureIndex = NRI.AcquireNextSwapChainTexture(*m_SwapChain);
+    BackBuffer& currentBackBuffer = m_SwapChainBuffers[currentTextureIndex];
+
+    // Update constants
+    const uint64_t rangeOffset = m_Frames[bufferedFrameIndex].globalConstantBufferViewOffsets;
+    auto constants = (GlobalConstants*)NRI.MapBuffer(*m_buffers[CONSTANTBUFFER], rangeOffset, sizeof(GlobalConstants));
+    if (constants)
+    {
+        constants->gWorldToClip = m_Camera.state.mWorldToClip;
+        constants->gCameraPos = m_Camera.state.position;
+        constants->bufferToUse = useBuffer0 ? 0 : 1;
+        NRI.UnmapBuffer(*m_buffers[CONSTANTBUFFER]);
+    }
+
+    // eval stage
+    nri::CommandBuffer& commandBuffer = *frame.cmdBuffEvalStage;
+    NRI.BeginCommandBuffer(commandBuffer, m_DescriptorPool);
+    {
+        helper::Annotation annotation(NRI, commandBuffer, "Eval Stage");
+
+        // cached
+        NRI.CmdSetPipelineLayout(commandBuffer, *m_cachedRenderLayout);
+        NRI.CmdSetDescriptorSet(commandBuffer, 0, *m_cachedDescriptorSets[bufferedFrameIndex], nullptr);
+        NRI.CmdSetDescriptorSet(commandBuffer, 1, *m_cachedDescriptorSets[BUFFERED_FRAME_MAX_NUM], nullptr);
+
+        NRI.CmdSetPipeline(commandBuffer, *m_cachedRenderPipeline);
+        NRI.CmdDispatch(commandBuffer, { 128, 1, 1 });
+
+
+        // culling
+        NRI.CmdSetPipelineLayout(commandBuffer, *m_cullingLayout);
+        NRI.CmdSetDescriptorSet(commandBuffer, 0, *m_cullingDescriptorSets[bufferedFrameIndex], nullptr);
+        NRI.CmdSetDescriptorSet(commandBuffer, 1, *m_cullingDescriptorSets[BUFFERED_FRAME_MAX_NUM], nullptr);
+
+        NRI.CmdSetPipeline(commandBuffer, *m_cullingPipeline);
+        NRI.CmdDispatch(commandBuffer, { 512, 1, 1 });
+    }
+    NRI.EndCommandBuffer(commandBuffer);
+    // render stage
+    nri::CommandBuffer& renderCommandBuffer = *frame.cmdBuffRenderStage;
+    NRI.BeginCommandBuffer(renderCommandBuffer, m_DescriptorPool);
+    {
+        helper::Annotation annotation(NRI, renderCommandBuffer, "Render Stage");
+
+        // vis buff
+        NRI.CmdSetPipelineLayout(renderCommandBuffer, *m_visibilityBuffLayout);
+        NRI.CmdSetDescriptorSet(renderCommandBuffer, 0, *m_visBuffDescriptorSets[bufferedFrameIndex], nullptr);
+        NRI.CmdSetDescriptorSet(renderCommandBuffer, 1, *m_visBuffDescriptorSets[BUFFERED_FRAME_MAX_NUM], nullptr);
+
+        NRI.CmdSetPipeline(renderCommandBuffer, *m_visibilityBuffPipeline);
+        NRI.CmdDispatch(renderCommandBuffer, { 128, 1, 1 });
+
+        // material
+        NRI.CmdSetPipelineLayout(renderCommandBuffer, *m_materialLayout);
+        NRI.CmdSetDescriptorSet(renderCommandBuffer, 0, *m_materialDescriptorSets[bufferedFrameIndex], nullptr);
+        NRI.CmdSetDescriptorSet(renderCommandBuffer, 1, *m_materialDescriptorSets[BUFFERED_FRAME_MAX_NUM], nullptr);
+
+        NRI.CmdSetPipeline(renderCommandBuffer, *m_materialPipeline);
+        NRI.CmdDispatch(renderCommandBuffer, { GetWindowResolution().x, GetWindowResolution().y, 1});
+    }
+    NRI.EndCommandBuffer(renderCommandBuffer);
 }
 
 void Renderer::ReloadRenderer()
@@ -814,9 +953,16 @@ void Renderer::ReloadRenderer()
 }
 
 void Renderer::IterateChildren(entt::entity e, float4x4 pMat) {
-    if (!EntityManager::GetWorld().group<Transform, Identity>().contains(e)) {
+    if (!EntityManager::GetWorld().valid(e)) {
         return;
     }
+    if (!EntityManager::GetWorld().group<Transform/*, Identity*/>().contains(e)) {
+        return;
+    }
+    if (!EntityManager::GetWorld().group<Identity/*, Identity*/>().contains(e)) {
+        return;
+    }
+    
     auto& transform = EntityManager::GetWorld().get<Transform>(e);
 
     float4x4 localToWorld = pMat * transform.localMat;
@@ -876,6 +1022,7 @@ void Renderer::IterateChildren(entt::entity e, float4x4 pMat) {
     
 
     auto& identity = EntityManager::GetWorld().get<Identity>(e);
+    Log::Message("Entites", "Iterate: " + identity.name);
     for (entt::entity& child : identity.childs)
     {
         IterateChildren(child, localToWorld);
@@ -895,8 +1042,95 @@ CachedCluster& Renderer::Contains(uint32_t MID, uint32_t CID) {
 void Renderer::StreamGeom()
 {
     // todo
+    MeshletLoadDesc* head = (MeshletLoadDesc*)NRI.MapBuffer(*m_buffers[READBACK], 0, sizeof(MeshletLoadDesc));
+
+    uint32_t requestLenght = head->clusterID;
+    uint32_t bufferByteSize = head->modelID;
+    if (biggestSize < bufferByteSize) {
+        biggestSize = bufferByteSize;
+    }
+    bufferByteSize = max(bufferByteSize, (uint32_t)MESHLETDATASIZE);
+
+    if (requestLenght == 0xffffffff || bufferByteSize == 0xffffffff) {
+        return;
+    }
+
+    uint32_t* readBackData = (uint32_t*)NRI.MapBuffer(*m_buffers[READBACK], sizeof(MeshletLoadDesc), sizeof(MeshletLoadDesc) * requestLenght);
+
+    if (sizeLast - bufferByteSize > 1000000 || sizeLast - bufferByteSize < 0) {
+        // resize buffer
+        uint8_t* reall;
+        if (useBuffer0) {
+            // CPU
+            reall = (uint8_t*)realloc(VGBuffer0, bufferByteSize);
+            if (reall) {
+                VGBuffer0 = reall;
+                size0 = bufferByteSize;
+            }
+
+            //GPU
+            //NRI.DestroyBuffer(*m_buffers[RENDERDATA0]);
+            //NRI.FreeMemory(*m_memoryAllocations[RENDERDATA0]);
 
 
+        }
+        else {
+            // CPU
+            reall = (uint8_t*)realloc(VGBuffer1, bufferByteSize);
+            if (reall) {
+                VGBuffer1 = reall;
+                size1 = bufferByteSize;
+            }
+
+            // GPU
+            //NRI.DestroyBuffer(*m_buffers[RENDERDATA1]);
+            //NRI.FreeMemory(*m_memoryAllocations[RENDERDATA1]);
+        }
+
+
+    }
+
+    std::vector<CachedCluster> cCs(requestLenght);
+    for (uint32_t i = 0; i < requestLenght; i++)
+    {
+        MeshletLoadDesc meshl;
+        meshl.clusterID = readBackData[i * 4];
+        meshl.modelID = readBackData[i * 4 + 1];
+        meshl.clusterOffset = readBackData[i * 4 + 2];
+        meshl.clusterLenght = readBackData[i * 4 + 3];
+
+        CachedCluster& cC = Contains(meshl.modelID, meshl.clusterID);
+        if (cC.clusterID == nullCluster.clusterID && cC.modelID == nullCluster.modelID) {
+            if (useBuffer0) {
+                m_vGeomStreamer->Load(meshl.modelID, &VGBuffer0[meshl.clusterOffset], meshl.clusterID, meshl.clusterLenght);
+            }
+            else {
+                m_vGeomStreamer->Load(meshl.modelID, &VGBuffer1[meshl.clusterOffset], meshl.clusterID, meshl.clusterLenght);
+            }
+
+            continue;
+        }
+
+        if (useBuffer0) {
+            memcpy(&VGBuffer0[meshl.clusterOffset], &VGBuffer1[cC.clusterOffSet], meshl.clusterLenght);
+        }
+        else {
+            memcpy(&VGBuffer1[meshl.clusterOffset], &VGBuffer0[cC.clusterOffSet], meshl.clusterLenght);
+        }
+        cCs[i] = { meshl.modelID, meshl.clusterID, meshl.clusterOffset };
+    }
+
+    sizeLast = bufferByteSize;
+    
+    NRI.UnmapBuffer(*m_buffers[READBACK]);
+
+    nri::BufferUploadDesc bufferData[1]{
+        //            data ptr                                   size                                     buffer              offset      flags
+        {useBuffer0 ? VGBuffer0 : VGBuffer1, useBuffer0 ? size0 : size1, m_buffers[useBuffer0 ? RENDERDATA0 : RENDERDATA1], 0, {nri::AccessBits::SHADER_RESOURCE, nri::StageBits::ALL}}
+
+    };
+
+    NRI_ABORT_ON_FAILURE(NRI.UploadData(*m_CommandQueue, nullptr, 0, bufferData, helper::GetCountOf(bufferData)));
 }
 
 void Renderer::PopulateInstaceBuffer()
@@ -914,10 +1148,11 @@ void Renderer::PopulateInstaceBuffer()
 
 void Renderer::UploadInstaceBuffer()
 {
+
     nri::BufferUploadDesc bufferData[2]{
         //            data ptr                                   size                                     buffer              offset      flags
-        {useBuffer0 ? allRenderedEntites0 : allRenderedEntites1, sizeof(InstanceDesc) * MAXMESHINSTANCES, m_buffers[INSTANCES], 0, {nri::AccessBits::SHADER_RESOURCE, nri::StageBits::ALL}},
-        {lastFrameEntitiesID, sizeof(uint32_t) * MAXMESHINSTANCES, m_buffers[IMSTANCESLAST], 0, {nri::AccessBits::SHADER_RESOURCE, nri::StageBits::ALL}}
+        {useBuffer0 ? allRenderedEntites0 : allRenderedEntites1, sizeof(InstanceDesc) * useBuffer0 ? instanceCount0 : instanceCount1, m_buffers[INSTANCES], 0, {nri::AccessBits::SHADER_RESOURCE, nri::StageBits::ALL}},
+        {lastFrameEntitiesID, sizeof(uint32_t) * useBuffer0 ? instanceCount1 : instanceCount0, m_buffers[INSTANCESLAST], 0, {nri::AccessBits::SHADER_RESOURCE, nri::StageBits::ALL}}
     };
 
     NRI_ABORT_ON_FAILURE(NRI.UploadData(*m_CommandQueue, nullptr, 0, bufferData, helper::GetCountOf(bufferData)));

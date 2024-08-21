@@ -12,7 +12,7 @@
 
 #include "../../Assets/exts.h"
 
-
+#include "../../Common/utils.h"
 
 struct VModelDescHead
 {
@@ -26,9 +26,9 @@ struct VModelDescHead
 VModel* VirtualGeometryBuilder::BuildVGImpl(std::vector<unsigned int> indices, std::vector<utils::Vertex> vertices, std::string name, bool forceUpdate, std::string path)
 {
     VModel* vModelDesc = new VModel();
-    
-    
-    std::string outPath = utils::GetFullPath(name, utils::DataFolder::VIRTUALMESH) + VModelExt;
+
+
+    std::string outPath = utils::GetCFullPath(name, utils::CustomFolder::VIRTUALMESH) + VModelExt;
 
     FILE* outData = fopen(outPath.c_str(), "r");
     if (outData) {
@@ -42,7 +42,7 @@ VModel* VirtualGeometryBuilder::BuildVGImpl(std::vector<unsigned int> indices, s
         }
     }
 
-    std::string vMDescP = utils::GetFullPath(name, utils::DataFolder::VIRTUALMESHDESC) + VModelDescExt;
+    std::string vMDescP = utils::GetCFullPath(name, utils::CustomFolder::VIRTUALMESHDESC) + VModelDescExt;
     FILE* vMDescCache = fopen(vMDescP.c_str(), "r");
     if (vMDescCache) {
         if (!forceUpdate) {
@@ -66,7 +66,7 @@ VModel* VirtualGeometryBuilder::BuildVGImpl(std::vector<unsigned int> indices, s
     std::vector<float> pos;
     pos.reserve(vertices.size() * 4);
 
-    for (uint32_t i = 0; i< vertices.size(); i++)
+    for (uint32_t i = 0; i < vertices.size(); i++)
     {
         utils::Vertex& v = vertices[i];
         pos.push_back(v.pos[0]);
@@ -75,13 +75,13 @@ VModel* VirtualGeometryBuilder::BuildVGImpl(std::vector<unsigned int> indices, s
         pos.push_back((float)i);
     }
 
-   
+
 
     uint32_t maxVerts = 64;
     uint32_t maxTries = 128;
     float coneWeight = 0.0f;
 
-    
+
     Log::Message("Build Meshlets Bounds");
     size_t maxMeshlets = meshopt_buildMeshletsBound(indices.size(), maxVerts, maxTries);
 
@@ -91,7 +91,7 @@ VModel* VirtualGeometryBuilder::BuildVGImpl(std::vector<unsigned int> indices, s
 
     Log::Message("Build Meshlets");
     size_t meshlet_count = meshopt_buildMeshlets(meshlets.data(), meshlet_vertices.data(), meshlet_triangles.data(), indices.data(),
-        indices.size(), pos.data(), pos.size(), sizeof(float)*4, maxVerts, maxTries, coneWeight);
+        indices.size(), pos.data(), pos.size(), sizeof(float) * 4, maxVerts, maxTries, coneWeight);
 
     const meshopt_Meshlet& last = meshlets[meshlet_count - 1];
 
@@ -117,25 +117,25 @@ VModel* VirtualGeometryBuilder::BuildVGImpl(std::vector<unsigned int> indices, s
 
 
         meshopt_Bounds bounds = meshopt_computeMeshletBounds(&meshlet_vertices[m.vertex_offset], &meshlet_triangles[m.triangle_offset],
-            m.triangle_count, pos.data(), pos.size(), sizeof(float)*3);
+            m.triangle_count, pos.data(), pos.size(), sizeof(float) * 3);
 
 
         // meshlet descriptor
         MeshletDesc mDesc;
-        
+
         // culling 
         mDesc.boundingSphere = { bounds.center, bounds.radius };
         mDesc.cone_axis = { bounds.cone_axis };
-        
-                            
 
 
-        
+
+
+
         //                                              todo child count
 
-        
 
-        
+
+
         for (uint32_t ver = 0; ver < m.vertex_count; ver++)
         {
             uint32_t vert = meshlet_vertices[ver + m.vertex_offset];
@@ -151,19 +151,26 @@ VModel* VirtualGeometryBuilder::BuildVGImpl(std::vector<unsigned int> indices, s
             }
 
             dummyVert->pos = pso;
-            dummyVert->norm = { oldV.N, oldV.uv.x };
-            dummyVert->tangent = { oldV.T, oldV.uv.x };
-
-            fwrite(dummyVert, sizeof(Vertex), 1, outData);
+            dummyVert->norm = oldV.N;
+            dummyVert->tangent = oldV.T;
+            dummyVert->uv = ((uint16_t)(oldV.uv.x * 65536) << 16) | (uint16_t)(oldV.uv.y * 65536);
         }
-        
+
+        fwrite(dummyVert, sizeof(Vertex), 1, outData);
+    
+
 
 
         fwrite(&meshlet_triangles[m.triangle_offset], m.triangle_count * 3 * sizeof(uint8_t), 1, outData);
-        
+        uint32_t rest = (m.triangle_count * 3) % 4;
+
+        if (rest > 0) {
+            fwrite(&meshlet_triangles[m.triangle_offset], sizeof(uint8_t), rest, outData);
+        }
 
         mDesc.clusterOffset = wPtr;
-        uint32_t lenght = (sizeof(Vertex) * m.vertex_count) + (sizeof(uint8_t) * m.triangle_count * 3);
+        uint32_t lenght = (sizeof(Vertex) * m.vertex_count) + ((sizeof(uint8_t) * m.triangle_count * 3));
+        lenght += sizeof(uint8_t) * rest;
         mDesc.clusterLenght = lenght;
 
         wPtr += lenght;
@@ -189,6 +196,7 @@ VModel* VirtualGeometryBuilder::BuildVGImpl(std::vector<unsigned int> indices, s
 
     fwrite(&h, sizeof(VModelDescHead), 1, vMDescCache);
     fwrite(vModelDesc->meshlets.data(), sizeof(MeshletDesc), vModelDesc->meshlets.size(), vMDescCache);
+
 
     vModelDesc->name = name;
     vModelDesc->path = path;
@@ -267,7 +275,7 @@ VModel* VirtualGeometryBuilder::LoadCached(std::string name, std::string path)
     VModel* vModelDesc = new VModel();
 
 
-    std::string outPath = utils::GetFullPath(name, utils::DataFolder::VIRTUALMESH) + VModelExt;
+    std::string outPath = utils::GetCFullPath(name, utils::CustomFolder::VIRTUALMESH) + VModelExt;
 
     FILE* outData = fopen(outPath.c_str(), "r");
     if (outData) {
@@ -278,7 +286,7 @@ VModel* VirtualGeometryBuilder::LoadCached(std::string name, std::string path)
         return nullptr;
     }
 
-    std::string vMDescP = utils::GetFullPath(name, utils::DataFolder::VIRTUALMESHDESC) + VModelDescExt;
+    std::string vMDescP = utils::GetCFullPath(name, utils::CustomFolder::VIRTUALMESHDESC) + VModelDescExt;
     FILE* vMDescCache = fopen(vMDescP.c_str(), "r");
     if (vMDescCache) {
         VModelDescHead head;

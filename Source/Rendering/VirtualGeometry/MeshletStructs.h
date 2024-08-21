@@ -40,7 +40,7 @@ struct MeshletDesc {
 };
 
 struct MeshletLoadDesc {
-	uint32_t offset;
+	uint32_t clusterID;
 	//uint32_t vertTriCount; // 16bit vertex, 16bit triCount(packed in 8bit)
 
 	uint32_t modelID;
@@ -58,6 +58,7 @@ struct RenderCmd {
 
 struct Vertex {
 	float3 pos;
-	float4 norm; //    0-2 = normal, 3 = texcoord0
-	float4 tangent; // 0-2 = tangent, 3 = texcoord1
+	float3 norm;
+	float3 tangent; 
+	uint32_t uv; // 16bit x, y	// unpack: value / 2^16
 };
