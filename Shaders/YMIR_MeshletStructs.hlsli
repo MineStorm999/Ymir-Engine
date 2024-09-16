@@ -62,4 +62,4 @@ struct Vertex {
 	uint32_t uv; // 16bit x, y	// unpack: value / 2^16
 };
 
-#endif MLS
+#endif // MLS

@@ -19,6 +19,8 @@ struct NRIInterface
     , public nri::SwapChainInterface
 {};
 
+#define UI false
+
 enum BufferLocs {
 
     // resident buffs
@@ -43,7 +45,10 @@ enum BufferLocs {
     INSTANCES = 8,
     INSTANCESLAST = 9,
 
-    CONSTANTBUFFER = 10
+    CONSTANTBUFFER = 10,
+
+    INDEXBUFFER = 11,
+    VERTEXBUFFER = 12
 };
 
 

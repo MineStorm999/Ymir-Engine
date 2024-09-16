@@ -24,6 +24,10 @@ struct QuatVertex
     float2 uv;
 };
 
+
+
+QuatVertex windowVerts[4] = {};
+
 Renderer::~Renderer()
 {
     NRI.WaitForIdle(*m_CommandQueue);
@@ -116,8 +120,26 @@ bool Renderer::Initialize(nri::GraphicsAPI graphicsAPI)
     m_vGeomStreamer = new VirtualGeometryStreamer();
     m_vGeomStreamer->Init();
 
-    
+    const uint32_t windowWidth = GetWindowResolution().x;
+    const uint32_t windowHeight = GetWindowResolution().y;
 
+    QuatVertex curVert = {};
+    curVert.pos = { 1, 1 };
+    curVert.uv = { 1, 1 };
+    windowVerts[0] = curVert;
+
+    curVert.pos = { 0, 1 };
+    curVert.uv = { 0, 1 };
+    windowVerts[1] = curVert;
+
+    curVert.pos = { 1, 1 };
+    curVert.uv = { 1, 0 };
+    windowVerts[2] = curVert;
+
+    curVert.pos = { 0, 0 };
+    curVert.uv = { 0, 0 };
+    windowVerts[3] = curVert;
+   
     if (graphicsAPI == nri::GraphicsAPI::D3D11) {
         printf("This Project supports only D3D12 and Vulkan.");
         return false;
@@ -207,6 +229,9 @@ bool Renderer::Initialize(nri::GraphicsAPI graphicsAPI)
             nri::DescriptorRangeDesc visBuffDescRange[2] = {};
             visBuffDescRange[0] = { 0, 2, nri::DescriptorType::STORAGE_TEXTURE, nri::StageBits::ALL, true, true };
             visBuffDescRange[1] = { 0, 1, nri::DescriptorType::SAMPLER, nri::StageBits::ALL };
+
+            nri::DescriptorRangeDesc windowRenderData[1] = {};
+            visBuffDescRange[0] = { 0, 2, nri::DescriptorType::STRUCTURED_BUFFER, nri::StageBits::ALL };
             
             // need to add texture and material support
             //nri::DescriptorRangeDesc textureDescriptorRange[1] = {};
@@ -227,7 +252,9 @@ bool Renderer::Initialize(nri::GraphicsAPI graphicsAPI)
 
             nri::DescriptorSetDesc mergeDescriptorSetDescs[] =
             {
-                {0, visBuffDescRange, helper::GetCountOf(visBuffDescRange)}
+                {0, visBuffDescRange, helper::GetCountOf(visBuffDescRange)},
+                //{1, windowRenderData, helper::GetCountOf(windowRenderData)}
+
             };
 
             nri::DescriptorSetDesc materialDescriptorSetDescs[] =
@@ -503,6 +530,17 @@ bool Renderer::Initialize(nri::GraphicsAPI graphicsAPI)
             nri::Buffer* constBuffer;
             NRI_ABORT_ON_FAILURE(NRI.CreateBuffer(*m_Device, constBufferDesc, constBuffer));
             m_buffers.push_back(constBuffer);
+
+
+            bufferDesc.size = sizeof(uint32_t) * 6;
+            bufferDesc.usageMask = nri::BufferUsageBits::INDEX_BUFFER;
+            NRI_ABORT_ON_FAILURE(NRI.CreateBuffer(*m_Device, bufferDesc, buffer));
+            m_buffers.push_back(buffer);
+
+            bufferDesc.size = sizeof(QuatVertex) * 4;
+            bufferDesc.usageMask = nri::BufferUsageBits::VERTEX_BUFFER;
+            NRI_ABORT_ON_FAILURE(NRI.CreateBuffer(*m_Device, bufferDesc, buffer));
+            m_buffers.push_back(buffer);
         }
 
         // Memory
@@ -573,6 +611,19 @@ bool Renderer::Initialize(nri::GraphicsAPI graphicsAPI)
             m_memoryAllocations.resize(baseAllocation + 1, nullptr);
             NRI_ABORT_ON_FAILURE(NRI.AllocateAndBindMemory(*m_Device, resourceGroupDesc, m_memoryAllocations.data() + baseAllocation));
 
+
+            // index + vertex 
+
+            resourceGroupDesc.memoryLocation = nri::MemoryLocation::DEVICE;
+            resourceGroupDesc.bufferNum = 2;
+            resourceGroupDesc.buffers = &m_buffers[INDEXBUFFER];
+
+            baseAllocation = m_memoryAllocations.size();
+            m_memoryAllocations.resize(baseAllocation + 2, nullptr);
+
+            NRI_ABORT_ON_FAILURE(NRI.AllocateAndBindMemory(*m_Device, resourceGroupDesc, m_memoryAllocations.data() + baseAllocation));
+
+
             // visbuffer
             //  
 
@@ -598,6 +649,8 @@ bool Renderer::Initialize(nri::GraphicsAPI graphicsAPI)
         nri::Descriptor* constantBufferViews[BUFFERED_FRAME_MAX_NUM] = {};
         nri::Descriptor* resourceView = {};
         nri::Descriptor* resourceViews[6] = {};
+
+        nri::Descriptor* indexVertexViews[2] = {};
         {
             Log::Message("Renderer", "Need to add texture and material support");
 
@@ -700,7 +753,7 @@ bool Renderer::Initialize(nri::GraphicsAPI graphicsAPI)
             resourceViews[5] = resourceView;
 
             
-
+            // constant buffer
             for (uint32_t i = 0; i < BUFFERED_FRAME_MAX_NUM; i++)
             {
                 m_Frames[i].globalConstantBufferViewOffsets = i * constantBufferSize;
@@ -710,6 +763,19 @@ bool Renderer::Initialize(nri::GraphicsAPI graphicsAPI)
                 bufferViewDesc.size = constantBufferSize;
                 NRI_ABORT_ON_FAILURE(NRI.CreateBufferView(bufferViewDesc, constantBufferViews[i]));
                 m_descriptors.push_back(constantBufferViews[i]);
+            }
+
+
+            // Swap chain
+            for (uint32_t i = 0; i < swapChainTextureNum; i++)
+            {
+                nri::Texture2DViewDesc textureViewDesc = { swapChainTextures[i], nri::Texture2DViewType::COLOR_ATTACHMENT, swapChainFormat };
+
+                nri::Descriptor* colorAttachment;
+                NRI_ABORT_ON_FAILURE(NRI.CreateTexture2DView(textureViewDesc, colorAttachment));
+
+                const BackBuffer backBuffer = { colorAttachment, swapChainTextures[i] };
+                m_SwapChainBuffers.push_back(backBuffer);
             }
         }
 #define TEST 10
@@ -845,12 +911,13 @@ bool Renderer::Initialize(nri::GraphicsAPI graphicsAPI)
 void Renderer::PrepareFrame(uint32_t frameIndex)
 {
     useBuffer0 = !useBuffer0;
+    if (UI) {
+        BeginUI();
 
-    BeginUI();
-    
-    WindowManager::Show();
+        WindowManager::Show();
 
-    EndUI(NRI, *m_Streamer);
+        EndUI(NRI, *m_Streamer);
+    }
     NRI.CopyStreamerUpdateRequests(*m_Streamer);
 
 
@@ -871,6 +938,8 @@ void Renderer::RenderFrame(uint32_t frameIndex)
     const Frame& frame = m_Frames[bufferedFrameIndex];
     const uint32_t windowWidth = GetWindowResolution().x;
     const uint32_t windowHeight = GetWindowResolution().y;
+
+
 
     if (frameIndex >= BUFFERED_FRAME_MAX_NUM)
     {
@@ -938,6 +1007,60 @@ void Renderer::RenderFrame(uint32_t frameIndex)
 
         NRI.CmdSetPipeline(renderCommandBuffer, *m_materialPipeline);
         NRI.CmdDispatch(renderCommandBuffer, { GetWindowResolution().x, GetWindowResolution().y, 1});
+
+
+
+        // present & UI
+        nri::AttachmentsDesc attachmentsDesc = {};
+        attachmentsDesc.colorNum = 1;
+        attachmentsDesc.colors = &currentBackBuffer.colorAttachment;
+        attachmentsDesc.depthStencil = m_DepthAttachment;
+
+        nri::TextureBarrierDesc textureBarrierDescs = {};
+        textureBarrierDescs.texture = currentBackBuffer.texture;
+        textureBarrierDescs.after = { nri::AccessBits::COLOR_ATTACHMENT, nri::Layout::COLOR_ATTACHMENT };
+        textureBarrierDescs.arraySize = 1;
+        textureBarrierDescs.mipNum = 1;
+
+
+        // rendering to main render target
+        NRI.CmdBeginRendering(commandBuffer, attachmentsDesc);
+        {
+            nri::ClearDesc clearDescs[2] = {};
+            clearDescs[0].attachmentContentType = nri::AttachmentContentType::COLOR;
+            clearDescs[0].value.color32f = { 0.0f, 0.63f, 1.0f };
+            clearDescs[1].attachmentContentType = nri::AttachmentContentType::DEPTH;
+            clearDescs[1].value.depthStencil.depth = CLEAR_DEPTH;
+
+            NRI.CmdClearAttachments(commandBuffer, clearDescs, helper::GetCountOf(clearDescs), nullptr, 0);
+
+            const nri::Viewport viewport = { 0.0f, 0.0f, (float)windowWidth, (float)windowHeight, 0.0f, 1.0f };
+            NRI.CmdSetViewports(commandBuffer, &viewport, 1);
+
+            const nri::Rect scissor = { 0, 0, (nri::Dim_t)windowWidth, (nri::Dim_t)windowHeight };
+            NRI.CmdSetScissors(commandBuffer, &scissor, 1);
+
+            NRI.CmdSetIndexBuffer(commandBuffer, *m_buffers[INDEXBUFFER], 0, sizeof(utils::Index) == 2 ? nri::IndexType::UINT16 : nri::IndexType::UINT32);
+
+            NRI.CmdSetPipelineLayout(commandBuffer, *m_mergeLayout);
+            NRI.CmdSetDescriptorSet(commandBuffer, 0, *m_mergeDescriptorSets[bufferedFrameIndex], nullptr);
+            NRI.CmdSetDescriptorSet(commandBuffer, 1, *m_mergeDescriptorSets[BUFFERED_FRAME_MAX_NUM], nullptr);
+            NRI.CmdSetPipeline(commandBuffer, *m_mergePipeline);
+
+            constexpr uint64_t offset = 0;
+            NRI.CmdSetVertexBuffers(commandBuffer, 0, 1, &m_buffers[VERTEXBUFFER], &offset);
+
+            NRI.CmdDrawIndexed(commandBuffer, { 6, 1, 0, (int32_t)0, 0});
+        }
+        NRI.CmdEndRendering(commandBuffer);
+
+        if (UI) {
+            NRI.CmdBeginRendering(commandBuffer, attachmentsDesc);
+            {
+                RenderUI(NRI, NRI, *m_Streamer, commandBuffer, 1.0f, true);
+            }
+            NRI.CmdEndRendering(commandBuffer);
+        }
     }
     NRI.EndCommandBuffer(renderCommandBuffer);
 }
@@ -1057,7 +1180,7 @@ void Renderer::StreamGeom()
 
     uint32_t* readBackData = (uint32_t*)NRI.MapBuffer(*m_buffers[READBACK], sizeof(MeshletLoadDesc), sizeof(MeshletLoadDesc) * requestLenght);
 
-    if (sizeLast - bufferByteSize > 1000000 || sizeLast - bufferByteSize < 0) {
+    if (sizeLast < bufferByteSize) {
         // resize buffer
         uint8_t* reall;
         if (useBuffer0) {
