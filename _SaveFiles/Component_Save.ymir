@@ -1,0 +1,53 @@
+{
+    "Count": 3,
+    "Structs": {
+        "0": {
+            "Name": "NewComponent",
+            "VarCount": 4,
+            "Vars": {
+                "0": {
+                    "List": true,
+                    "Name": "newVariable",
+                    "Type": "NewComponent11*"
+                },
+                "1": {
+                    "List": true,
+                    "Name": "newVariable2",
+                    "Type": "bool"
+                },
+                "2": {
+                    "List": true,
+                    "Name": "newVariable1",
+                    "Type": "bool"
+                },
+                "3": {
+                    "List": true,
+                    "Name": "newVariable3",
+                    "Type": "bool"
+                }
+            }
+        },
+        "1": {
+            "Name": "NewComponent1",
+            "VarCount": 1,
+            "Vars": {
+                "0": {
+                    "List": true,
+                    "Name": "newVariable",
+                    "Type": "bool"
+                }
+            }
+        },
+        "2": {
+            "Name": "NewComponent11",
+            "VarCount": 1,
+            "Vars": {
+                "0": {
+                    "List": false,
+                    "Name": "newVariable",
+                    "Type": "NewComponent*"
+                }
+            }
+        }
+    }
+}

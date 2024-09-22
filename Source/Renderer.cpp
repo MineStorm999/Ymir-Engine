@@ -13,6 +13,12 @@
 /// QuadLayout
 
 #define MESHLETDATASIZE 2000000
+#define UIONLY
+
+#ifdef UIONLY
+#define UI true
+#endif // UIONLY
+
 
 uint32_t indices[6]{
     0,1,2, // 1. triangle
@@ -104,6 +110,8 @@ Renderer::~Renderer()
 
 bool Renderer::Initialize(nri::GraphicsAPI graphicsAPI)
 {
+    
+    
     CachedCluster c;
     c.clusterID = 0xffffffff;
     c.modelID = 0xffffffff;
@@ -728,7 +736,7 @@ bool Renderer::Initialize(nri::GraphicsAPI graphicsAPI)
             // load descs buffer view
             bufferViewDesc.viewType = nri::BufferViewType::SHADER_RESOURCE_STORAGE;
             bufferViewDesc.buffer = m_buffers[LOADDESCS];
-            bufferViewDesc.size = sizeof(uint32_t) * MAXMESHINSTANCES;
+            bufferViewDesc.size = sizeof(MeshletLoadDesc) * READBACKS;
             NRI_ABORT_ON_FAILURE(NRI.CreateBufferView(bufferViewDesc, resourceView));
             m_descriptors.push_back(resourceView);
             //resourceViews[5] = resourceView;
@@ -896,16 +904,16 @@ bool Renderer::Initialize(nri::GraphicsAPI graphicsAPI)
             nri::BufferUploadDesc bufferData[2]{
                 //            data ptr                                   size                                     buffer              offset      flags
                 {m_vGeomStreamer->modelDescs.data(),  helper::GetByteSizeOf(m_vGeomStreamer->modelDescs), m_buffers[MODELDESC], 0, {nri::AccessBits::SHADER_RESOURCE, nri::StageBits::ALL}},
-                {m_vGeomStreamer->meshletDescs.data(),  helper::GetByteSizeOf(m_vGeomStreamer->meshletDescs), m_buffers[MESHLETDESC], 0, {nri::AccessBits::SHADER_RESOURCE, nri::StageBits::ALL}},
+                {m_vGeomStreamer->meshletDescs.data(),  helper::GetByteSizeOf(m_vGeomStreamer->meshletDescs), m_buffers[MESHLETDESC], 0, {nri::AccessBits::SHADER_RESOURCE, nri::StageBits::ALL}}
             };
 
-
+            NRI_ABORT_ON_FAILURE(NRI.UploadData(*m_CommandQueue, nullptr, 0, bufferData, helper::GetCountOf(bufferData)));
             // visBuffer
         }
     }
 
     Log::Message("Renderer", "Initiation Finished");
-    return true;
+    return InitUI(NRI, NRI, *m_Device, swapChainFormat);
 }
 
 void Renderer::PrepareFrame(uint32_t frameIndex)
@@ -913,9 +921,9 @@ void Renderer::PrepareFrame(uint32_t frameIndex)
     useBuffer0 = !useBuffer0;
     if (UI) {
         BeginUI();
-
-        WindowManager::Show();
-
+        if (SampleBase::HasUserInterface()) {
+            WindowManager::Show();
+        }
         EndUI(NRI, *m_Streamer);
     }
     NRI.CopyStreamerUpdateRequests(*m_Streamer);
@@ -962,12 +970,18 @@ void Renderer::RenderFrame(uint32_t frameIndex)
         NRI.UnmapBuffer(*m_buffers[CONSTANTBUFFER]);
     }
 
+
+
+
+
     // eval stage
     nri::CommandBuffer& commandBuffer = *frame.cmdBuffEvalStage;
+
     NRI.BeginCommandBuffer(commandBuffer, m_DescriptorPool);
     {
-        helper::Annotation annotation(NRI, commandBuffer, "Eval Stage");
 
+        helper::Annotation annotation(NRI, commandBuffer, "Eval Stage");
+//#ifndef UIONLY
         // cached
         NRI.CmdSetPipelineLayout(commandBuffer, *m_cachedRenderLayout);
         NRI.CmdSetDescriptorSet(commandBuffer, 0, *m_cachedDescriptorSets[bufferedFrameIndex], nullptr);
@@ -984,13 +998,20 @@ void Renderer::RenderFrame(uint32_t frameIndex)
 
         NRI.CmdSetPipeline(commandBuffer, *m_cullingPipeline);
         NRI.CmdDispatch(commandBuffer, { 512, 1, 1 });
+//#endif // !UIONLY
     }
     NRI.EndCommandBuffer(commandBuffer);
+
+
     // render stage
     nri::CommandBuffer& renderCommandBuffer = *frame.cmdBuffRenderStage;
     NRI.BeginCommandBuffer(renderCommandBuffer, m_DescriptorPool);
     {
         helper::Annotation annotation(NRI, renderCommandBuffer, "Render Stage");
+
+#ifndef UIONLY
+
+
 
         // vis buff
         NRI.CmdSetPipelineLayout(renderCommandBuffer, *m_visibilityBuffLayout);
@@ -1009,7 +1030,7 @@ void Renderer::RenderFrame(uint32_t frameIndex)
         NRI.CmdDispatch(renderCommandBuffer, { GetWindowResolution().x, GetWindowResolution().y, 1});
 
 
-
+#endif // UIONLY
         // present & UI
         nri::AttachmentsDesc attachmentsDesc = {};
         attachmentsDesc.colorNum = 1;
@@ -1023,8 +1044,21 @@ void Renderer::RenderFrame(uint32_t frameIndex)
         textureBarrierDescs.mipNum = 1;
 
 
+        //nri::BarrierGroupDesc computeBarrierGroupDesc = {};
+        //nri::BufferBarrierDesc bufferBarrierDesc = {};
+        //bufferBarrierDesc.buffer = m_Buffers[INDIRECT_BUFFER];
+        //bufferBarrierDesc.before = { nri::AccessBits::ARGUMENT_BUFFER, nri::StageBits::INDIRECT };
+        //bufferBarrierDesc.after = { nri::AccessBits::SHADER_RESOURCE_STORAGE, nri::StageBits::COMPUTE_SHADER };
+        //computeBarrierGroupDesc.bufferNum = 1;
+        //computeBarrierGroupDesc.buffers = &bufferBarrierDesc;
+
+        nri::BarrierGroupDesc barrierGroupDesc = {};
+        barrierGroupDesc.textureNum = 1;
+        barrierGroupDesc.textures = &textureBarrierDescs;
+
+#ifndef UIONLY
         // rendering to main render target
-        NRI.CmdBeginRendering(commandBuffer, attachmentsDesc);
+        NRI.CmdBeginRendering(renderCommandBuffer, attachmentsDesc);
         {
             nri::ClearDesc clearDescs[2] = {};
             clearDescs[0].attachmentContentType = nri::AttachmentContentType::COLOR;
@@ -1032,37 +1066,64 @@ void Renderer::RenderFrame(uint32_t frameIndex)
             clearDescs[1].attachmentContentType = nri::AttachmentContentType::DEPTH;
             clearDescs[1].value.depthStencil.depth = CLEAR_DEPTH;
 
-            NRI.CmdClearAttachments(commandBuffer, clearDescs, helper::GetCountOf(clearDescs), nullptr, 0);
+            NRI.CmdClearAttachments(renderCommandBuffer, clearDescs, helper::GetCountOf(clearDescs), nullptr, 0);
 
             const nri::Viewport viewport = { 0.0f, 0.0f, (float)windowWidth, (float)windowHeight, 0.0f, 1.0f };
-            NRI.CmdSetViewports(commandBuffer, &viewport, 1);
+            NRI.CmdSetViewports(renderCommandBuffer, &viewport, 1);
 
             const nri::Rect scissor = { 0, 0, (nri::Dim_t)windowWidth, (nri::Dim_t)windowHeight };
-            NRI.CmdSetScissors(commandBuffer, &scissor, 1);
+            NRI.CmdSetScissors(renderCommandBuffer, &scissor, 1);
 
-            NRI.CmdSetIndexBuffer(commandBuffer, *m_buffers[INDEXBUFFER], 0, sizeof(utils::Index) == 2 ? nri::IndexType::UINT16 : nri::IndexType::UINT32);
+            NRI.CmdSetIndexBuffer(renderCommandBuffer, *m_buffers[INDEXBUFFER], 0, sizeof(utils::Index) == 2 ? nri::IndexType::UINT16 : nri::IndexType::UINT32);
 
-            NRI.CmdSetPipelineLayout(commandBuffer, *m_mergeLayout);
-            NRI.CmdSetDescriptorSet(commandBuffer, 0, *m_mergeDescriptorSets[bufferedFrameIndex], nullptr);
-            NRI.CmdSetDescriptorSet(commandBuffer, 1, *m_mergeDescriptorSets[BUFFERED_FRAME_MAX_NUM], nullptr);
-            NRI.CmdSetPipeline(commandBuffer, *m_mergePipeline);
+            NRI.CmdSetPipelineLayout(renderCommandBuffer, *m_mergeLayout);
+            NRI.CmdSetDescriptorSet(renderCommandBuffer, 0, *m_mergeDescriptorSets[bufferedFrameIndex], nullptr);
+            NRI.CmdSetDescriptorSet(renderCommandBuffer, 1, *m_mergeDescriptorSets[BUFFERED_FRAME_MAX_NUM], nullptr);
+            NRI.CmdSetPipeline(renderCommandBuffer, *m_mergePipeline);
 
             constexpr uint64_t offset = 0;
-            NRI.CmdSetVertexBuffers(commandBuffer, 0, 1, &m_buffers[VERTEXBUFFER], &offset);
+            NRI.CmdSetVertexBuffers(renderCommandBuffer, 0, 1, &m_buffers[VERTEXBUFFER], &offset);
 
-            NRI.CmdDrawIndexed(commandBuffer, { 6, 1, 0, (int32_t)0, 0});
+            NRI.CmdDrawIndexed(renderCommandBuffer, { 6, 1, 0, (int32_t)0, 0});
         }
-        NRI.CmdEndRendering(commandBuffer);
+        NRI.CmdEndRendering(renderCommandBuffer);
 
+#endif // UIONLY
         if (UI) {
-            NRI.CmdBeginRendering(commandBuffer, attachmentsDesc);
+            attachmentsDesc.depthStencil = nullptr;
+            NRI.CmdBeginRendering(renderCommandBuffer, attachmentsDesc);
             {
-                RenderUI(NRI, NRI, *m_Streamer, commandBuffer, 1.0f, true);
+                RenderUI(NRI, NRI, *m_Streamer, renderCommandBuffer, 1.0f, true);
             }
-            NRI.CmdEndRendering(commandBuffer);
+            NRI.CmdEndRendering(renderCommandBuffer);
         }
+
+        textureBarrierDescs.before = textureBarrierDescs.after;
+        textureBarrierDescs.after = { nri::AccessBits::UNKNOWN, nri::Layout::PRESENT };
+
+        barrierGroupDesc.bufferNum = 0;
+        NRI.CmdBarrier(renderCommandBuffer, barrierGroupDesc);
     }
     NRI.EndCommandBuffer(renderCommandBuffer);
+
+
+    { // Submit
+
+        nri::CommandBuffer* buffers[2] = {
+            frame.cmdBuffEvalStage,
+            frame.cmdBuffRenderStage
+
+        };
+        nri::QueueSubmitDesc queueSubmitDesc = {};
+        queueSubmitDesc.commandBuffers = buffers;
+        queueSubmitDesc.commandBufferNum = 2;
+
+
+        NRI.QueueSubmit(*m_CommandQueue, queueSubmitDesc);
+    }
+
+    // Present
+    NRI.QueuePresent(*m_SwapChain);
 }
 
 void Renderer::ReloadRenderer()

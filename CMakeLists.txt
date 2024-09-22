@@ -25,6 +25,8 @@ set (CMAKE_C_STANDARD 99)
 
 
 
+
+
 if (MSVC)
     set (CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 endif ()
@@ -186,6 +188,8 @@ function (add_sample NAME EXT)
     endif ()
 
     target_include_directories (${NAME} PRIVATE "External/NRIFramework/Include")
+
+    target_include_directories (${NAME} PRIVATE "Source/")
 
     target_include_directories (${NAME} PRIVATE "External/NRIFramework/External")
     target_include_directories (${NAME} PRIVATE "External/NRIFramework/External/NRI/Include")

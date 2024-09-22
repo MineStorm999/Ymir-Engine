@@ -24,31 +24,31 @@ struct NRIInterface
 enum BufferLocs {
 
     // resident buffs
-    MODELDESC = 0,
-    MESHLETDESC = 1,
+    MODELDESC = 0,      //read only
+    MESHLETDESC = 1,    //read only
 
     // buff0
-    RENDERDATA0 = 2,
-    RENDERDATA1 = 3,
+    RENDERDATA0 = 2,    //read only
+    RENDERDATA1 = 3,    //read only
 
     // buff1
-    RENDERCMD0 = 4,
-    RENDERCMD1 = 5,
+    RENDERCMD0 = 4,     //read write
+    RENDERCMD1 = 5,     //read write
 
     // loadDescs
-    LOADDESCS = 6,
+    LOADDESCS = 6,      //read write
 
     // read back
-    READBACK = 7,
+    READBACK = 7,       // copy 
 
     // instance buffer
-    INSTANCES = 8,
-    INSTANCESLAST = 9,
+    INSTANCES = 8,      // read only
+    INSTANCESLAST = 9,  // read only
 
-    CONSTANTBUFFER = 10,
+    CONSTANTBUFFER = 10,// read only
 
-    INDEXBUFFER = 11,
-    VERTEXBUFFER = 12
+    INDEXBUFFER = 11,   // other
+    VERTEXBUFFER = 12   // other
 };
 
 
@@ -69,7 +69,6 @@ struct VisibilityBuffer
 
 struct Frame
 {
-
     nri::CommandAllocator* cmdAllocEvalStage;
     nri::CommandBuffer* cmdBuffEvalStage;
 
