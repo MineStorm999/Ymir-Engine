@@ -2,7 +2,7 @@
 
 Currently in work, nothing to see jet.
 
-Roadmap:
+# Roadmap:
 # Rendering
  - ✓ Bindless
  - X Runtime 3d model add/rmf
@@ -12,10 +12,10 @@ Roadmap:
  - X Global Illumination
  - X PathTracing
  - X Skinned Mesh
-- Assets
+# Assets
  - ✓ Virtual File System
  - ✓ Asset Manager
-- Editor UI
+# Editor UI
  - ✓ Log
  - ✓ Asset Browser
  - ✓ Inspector 
