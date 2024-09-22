@@ -18,6 +18,11 @@ Currently in work, nothing to see jet.
 # Editor UI
  - ✓ Log
  - ✓ Asset Browser
- - ✓ Inspector 
- - ✓ 
+ - ✓ Inspector
+ - ✓ Struct Editor
+# Visual Scripting
+ - ✓ Struct Editor 
+ - ✓ Node Editor 
+ - ✓ Base Node
+
 
