@@ -5,6 +5,7 @@ Currently in work, nothing to see jet.
 # Roadmap:
 # Rendering
  - ✓ Bindless
+ - X Deffered
  - X Runtime 3d model add/rmf
  - X Point Lights
  - ✓ Dir Light
