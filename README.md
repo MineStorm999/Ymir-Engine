@@ -25,5 +25,7 @@ Currently in work, nothing to see jet.
  - ✓ Struct Editor 
  - ✓ Node Editor 
  - ✓ Base Node
+ - X Variables
+ - ✓ Bool Ops
 
 
