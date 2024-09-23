@@ -5,6 +5,7 @@
 #include "../Assets/AssetManager.h"
 #include "Inspector.h"
 #include "VisualScripting/StructEditor.h"
+#include "VisualScripting/NodeViewer.h"
 #include "../Log/Log.h"
 
 #include "Imgui/imgui.h"
@@ -13,6 +14,7 @@ bool ShowInspector{true};
 bool ShowAssetManager{ true };
 bool ShowLog{ true };
 bool ShowStructEditor{ true };
+bool ShowNodeGraph{ true };
 
 void WindowManager::Show()
 {
@@ -35,6 +37,7 @@ void WindowManager::Show()
 		ImGui::MenuItem("Inspector", "", &ShowInspector);
 		ImGui::MenuItem("Log", "", &ShowLog);
 		ImGui::MenuItem("Component Editor", "", &ShowStructEditor);
+		ImGui::MenuItem("Node Graph Editor", "", &ShowNodeGraph);
 
 		ImGui::EndMenu();
 	}
@@ -55,11 +58,15 @@ void WindowManager::Show()
 	if (ShowStructEditor) {
 		StructEditor::Show();
 	}
+	if (ShowNodeGraph) {
+		NodeViewer::Show();
+	}
 }
 
 void WindowManager::Init()
 {
 	Log::Init();
 	AssetManager::Init();
+	NodeViewer::Init();
 	StructEditor::Init("F:/GameEngines/NRISamples/_SaveFiles/Component_Save.ymir");
 }

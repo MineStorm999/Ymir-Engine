@@ -24,8 +24,8 @@ struct NewComponent11;
 
 //0
 struct NewComponent{
-   std::vector<NewComponent11*> newVariable;
    std::vector<bool> newVariable2;
+   std::vector<NewComponent11*> newVariable;
    std::vector<bool> newVariable1;
    std::vector<bool> newVariable3;
 };

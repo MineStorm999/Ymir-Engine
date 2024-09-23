@@ -190,6 +190,7 @@ function (add_sample NAME EXT)
     target_include_directories (${NAME} PRIVATE "External/NRIFramework/Include")
 
     target_include_directories (${NAME} PRIVATE "Source/")
+    #target_include_directories (${NAME} PRIVATE "External/ImNodes/")
 
     target_include_directories (${NAME} PRIVATE "External/NRIFramework/External")
     target_include_directories (${NAME} PRIVATE "External/NRIFramework/External/NRI/Include")

@@ -163,7 +163,7 @@ Sample::~Sample()
 
 bool Sample::Initialize(nri::GraphicsAPI graphicsAPI)
 {
-    WindowManager::Init();
+    
 
     if (graphicsAPI == nri::GraphicsAPI::D3D11) {
         printf("This sample supports only D3D12 and Vulkan.");
@@ -758,8 +758,13 @@ bool Sample::Initialize(nri::GraphicsAPI graphicsAPI)
     std::cout << "Buffer Creation & stuff took: " << f_secs.count() << "seconds\n";
 
     
-
-    return InitUI(NRI, NRI, *m_Device, swapChainFormat);
+    
+    bool initSuccsess = InitUI(NRI, NRI, *m_Device, swapChainFormat);
+    if (!initSuccsess) {
+        return false;
+    }
+    WindowManager::Init();
+    return true;
 }
 
 void Sample::PrepareFrame(uint32_t frameIndex)

@@ -7,13 +7,13 @@
             "Vars": {
                 "0": {
                     "List": true,
-                    "Name": "newVariable",
-                    "Type": "NewComponent11*"
+                    "Name": "newVariable2",
+                    "Type": "bool"
                 },
                 "1": {
                     "List": true,
-                    "Name": "newVariable2",
-                    "Type": "bool"
+                    "Name": "newVariable",
+                    "Type": "NewComponent11*"
                 },
                 "2": {
                     "List": true,

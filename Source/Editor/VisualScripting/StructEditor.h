@@ -5,6 +5,8 @@
 
 class json;
 
+
+
 struct VariableDesc {
 	VariableDesc(std::string name) {
 		type = "bool";
