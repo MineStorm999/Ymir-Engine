@@ -860,3 +860,9 @@ void Sample::RenderFrame(uint32_t frameIndex)
     }
 }
 
+void IterChilds()
+
+void Sample::PrepareEntities()
+{
+
+}

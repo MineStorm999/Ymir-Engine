@@ -93,7 +93,7 @@ add_subdirectory ("External/NRIFramework")
 
 # Shaders
 if (NOT DISABLE_SHADER_COMPILATION)
-    file (GLOB_RECURSE SHADERS "Shaders/*.hlsl" "Shaders/*.hlsli")
+    file (GLOB_RECURSE SHADERS "Shaders/*.hlsl" "Shaders/*.hlsli" "Shaders/*.h")
     set_source_files_properties (${SHADERS} PROPERTIES VS_TOOL_OVERRIDE "None")
 
 

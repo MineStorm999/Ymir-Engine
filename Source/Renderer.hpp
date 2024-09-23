@@ -66,6 +66,9 @@ public:
     void PrepareFrame(uint32_t frameIndex) override;
     void RenderFrame(uint32_t frameIndex) override;
 
+    
+    void PrepareEntities();
+
 private:
 
     NRIInterface NRI = {};

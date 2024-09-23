@@ -30,6 +30,7 @@ struct InstanceData
 {
     uint32_t meshIndex;
     uint32_t materialIndex;
+    float4x4 transform;
 };
 
 NRI_RESOURCE( cbuffer, GlobalConstants, b, 0, 0 )
