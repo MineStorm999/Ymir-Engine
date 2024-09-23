@@ -1,7 +1,7 @@
 // © 2021 NVIDIA Corporation
 
 
-#define REV
+//#define REV
 
 //#define EXPERIMENTAL
 
@@ -13,15 +13,9 @@
 
 #include "NRICompatibility.hlsli"
 
-#include "Assets/AssetManager.h"
 
 #include "../Shaders/SceneViewerBindlessStructs.h"
-#include "Rendering/VirtualGeometry/MeshletStructs.h"
-#include "Rendering/VirtualGeometry/VirtualGeometryStreamer.h"
 
-#include "../Shaders/YMIR_cpu_gpu_shared.h"
-
-#include "Log/Log.h"
 
 #include "Editor/ToolBarWindowManager.h"
 #include <array>
@@ -973,5 +967,5 @@ void Sample::RenderFrame(uint32_t frameIndex)
 SAMPLE_MAIN(Sample, 0);
 #else
 #include "Renderer.hpp"
-SAMPLE_MAIN(Renderer, 0);
+SAMPLE_MAIN(Sample, 0);
 #endif // REV

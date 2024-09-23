@@ -1,16 +1,38 @@
+
 #include "NRIFramework.h"
 
-#include "NRICompatibility.hlsli"
-#include "../Shaders/YMIR_cpu_gpu_shared.h"
-#include "Rendering/VirtualGeometry/VirtualGeometryStreamer.h"
 
-#include "ECS/ECSManager.h"
+
+#include <array>
+
 
 constexpr uint32_t GLOBAL_DESCRIPTOR_SET = 0;
 constexpr uint32_t MATERIAL_DESCRIPTOR_SET = 1;
 constexpr float CLEAR_DEPTH = 0.0f;
 constexpr uint32_t TEXTURES_PER_MATERIAL = 4;
-constexpr uint32_t BUFFER_COUNT = 6;
+constexpr uint32_t BUFFER_COUNT = 3;
+
+
+
+enum SceneBuffers
+{
+    // HOST_UPLOAD
+    CONSTANT_BUFFER,
+
+    // READBACK
+    READBACK_BUFFER,
+
+    // DEVICE
+    INDEX_BUFFER,
+    VERTEX_BUFFER,
+    MATERIAL_BUFFER,
+    MESH_BUFFER,
+    INSTANCE_BUFFER,
+    INDIRECT_BUFFER,
+    INDIRECT_COUNT_BUFFER,
+
+    MAX_NUM
+};
 
 struct NRIInterface
     : public nri::CoreInterface
@@ -19,91 +41,33 @@ struct NRIInterface
     , public nri::SwapChainInterface
 {};
 
-#define UI false
-
-enum BufferLocs {
-
-    // resident buffs
-    MODELDESC = 0,      //read only
-    MESHLETDESC = 1,    //read only
-
-    // buff0
-    RENDERDATA0 = 2,    //read only
-    RENDERDATA1 = 3,    //read only
-
-    // buff1
-    RENDERCMD0 = 4,     //read write
-    RENDERCMD1 = 5,     //read write
-
-    // loadDescs
-    LOADDESCS = 6,      //read write
-
-    // read back
-    READBACK = 7,       // copy 
-
-    // instance buffer
-    INSTANCES = 8,      // read only
-    INSTANCESLAST = 9,  // read only
-
-    CONSTANTBUFFER = 10,// read only
-
-    INDEXBUFFER = 11,   // other
-    VERTEXBUFFER = 12   // other
-};
-
-
-
-struct VisibilityBuffer
+struct Frame1
 {
-    nri::Texture* depth;
-    nri::Texture* data;
-
-    nri::Memory* depthMem;
-    nri::Memory* dataMem;
-
-    nri::Descriptor* depthDesc;
-    nri::Descriptor* dataDesc;
-
-    nri::Descriptor* sampler;
-};
-
-struct Frame
-{
-    nri::CommandAllocator* cmdAllocEvalStage;
-    nri::CommandBuffer* cmdBuffEvalStage;
-
-    nri::CommandAllocator* cmdAllocRenderStage;
-    nri::CommandBuffer* cmdBuffRenderStage;
-
+    nri::CommandAllocator* commandAllocator;
+    nri::CommandBuffer* commandBuffer;
     uint32_t globalConstantBufferViewOffsets;
 };
 
-struct CachedCluster {
-    uint32_t modelID, clusterID;
-    uint32_t clusterOffSet;
-};
-
-class Renderer : public SampleBase
+class Sample : public SampleBase
 {
 public:
-    Renderer() {};
-    ~Renderer();
 
+    Sample()
+    {}
 
-    bool Initialize(nri::GraphicsAPI graphicsAPI) override;
-    void PrepareFrame(uint32_t frameIndex) override;
-    void RenderFrame(uint32_t frameIndex) override;
-
-    void ReloadRenderer();
-
-    void PopulateInstaceBuffer();
-    void UploadInstaceBuffer();
+    ~Sample();
 
     inline uint32_t GetDrawIndexedCommandSize()
     {
         return NRI.GetDeviceDesc(*m_Device).isDrawParametersEmulationEnabled ? sizeof(nri::DrawIndexedBaseDesc) : sizeof(nri::DrawIndexedDesc);
     }
+
+    bool Initialize(nri::GraphicsAPI graphicsAPI) override;
+    void PrepareFrame(uint32_t frameIndex) override;
+    void RenderFrame(uint32_t frameIndex) override;
+
 private:
+
     NRIInterface NRI = {};
     nri::Device* m_Device = nullptr;
     nri::Streamer* m_Streamer = nullptr;
@@ -111,85 +75,27 @@ private:
     nri::CommandQueue* m_CommandQueue = nullptr;
     nri::Fence* m_FrameFence = nullptr;
     nri::DescriptorPool* m_DescriptorPool = nullptr;
-    
+    nri::PipelineLayout* m_PipelineLayout = nullptr;
+    nri::PipelineLayout* m_ComputePipelineLayout = nullptr;
     nri::Descriptor* m_DepthAttachment = nullptr;
     nri::Descriptor* m_IndirectBufferCountStorageAttachement = nullptr;
     nri::Descriptor* m_IndirectBufferStorageAttachement = nullptr;
     nri::QueryPool* m_QueryPool = nullptr;
+    nri::Pipeline* m_Pipeline = nullptr;
+    nri::Pipeline* m_ComputePipeline = nullptr;
 
-    // pipeline layouts
-    nri::PipelineLayout* m_cachedRenderLayout = nullptr;
-    nri::PipelineLayout* m_cullingLayout = nullptr;
-    nri::PipelineLayout* m_visibilityBuffLayout = nullptr;
-    nri::PipelineLayout* m_materialLayout = nullptr;
-    nri::PipelineLayout* m_mergeLayout = nullptr;
-
-    // pipelines
-    nri::Pipeline* m_cachedRenderPipeline = nullptr;
-    nri::Pipeline* m_cullingPipeline = nullptr;
-    nri::Pipeline* m_visibilityBuffPipeline = nullptr;
-    nri::Pipeline* m_materialPipeline = nullptr;
-    nri::Pipeline* m_mergePipeline = nullptr;
-    
-    std::vector<nri::DescriptorSet*> m_cachedDescriptorSets;
-    std::vector<nri::DescriptorSet*> m_cullingDescriptorSets;
-    std::vector<nri::DescriptorSet*> m_visBuffDescriptorSets;
-    std::vector<nri::DescriptorSet*> m_materialDescriptorSets;
-    std::vector<nri::DescriptorSet*> m_mergeDescriptorSets;
-    
-
-    std::array<Frame, BUFFERED_FRAME_MAX_NUM> m_Frames = {};
+    std::array<Frame1, BUFFERED_FRAME_MAX_NUM> m_Frames = {};
     std::vector<BackBuffer> m_SwapChainBuffers;
-    
+    std::vector<nri::DescriptorSet*> m_DescriptorSets;
     std::vector<nri::Texture*> m_Textures;
-    //std::vector<nri::Buffer*> m_Buffers;
-    //std::vector<nri::Memory*> m_MemoryAllocations;
-    //std::vector<nri::Descriptor*> m_Descriptors;
+    std::vector<nri::Buffer*> m_Buffers;
+    std::vector<nri::Memory*> m_MemoryAllocations;
+    std::vector<nri::Descriptor*> m_Descriptors;
 
 
 
-    
+    bool m_UseGPUDrawGeneration = true;
     nri::Format m_DepthFormat = nri::Format::UNKNOWN;
 
-private:
-    std::vector<nri::Buffer*> m_buffers;
-    std::vector<nri::Memory*> m_memoryAllocations;
-    std::vector<nri::Descriptor*> m_descriptors;
-    
-    
-    VisibilityBuffer m_visBuff;
-
-    
-    bool useBuffer0 = true;
-
-    uint32_t GetStructuredBuffCount() { return 6; };
-    uint32_t GetRWStructuredBuffCount() { return 3; };
-
-    
-    // instance collection
-private:
-    void IterateChildren(entt::entity, float4x4 pMat);
-    uint32_t instanceCount0 = 0;
-    uint32_t instanceCount1 = 0;
-
-    InstanceDesc* allRenderedEntites0;
-    InstanceDesc* allRenderedEntites1;
-    
-    
-    uint32_t* lastFrameEntitiesID;
-    
-    // streaming
-private:
-    VirtualGeometryStreamer* m_vGeomStreamer;
-
-    std::vector<CachedCluster> cachedCluster;
-    uint32_t sizeLast, biggestSize;
-    uint8_t* VGBuffer0;
-    uint8_t* VGBuffer1;
-
-    uint32_t size0, size1;
-
-    void StreamGeom();
-    CachedCluster nullCluster;
-    CachedCluster& Contains(uint32_t MID, uint32_t CID);
+    utils::Scene m_Scene;
 };
