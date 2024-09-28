@@ -3,7 +3,7 @@
 #include "NRIFramework.h"
 #include "MeshletStructs.h"
 
-
+/*
 #include <string.h>
 
 #include "../../Assets/exts.h"
@@ -82,3 +82,4 @@ void VirtualGeometryStreamer::UnInit() {
 
 	// needs to clear bindles buffers on GPU
 }
+*/

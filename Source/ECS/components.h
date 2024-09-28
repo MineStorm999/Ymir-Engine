@@ -2,6 +2,9 @@
 
 #include "NRIFramework.h"
 #include "entt/entt.hpp"
+
+#include "Assets/AssetManager.h"
+
 struct Transform {
 	float4x4 localMat;
 	
@@ -13,8 +16,8 @@ struct Transform {
 };
 
 struct MeshInstance {
-	uint32_t modelID{ 0xffffffff };
 	uint32_t materialID{ 0xffffffff };
+	AssetID modelID;
 };
 
 struct Root{};

@@ -1,16 +1,19 @@
 #pragma once
 
+#include "entt/entt.hpp"
+
 enum SelectedType {
 	Nothing,
 	Asset,
 	Entity
 };
 
+
 #include "../Assets/assetTypes.h"
 
 class Inspector {
 public:
-	static void Select(AssetBase* a);
+	static void Select(AssetID a);
 	static void Select(entt::entity e);
 	static void DeSelect();
 

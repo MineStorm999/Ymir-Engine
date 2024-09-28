@@ -7,7 +7,10 @@
 
 #include "assetTypes.h"
 
+class AssetBase;
+
 using AssetMap = std::unordered_map<AssetID, AssetBase*>;
+
 
 class AssetManager {
 public:
@@ -19,20 +22,24 @@ public:
 
 	static AssetMap& GetMap();
 
+	static bool IsValid(AssetID id);
+
+	static AssetBase* GetAsset(AssetID name);
+
+	static void AddFolder(std::string name);
+	static void Delete(AssetID name);
+
+	static AssetID RegisterAsset(AssetBase* asset);
+
 private:
-	static void GoBack();
-	static void Open(Node* n);
 
 	static void AssetExplorer();
 	static void AssetImporter();
 	
 	
-	static AssetID RegisterAsset(AssetBase* asset);
-	static void AddFolder(std::string name);
-	static void Delete(AssetID name);
+	
+	
 
-	static nlohmann::json SaveDir(Node* n);
-	static Node* LoadDir(nlohmann::json& j, Node* parent);
 
-	static AssetBase* GetAsset(AssetID name);
+	
 };

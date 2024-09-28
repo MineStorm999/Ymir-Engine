@@ -5,19 +5,22 @@ namespace utils {
 		VIRTUALMESH,
 		VIRTUALTEXTURE,
 		VIRTUALMESHDESC,
-		SAVEFILES
+		SAVEFILES,
+		ASSETDIR
 	};
 
 	inline std::string GetCFullPath(std::string localPT, CustomFolder folder) {
-		std::string path = ""; // it's a symbolic link
+		std::string path = "";
 		if (folder == CustomFolder::VIRTUALMESH)
-			path = "IMPORTANT_RESOURCES_DO_NOT_DELETE/VirtualMeshes/"; // special folder with generated files
+			path = "IMPORTANT_RESOURCES_DO_NOT_DELETE/VirtualMeshes/";
 		else if (folder == CustomFolder::VIRTUALTEXTURE)
 			path += "IMPORTANT_RESOURCES_DO_NOT_DELETE/VirtualTextures/";
 		else if (folder == CustomFolder::VIRTUALMESHDESC)
 			path += "IMPORTANT_RESOURCES_DO_NOT_DELETE/VirtualMeshDescs/";
 		else if (folder == CustomFolder::SAVEFILES)
-			path = "_SaveFiles/"; // special folder stored in Git
+			path = "_SaveFiles/"; 
+		else if (folder == CustomFolder::ASSETDIR)
+			path = "AssetDirectory/";
 
 		return path + localPT;
 	};

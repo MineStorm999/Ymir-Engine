@@ -1,3 +1,4 @@
+/*
 #include "VirtualGeometryBuilder.h"
 
 
@@ -305,3 +306,4 @@ VModel::VModel()
 {
     type = AssetType::VirtualModel;
 }
+*/

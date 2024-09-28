@@ -7,7 +7,9 @@
 
 #include "Editor/ToolBarWindowManager.h"
 #include <chrono>
+#include "ECS/components.h"
 
+#include "Log/Log.h"
 
 
 Sample::~Sample()
@@ -860,9 +862,33 @@ void Sample::RenderFrame(uint32_t frameIndex)
     }
 }
 
-void IterChilds()
+void Sample::IterateChildren(entt::entity e, float4x4 pMat) {
+    if (!EntityManager::GetWorld().valid(e)) {
+        return;
+    }
+    if (!EntityManager::GetWorld().group<Transform/*, Identity*/>().contains(e)) {
+        return;
+    }
+    if (!EntityManager::GetWorld().group<Identity/*, Identity*/>().contains(e)) {
+        return;
+    }
+
+    auto& transform = EntityManager::GetWorld().get<Transform>(e);
+
+    float4x4 localToWorld = pMat * transform.localMat;
+
+    auto& identity = EntityManager::GetWorld().get<Identity>(e);
+    Log::Message("Entites", "Iterate: " + identity.name);
+    for (entt::entity& child : identity.childs)
+    {
+        IterateChildren(child, localToWorld);
+    }
+}
+
 
 void Sample::PrepareEntities()
 {
+    IterateChildren(EntityManager::GetRoot(), float4x4::Identity());
 
+    //EntityManager::GetWorld().group<Transform, Identity>().contains();
 }

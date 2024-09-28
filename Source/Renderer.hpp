@@ -4,7 +4,7 @@
 
 
 #include <array>
-
+#include "ECS/ECSManager.h"
 
 constexpr uint32_t GLOBAL_DESCRIPTOR_SET = 0;
 constexpr uint32_t MATERIAL_DESCRIPTOR_SET = 1;
@@ -66,7 +66,7 @@ public:
     void PrepareFrame(uint32_t frameIndex) override;
     void RenderFrame(uint32_t frameIndex) override;
 
-    
+    void IterateChildren(entt::entity e, float4x4 pMat);
     void PrepareEntities();
 
 private:

@@ -1,22 +1,46 @@
 #pragma once
 
 #include <memory>
-#include "../Rendering/VirtualGeometry/MeshletStructs.h"
-#include "../ECS/components.h"
+#include <filesystem>
+#include "NRIFramework.h"
+#include "JSON/json.hpp"
+//#include "../Rendering/VirtualGeometry/MeshletStructs.h"
+//#include "../ECS/components.h"
 
+#define A_DISC_VERI0 6
+#define A_DISC_VERI1 66
+#define ASSET_SHORT "yasset"
 
-struct MeshletDesc;
+#define INVALID_ASSET_ID 0xffffffff
+
+//struct MeshletDesc;
 using AssetID = uint32_t;
 
 
 
-enum AssetType
+struct AssetHeader {
+	char type[4];
+};
+
+enum class AssetType : uint8_t
 {
 	None,
-	VirtualModel,
+	Model,
 	Texture,
 	Material,
-	Audio
+	Audio,
+	Scene
+};
+
+enum class AssetLoadFlags : uint8_t
+{
+	None = 0,
+	Compressed  = 1
+};
+
+class AssetUtils {
+public:
+	static AssetID GetAssetIDFromImported(std::filesystem::path path);
 };
 
 struct Node
@@ -56,7 +80,7 @@ namespace std {
 	inline string to_string(AssetType t) {
 		switch (t)
 		{
-		case AssetType::VirtualModel:
+		case AssetType::Model:
 			return "Model";
 		case AssetType::Texture:
 			return "Texture";
@@ -64,6 +88,8 @@ namespace std {
 			return "Material";
 		case AssetType::Audio:
 			return "Audio";
+		case AssetType::Scene:
+			return "Scene";
 		default:
 			return "None";
 		}
@@ -74,7 +100,7 @@ namespace std {
 inline AssetType to_type(std::string str) {
 	
 	if (str.compare("Model")==0) {
-		return AssetType::VirtualModel;
+		return AssetType::Model;
 	}
 	if (str.compare("Texture") == 0){
 		return AssetType::Texture; 
@@ -85,6 +111,9 @@ inline AssetType to_type(std::string str) {
 	if (str.compare("Audio") == 0){
 		return AssetType::Audio;
 	}
+	if (str.compare("Scene") == 0) {
+		return AssetType::Scene;
+	}
 	return AssetType::None;
 }
 
@@ -92,32 +121,74 @@ class AssetBase {
 public:
 	AssetType type;
 	std::string path{};
+	std::string originalPath{};
+
 	std::string name{};
 
-	Node* vRepr = nullptr;
+	//Node* vRepr = nullptr;
 
-	virtual void V() {};
+	FILE* file;
+	uint32_t off;
+	uint32_t lenght;
+
+	virtual std::vector<uint8_t> Load() { return std::vector<uint8_t>(); };
+	virtual nlohmann::json Save();
 };
 
+class AAudio : public AssetBase {
+public:
+	AAudio() { type = AssetType::Audio; };
+};
 
-class Material : public AssetBase
+class ATexture : public AssetBase {
+public:
+	ATexture() { type = AssetType::Audio; };
+};
+
+class AMaterial : public AssetBase
 {
 public:
-	Material() { type = AssetType::Material; };
-	uint32_t ID{};
+	AMaterial() { type = AssetType::Material; };
+	float4 baseColorAndMetallic;
+
+	AssetID baseColorTex;
+	AssetID roughnessMetalnessTex;
+	AssetID normalTex;
+	AssetID emissiveTex;
 };
 
-class VModel : public AssetBase {
+struct LOD {
+	AssetID mesh;
+	float distance;
+};
+
+class AModel : public AssetBase {
 public:
-	VModel();
-
-	uint32_t ID{};
+	AModel() { type = AssetType::Model; };
 	uint32_t DefaultMaterialID{};
-	// std::string matName;																		todo future
+	// std::string matName;														todo future
 
-	std::vector<Transform> defaultTransforms;
-	
-	std::vector<struct MeshletDesc> meshlets;
+	//std::vector<Transform> defaultTransforms;
+
+	uint32_t indexCount;
+	uint32_t vertCount;
+
+	std::vector<uint8_t> Load() override;
+
+	nlohmann::json Save() override;
+
+	std::vector<LOD> lods;
+
+	// !!!TODO!!!
+	uint32_t GetRenderID(float disFromCam) { return 0xffffffff; };
 };
+
+class AScene : public AssetBase{
+public:
+	AScene() { type = AssetType::Scene; };
+
+	void AddModel(AssetID model) {};
+};
+
 
 

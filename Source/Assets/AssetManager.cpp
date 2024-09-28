@@ -1,4 +1,3 @@
-
 #include "AssetManager.h"
 #include "../Rendering/VirtualGeometry/VirtualGeometryBuilder.h"
 
@@ -15,9 +14,16 @@
 #include "Imgui/imgui.h"
 #include "../Common/utils.h"
 
+#include "../Rendering/StaticMesh/StaticMeshLoader.h"
+
 //#include "Imgui/misc/cpp/imgui_stdlib.h"
 
-using LoadMap = std::unordered_map<AssetType, std::function<AssetBase*(std::string, std::string)>>;
+
+std::filesystem::path curPath = "/";
+std::filesystem::path rootPath = "/";
+
+
+using LoadMap = std::unordered_map<AssetType, std::function<AssetBase*(nlohmann::json)>>;
 
 
 using ExtendToType = std::unordered_map<std::string, AssetType>;
@@ -39,24 +45,40 @@ AssetID GetNext() {
 }
 
 
-ExtendToType extToTypeMap = { {"gltf", AssetType::VirtualModel}, {".gltf", AssetType::VirtualModel} };
+ExtendToType extToTypeMap = { {"gltf", AssetType::Model}, {".gltf", AssetType::Model} };
 
+//Node* curDir = nullptr;
+//Node* rootNode = nullptr;
 
-Node* curDir = nullptr;
-Node* rootNode = nullptr;
 void AssetManager::Init()
 {
-    curDir = new Node("Root", nullptr);
-    rootNode = curDir;
 
-    // load map
-    loadMap[AssetType::VirtualModel] = [](std::string name, std::string path) {
-        
-        return dynamic_cast<AssetBase*>(VirtualGeometryBuilder::LoadCached(name, path));
-        
+    loadMap[AssetType::Model] = [](nlohmann::json j) {
+        AModel* m = new AModel();
+
+        m->indexCount = j["IndexCount"];
+        m->vertCount = j["VertexCount"];
+        m->DefaultMaterialID = j["DefaultMat"];
+
+
+        uint32_t lodCount = j["LODCount"];
+        for (uint32_t i = 0; i < lodCount; i++)
+        {
+            nlohmann::json lod = j["Lods"][std::to_string(i)];
+            m->lods.push_back({ lod["MeshID"], lod["Distance"] });
+        }
+
+        return dynamic_cast<AssetBase*>(m);
         };
 
 
+    //curDir = new Node("Root", nullptr);
+    //rootNode = curDir;
+    curPath = utils::GetCFullPath("", utils::CustomFolder::ASSETDIR);
+    rootPath = utils::GetCFullPath("", utils::CustomFolder::ASSETDIR);
+
+    // load map
+    
     std::fstream fStream(utils::GetCFullPath("AssetSave.tyr", utils::CustomFolder::SAVEFILES));
     if (!fStream.is_open()) {
         return;
@@ -71,7 +93,7 @@ void AssetManager::Init()
         
         nlohmann::json asset = j["Assets"][std::to_string(i)];
 
-        Log::Message("AssetManager", "Load cached asset: " + std::string(asset["Name"]) + "(" + std::to_string(i+1) + "/" + std::to_string(count) + ")");
+        Log::Message("AssetManager", "Load asset: " + std::string(asset["Name"]) + "(" + std::to_string(i+1) + "/" + std::to_string(count) + ")");
 
         AssetType tyoe = to_type(asset["Type"]);
 
@@ -83,15 +105,21 @@ void AssetManager::Init()
             Log::Error("AssetManager", "Type " + std::to_string(tyoe) + " currently not supported");
             continue;
         }
+        AssetBase* bAss = loadMap[tyoe](asset);
+        bAss->name = asset["Name"];
+        bAss->path = asset["Path"];
+        bAss->originalPath = asset["OriginalPath"];
+        bAss->lenght = asset["Lenght"];
+        bAss->off = asset["Offset"];
 
-        map[asset["ID"]] = loadMap[to_type(asset["Type"])](asset["Name"], asset["Path"]);
+        map[asset["ID"]] = bAss;
     }
     
-    Node* tRoot = LoadDir(j["VirtualFSys"],  nullptr);
+    /*Node* tRoot = LoadDir(j["VirtualFSys"], nullptr);
     if (tRoot) {
         curDir = tRoot;
         rootNode = tRoot;
-    }
+    }*/
 }
 
 /*AssetBase* AssetManager::Import(std::string path, std::string name)
@@ -116,20 +144,52 @@ void AssetManager::Save()
 
     for (auto& it : map)
     {
+        if (!it.second) {
+            continue;
+        }
         nlohmann::json asset;
+        if (it.second->type == AssetType::None) {
+            continue;
+        }
+        else if (it.second->type == AssetType::Model) {
+            AModel* m = dynamic_cast<AModel*>(it.second);
+            if (m) {
+                asset = m->Save();
+            }
+        }
+        else if (it.second->type == AssetType::Texture) {
+            ATexture* tex = dynamic_cast<ATexture*>(it.second);
+            if (tex) {
+                asset = tex->Save();
+            }
+        }
+        else if (it.second->type == AssetType::Material) {
+            AMaterial* mat = dynamic_cast<AMaterial*>(it.second);
+            if (mat) {
+                asset = mat->Save();
+            }
+        }
+        else if (it.second->type == AssetType::Audio) {
+            AAudio* aud = dynamic_cast<AAudio*>(it.second);
+            if (aud) {
+                asset = aud->Save();
+            }
+        }
+        else if (it.second->type == AssetType::Scene) {
+            AScene* sce = dynamic_cast<AScene*>(it.second);
+            if (sce) {
+                asset = sce->Save();
+            }
+        }
 
-        asset["Type"] = std::to_string(it.second->type);
-        asset["Name"] = it.second->name;
-        asset["Path"] = it.second->path;
         asset["ID"] = it.first;
-
         j["Assets"][std::to_string(i)] = asset;
         i++;
     }
 
     j["Head"]["Count"] = i;
 
-    j["VirtualFSys"] = SaveDir(rootNode);
+    //j["VirtualFSys"] = SaveDir(rootNode);
 
     j["LastID"] = lastID;
 
@@ -160,38 +220,30 @@ AssetMap& AssetManager::GetMap()
     return map;
 }
 
-void AssetManager::GoBack()
+bool AssetManager::IsValid(AssetID id)
 {
-    if (curDir->parent) {
-        curDir = curDir->parent;
-    }
+    return !(map.find(id) == map.end() || id == 0xffffffff);
 }
 
-void AssetManager::Open(Node* n)
-{
-    if (!n) {
-        return;
-    }
 
-    if (n->realName == 0xffffffff) {
-        curDir = n;
-    }
-    else {
-        Inspector::Select(GetAsset(n->realName));
-        curInspected = map[n->realName];
-    }
-}
 float size = 1;
-std::string curPath = "";
+
+struct CachedDirEntry
+{
+    AssetID id;
+    std::filesystem::file_time_type timeStamp;
+};
+
+std::unordered_map<std::string, CachedDirEntry> cache;
 
 void AssetManager::AssetExplorer()
 {
-    
-
     ImGui::Begin("AssetManager");
 
-    if (ImGui::Button("<---")) {
-        GoBack();
+    if (curPath.string() != rootPath.string()) {
+        if (ImGui::Button("<---")) {
+            curPath = curPath.parent_path();
+        }
     }
 
     ImGui::SameLine();
@@ -215,12 +267,14 @@ void AssetManager::AssetExplorer()
     uint32_t i = 0;
 
     static bool isRenaming = false;
-    static Node* toEdit;
+    static AssetID toEdit;
     static char nName[1024] = "";
 
     bool opened = false;
+    
+    
 
-    for (Node* n : curDir->childs)
+    for (auto& it : std::filesystem::directory_iterator(curPath))
     {
         if (x >= wouldFit) {
             x = 0;
@@ -229,31 +283,52 @@ void AssetManager::AssetExplorer()
             if (i > 0) {
                 ImGui::SameLine();
             }
-            
         }
+        
+
+        AssetID curAsset = INVALID_ASSET_ID;
+        if (!it.is_directory()) {
+            
+            curAsset = AssetUtils::GetAssetIDFromImported(it.path().string());
+            
+            if (!AssetManager::IsValid(curAsset)) {
+                Log::Message("AssetManager", "Cur Asset is invalid, continuing..." + std::to_string(curAsset));
+                continue;
+            }
+            cache[it.path().string()] = { curAsset, it.last_write_time() };
+        }
+
         ImGui::BeginGroup();
         ImGui::PushID(i);
-
-        if (ImGui::Button(std::to_string(n->type).c_str(), ImVec2(144 * size, 144 * size))) {
-            Open(n);
+        if (it.is_directory()) {
+            if (ImGui::Button("Folder", ImVec2(144 * size, 144 * size))) {
+                curPath /= it.path().filename();
+            }
         }
-        ImGui::Text(n->vName.c_str());
+        else {
+            if (ImGui::Button(std::to_string(GetAsset(curAsset)->type).c_str(), ImVec2(144 * size, 144 * size))) {
+                //Open(n);
+            }
+        }
+
+        ImGui::Text(it.path().filename().string().c_str());
         ImGui::PopID();
 
         ImGui::EndGroup();
 
-        if (!opened) {
+
+        if (!opened && IsValid(curAsset)) {
             if (ImGui::BeginPopupContextItem("Edit", 1)) {
                 opened = true;
                 if (ImGui::MenuItem("Rename")) {
                     isRenaming = true;
-                    toEdit = n;
-                    std::strcpy(nName, n->vName.c_str());
+                    toEdit = curAsset;
+                    std::strcpy(nName, it.path().filename().string().c_str());
                 }
 
                 if (ImGui::MenuItem("Delete")) {
-                    isRenaming = true;
-                    toEdit = n;
+                    //isRenaming = true;
+                    //toEdit = n;
                 }
 
                 if (ImGui::MenuItem("Dublicate")) {
@@ -285,16 +360,15 @@ void AssetManager::AssetExplorer()
     }
 
     
-
-
+    return;
+    if (!IsValid(toEdit)) {
+        return;
+    }
     ImGui::Begin("Rename");
     
     ImGui::InputText("New Name", nName, 1024);
     if (ImGui::Button("Rename")) {
-        toEdit->vName = nName;
-        if (toEdit->realName != 0xffffffff) {
-            GetAsset(toEdit->realName)->name = nName;
-        }
+        GetAsset(toEdit)->name = nName;
         isRenaming = false;
         Save();
     }
@@ -307,6 +381,8 @@ void AssetManager::AssetExplorer()
     ImGui::End();
 }
 
+
+
 void AssetManager::AssetImporter()
 {
     if (!isImPorting) {
@@ -314,17 +390,19 @@ void AssetManager::AssetImporter()
     }
     static char name[1024] = "New Asset";
     static char path[2048] = "C:/";
+    //static std::string curP = "C:/";
+
     ImGui::Begin("Import Asset");
     
-    if (curPath != "") {
-        std::strcpy(path, curPath.c_str());
-        curPath.clear();
+    if (pt != "") {
+        std::strcpy(path, pt.c_str());
+        pt.clear();
     }
 
     ImGui::InputText("Name", name, 1024);
     ImGui::InputText("Path", path, 2048);
     
-
+    //curP = path;
     pt = path;
     if (pt.find(".") != std::string::npos) {
         extend = pt.substr(pt.find_last_of("."), pt.length() - pt.find_last_of("."));
@@ -337,41 +415,33 @@ void AssetManager::AssetImporter()
 
     static bool singleModel = false;
 
+    static MeshImportSettings settings;
+
     switch (importedType)
     {
-    case None:
+    case AssetType::None:
         ImGui::Text("Type: None");
         ImGui::Button("Import");
         break;
-    case VirtualModel:
-
+    case AssetType::Model:
+        //MeshImportSettings settings;
         ImGui::Text("Type: Model");
-        ImGui::Checkbox("Treat As Single Model", &singleModel);
+        ImGui::Checkbox("Treat As Single Model", &settings.singleModel);
+        ImGui::Checkbox("Auto LOD", &settings.autoLOD);
+        if (settings.autoLOD) {
+            ImGui::SliderInt("Lod Count", &settings.lodCount, 1, 10);
+        }
+        else {
+            settings.lodCount = 0;
+        }
+
+        ImGui::Checkbox("Optimize", &settings.optimize);
+        ImGui::Checkbox("Compress", &settings.compress);
 
         if (ImGui::Button("Import")) {
-
-            if (!singleModel) {
-                std::vector<VModel*> assets = VirtualGeometryBuilder::BuildVG(path, name, true, false);
-
-                for (uint32_t i = 0; i < assets.size();i++)
-                {
-                    AssetBase* asset = dynamic_cast<AssetBase*>(assets[i]);
-                    if (!asset) {
-                        continue;
-                    }
-                    RegisterAsset(asset);
-                    //map[(std::string(name) + "_subM" + std::to_string(i))] = dynamic_cast<AssetBase*>(assets[i]);
-                }
-            }
-            else {
-                AssetBase* asset = dynamic_cast<AssetBase*>(VirtualGeometryBuilder::BuildVG(path, name, true, true)[0]);
-                if (!asset) {
-                    Log::Error("Asset Manager", "Import Failed");
-                    ImGui::End();
-                    return;
-                }
-                RegisterAsset(asset);
-            }
+            
+            
+            MeshLoader::ImportModel(pt, curPath.string(), name, settings);
 
             isImPorting = false;
 
@@ -391,20 +461,21 @@ void AssetManager::AssetImporter()
 
 AssetID AssetManager::RegisterAsset(AssetBase* asset)
 {
+    if (!asset) {
+        return INVALID_ASSET_ID;
+    }
     AssetID id = GetNext();
     
 
     map[id] = asset;
 
-    Node* n = new Node(asset->name, curDir, id, asset->type);
-    map[id]->vRepr = n;
     Save();
     return id;
 }
 
 void AssetManager::AddFolder(std::string name)
 {
-    Node* n = new Node(name, curDir);
+    std::filesystem::create_directories(curPath / name);
     Save();
 }
 
@@ -414,61 +485,16 @@ void AssetManager::Delete(AssetID name)
         return;
     }
     AssetBase* b = map[name];
+    delete b;
+
+    map.erase(name);
     Save();
 }
 
-nlohmann::json AssetManager::SaveDir(Node* n)
-{
-    nlohmann::json j;
-    j["VName"] = n->vName;
-    j["Type"] = std::to_string(n->type);
-    j["RealName"] = n->realName;
-    j["ChildCount"] = n->childs.size();
-    j["Test"] = true;
-    
-    if (n->realName == 0xffffffff) {
-        for (uint32_t i = 0; i < n->childs.size(); i++)
-        {
-            j["Childs"][std::to_string(i)] = SaveDir(n->childs[i]);
-        }
-    }
-
-    return j;
-}
-
-Node* AssetManager::LoadDir(nlohmann::json& j, Node* parent)
-{
-    if (j["Test"] != true) {
-        return nullptr;
-    }
-
-    if (j["RealName"] == 0xffffffff) {
-        Node* n = new Node(j["VName"], parent);
-
-        uint32_t count = j["ChildCount"];
-        for (uint32_t i = 0; i < count; i++)
-        {
-            LoadDir(j["Childs"][std::to_string(i)], n);
-        }
-        n->vName = j["VName"];
-        return n;
-    }
-
-    AssetBase* a = GetAsset(j["RealName"]);
-    if (!a) {
-        return nullptr;
-    }
-
-    Node* n = new Node(a->name, parent, j["RealName"], to_type(j["Type"]));
-    a->vRepr = n;
-    n->vName = j["VName"];
-    a->name = j["VName"];
-    return n;
-}
 
 AssetBase* AssetManager::GetAsset(AssetID name)
 {
-    if (map.find(name) == map.end() || name == 0xffffffff)
+    if (map.find(name) == map.end() || name == INVALID_ASSET_ID)
         return nullptr;
 
     return map[name];
