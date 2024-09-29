@@ -82,13 +82,26 @@ void Inspector::ShowAsset()
 		if (!m) {
 			break;
 		}
-		ImGui::Text("Current Render ID: %i", m->GetRenderID());
+		ImGui::Text("Current Render ID: %i", m->GetRenderID(0));
 		if (ImGui::Button("Default Material")) {
 			Select(m->DefaultMaterialID);
 		}
 		ImGui::Text("Trieangles: %i", m->indexCount);
 		ImGui::Text("Vertices: %i", m->vertCount);
 
+		if (ImGui::TreeNode("LODs")) {
+			for (uint32_t i = 0; i < m->lods.size(); i++)
+			{
+
+				ImGui::Text("Triangle Count: %i", m->lods[i].lenght);
+				float min = i > 0 ? m->lods[i - 1].distance : 0;
+				float max = i + 1 < m->lods.size() ? m->lods[i + 1].distance : 0;
+
+				ImGui::SliderFloat("Distance", &m->lods[i].distance, min, max);
+			}
+
+			ImGui::TreePop();
+		}
 
 		/*
 		if (ImGui::TreeNode("Defaults Transforms")) {

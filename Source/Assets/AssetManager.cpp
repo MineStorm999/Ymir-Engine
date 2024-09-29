@@ -15,6 +15,7 @@
 #include "../Common/utils.h"
 
 #include "../Rendering/StaticMesh/StaticMeshLoader.h"
+#include <chrono>
 
 //#include "Imgui/misc/cpp/imgui_stdlib.h"
 
@@ -59,13 +60,13 @@ void AssetManager::Init()
         m->indexCount = j["IndexCount"];
         m->vertCount = j["VertexCount"];
         m->DefaultMaterialID = j["DefaultMat"];
-
+        m->iBuffLenght = j["IBuffLenght"];
 
         uint32_t lodCount = j["LODCount"];
         for (uint32_t i = 0; i < lodCount; i++)
         {
             nlohmann::json lod = j["Lods"][std::to_string(i)];
-            m->lods.push_back({ lod["MeshID"], lod["Distance"] });
+            m->lods.push_back({ lod["Distance"], lod["IndexOffset"], lod["IndexCount"] });
         }
 
         return dynamic_cast<AssetBase*>(m);
@@ -288,14 +289,21 @@ void AssetManager::AssetExplorer()
 
         AssetID curAsset = INVALID_ASSET_ID;
         if (!it.is_directory()) {
-            
-            curAsset = AssetUtils::GetAssetIDFromImported(it.path().string());
-            
-            if (!AssetManager::IsValid(curAsset)) {
-                Log::Message("AssetManager", "Cur Asset is invalid, continuing..." + std::to_string(curAsset));
-                continue;
+            if (cache.find(it.path().string()) != cache.end()) {
+                //if(it.last_write_time())
+                curAsset = cache[it.path().string()].id;
+                //Log::Message("AssetManager", it.path().string() + ", cached");
             }
-            cache[it.path().string()] = { curAsset, it.last_write_time() };
+            else {
+                Log::Message("AssetManager", it.path().string() + ", NOT cached");
+                curAsset = AssetUtils::GetAssetIDFromImported(it.path().string());
+
+                if (!AssetManager::IsValid(curAsset)) {
+                    //Log::Message("AssetManager", "Cur Asset is invalid, continuing..." + std::to_string(curAsset));
+                    continue;
+                }
+                cache[it.path().string()] = { curAsset, it.last_write_time() };
+            }
         }
 
         ImGui::BeginGroup();
@@ -304,20 +312,20 @@ void AssetManager::AssetExplorer()
             if (ImGui::Button("Folder", ImVec2(144 * size, 144 * size))) {
                 curPath /= it.path().filename();
             }
+            ImGui::Text(it.path().filename().string().c_str());
         }
         else {
             if (ImGui::Button(std::to_string(GetAsset(curAsset)->type).c_str(), ImVec2(144 * size, 144 * size))) {
                 //Open(n);
             }
+            ImGui::Text(GetAsset(curAsset)->name.c_str());
         }
 
-        ImGui::Text(it.path().filename().string().c_str());
-        ImGui::PopID();
-
         ImGui::EndGroup();
+        
 
 
-        if (!opened && IsValid(curAsset)) {
+        /*if (!opened && IsValid(curAsset)) {
             if (ImGui::BeginPopupContextItem("Edit", 1)) {
                 opened = true;
                 if (ImGui::MenuItem("Rename")) {
@@ -327,13 +335,13 @@ void AssetManager::AssetExplorer()
                 }
 
                 if (ImGui::MenuItem("Delete")) {
-                    //isRenaming = true;
-                    //toEdit = n;
+                    Delete(curAsset);
+                    cache.erase(it.path().string());
                 }
 
                 if (ImGui::MenuItem("Dublicate")) {
                     Log::Message("Not Supported");
-                }
+                }*/
 
                 /*if (n->type != AssetType::None && n->realName != "--Directory--") {
                     if (ImGui::MenuItem("Reimport")) {
@@ -344,10 +352,13 @@ void AssetManager::AssetExplorer()
                             importedType = n->type;
                         }
                     }
-                }*/
+                }
                 ImGui::EndPopup();
             }
-        }
+        }*/
+        ImGui::PopID();
+
+        
         x++;
         i++;
     }
@@ -360,7 +371,7 @@ void AssetManager::AssetExplorer()
     }
 
     
-    return;
+    //return;
     if (!IsValid(toEdit)) {
         return;
     }
@@ -368,9 +379,18 @@ void AssetManager::AssetExplorer()
     
     ImGui::InputText("New Name", nName, 1024);
     if (ImGui::Button("Rename")) {
-        GetAsset(toEdit)->name = nName;
-        isRenaming = false;
-        Save();
+        if (std::rename(GetAsset(toEdit)->GetActualPath().c_str(), nName)) {
+            Log::Error("AssetManager", "Renaming from  " + GetAsset(toEdit)->GetActualPath() + " , failed");
+            std::perror("Error renaming file");
+        }
+        else {
+            GetAsset(toEdit)->name = nName;
+            isRenaming = false;
+            Save();
+        }
+        
+
+        
     }
 
     ImGui::SameLine();
@@ -484,7 +504,10 @@ void AssetManager::Delete(AssetID name)
     if (map.find(name) == map.end()) {
         return;
     }
+
     AssetBase* b = map[name];
+    std::remove(b->GetActualPath().c_str());
+    
     delete b;
 
     map.erase(name);

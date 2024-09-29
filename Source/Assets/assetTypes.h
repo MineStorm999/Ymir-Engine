@@ -133,6 +133,8 @@ public:
 
 	virtual std::vector<uint8_t> Load() { return std::vector<uint8_t>(); };
 	virtual nlohmann::json Save();
+
+	std::string GetActualPath();
 };
 
 class AAudio : public AssetBase {
@@ -158,8 +160,9 @@ public:
 };
 
 struct LOD {
-	AssetID mesh;
 	float distance;
+	uint32_t indexOffset;
+	uint32_t lenght;
 };
 
 class AModel : public AssetBase {
@@ -172,6 +175,7 @@ public:
 
 	uint32_t indexCount;
 	uint32_t vertCount;
+	uint32_t iBuffLenght;
 
 	std::vector<uint8_t> Load() override;
 
@@ -187,7 +191,18 @@ class AScene : public AssetBase{
 public:
 	AScene() { type = AssetType::Scene; };
 
-	void AddModel(AssetID model) {};
+	std::unordered_map<AssetID, uint32_t> renderIds;
+
+	void Add(AssetID id);
+
+	// TODO
+	nlohmann::json Save() override;
+
+private:
+	//TODO
+	void AddModel(AssetID id);
+	void AddMaterial(AssetID id);
+	void AddTexture(AssetID id);
 };
 
 

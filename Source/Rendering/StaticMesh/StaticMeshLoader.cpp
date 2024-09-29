@@ -6,26 +6,129 @@
 #include "meshoptimizer.h"
 #include <fstream>
 
-std::vector<AModel*> MeshLoader::ImportModel(std::string path, std::string savePath, std::string name, MeshImportSettings settings)
+void MeshLoader::ImportModel(std::string path, std::string savePath, std::string name, MeshImportSettings settings)
 {
-    std::vector<AModel*> ret;
-    ret.reserve(1);
     FILE* loadF = fopen(path.c_str(), "r");
     if (!loadF) {
         Log::Error("Mesh Importer", "couldn't open " + path);
-        ret.push_back(nullptr);
-        return ret;
+        return;
     }
     fclose(loadF);
 
     utils::Scene packedScene;
     utils::LoadScene(path, packedScene, false);
 
-    
+    if (settings.createFolder) {
+        savePath.append("/" + name);
+    }
 
     if (settings.singleModel) {
-        ret.push_back(nullptr);
-        return ret;
+        size_t index_count = packedScene.indices.size();
+        size_t vertex_countt = packedScene.vertices.size();
+        size_t vertex_count = 0;
+        std::vector<utils::Index> indices(index_count);
+        std::vector<utils::Vertex> vertices(vertex_countt);
+
+
+        if (settings.optimize) {
+            std::vector<unsigned int> remap(index_count); // allocate temporary memory for the remap table
+
+            vertex_count = meshopt_generateVertexRemap(&remap[0], &packedScene.indices[0], index_count, &packedScene.vertices[0], vertex_countt, sizeof(utils::Vertex));
+
+
+            meshopt_remapIndexBuffer(&indices[0], &packedScene.indices[0], index_count, &remap[0]);
+            meshopt_remapVertexBuffer(&vertices[0], &packedScene.vertices[0], vertex_countt, sizeof(utils::Vertex), &remap[0]);
+
+
+            // cache
+            meshopt_optimizeVertexCache(&indices[0], &indices[0], index_count, vertex_count);
+
+            // owerdraw
+            meshopt_optimizeOverdraw(&indices[0], &indices[0], index_count, &vertices[0].pos[0], vertex_count, sizeof(utils::Vertex), 1.05f);
+
+            // fetch opt.
+            meshopt_optimizeVertexFetch(&vertices[0], &indices[0], index_count, &vertices[0], vertex_count, sizeof(utils::Vertex));
+
+            /* Shadow optimisation
+            *
+            std::vector<unsigned int> shadow_indices(index_count);
+            // note: this assumes Vertex starts with float3 positions and should be adjusted accordingly for quantized positions
+            meshopt_generateShadowIndexBuffer(&shadow_indices[0], indices, index_count, &vertices[0].x, vertex_count, sizeof(float) * 3, sizeof(Vertex));*/
+
+            vertices.resize(vertex_count);
+        }
+        else {
+            for (uint32_t i = 0; i < index_count; i++)
+            {
+                indices[i] = packedScene.indices[i];
+            }
+            for (uint32_t i = 0; i < vertex_countt; i++)
+            {
+                vertices[i] = packedScene.vertices[i];
+            }
+        }
+
+        std::string actualPath = savePath + "/" + name + "." + ASSET_SHORT;
+        std::ofstream ofSr;
+        ofSr.open(actualPath);
+        ofSr.close();
+        FILE* outF = fopen(actualPath.c_str(), "wb");
+        if (!outF) {
+            return;
+        }
+
+        AModel* model = new AModel();
+        model->name = name;
+
+        model->path = savePath;
+        model->originalPath = path;
+        model->indexCount = index_count;
+        model->vertCount = vertex_count;
+
+        if (settings.compress) {
+            // compression
+            std::vector<unsigned char> vbuf(meshopt_encodeVertexBufferBound(vertex_count, sizeof(utils::Vertex)));
+            vbuf.resize(meshopt_encodeVertexBuffer(&vbuf[0], vbuf.size(), &vertices[0], vertex_count, sizeof(utils::Vertex)));
+
+            std::vector<unsigned char> ibuf(meshopt_encodeIndexBufferBound(index_count, vertex_count));
+            ibuf.resize(meshopt_encodeIndexBuffer(&ibuf[0], ibuf.size(), &indices[0], index_count));
+
+
+            // head
+            uint8_t head[2] = { A_DISC_VERI0, A_DISC_VERI1 };
+            uint8_t flag = (uint8_t)AssetLoadFlags::Compressed;
+            AssetID id = AssetManager::RegisterAsset(dynamic_cast<AssetBase*>(model));
+
+
+            fwrite(head, 2, 1, outF);
+            fwrite(&flag, 1, 1, outF);
+            fwrite(&id, 4, 1, outF);
+
+            // data
+            model->off = 7;
+            model->lenght = ibuf.size() + vbuf.size();
+            model->iBuffLenght = ibuf.size();
+            fwrite(ibuf.data(), sizeof(unsigned char), ibuf.size(), outF);
+            fwrite(vbuf.data(), sizeof(unsigned char), vbuf.size(), outF);
+        }
+        else {
+            // head
+            uint8_t head[2] = { A_DISC_VERI0, A_DISC_VERI1 };
+            uint8_t flag = (uint8_t)AssetLoadFlags::None;
+            AssetID id = AssetManager::RegisterAsset(dynamic_cast<AssetBase*>(model));
+
+            fwrite(head, 2, 1, outF);
+            fwrite(&flag, 1, 1, outF);
+            fwrite(&id, 4, 1, outF);
+
+            // data
+            model->off = 7;
+            model->lenght = (indices.size() * sizeof(uint32_t)) + ((vertices.size() * sizeof(utils::Vertex)));
+            model->iBuffLenght = indices.size();
+            fwrite(indices.data(), sizeof(unsigned int), indices.size(), outF);
+            fwrite(vertices.data(), sizeof(utils::Vertex), vertices.size(), outF);
+        }
+        return;
     }
 
     // for mesh
@@ -77,6 +180,8 @@ std::vector<AModel*> MeshLoader::ImportModel(std::string path, std::string saveP
             }
         }
 
+        
+
         std::string actualPath = savePath + "/" + name + std::to_string(idx++) + "." + ASSET_SHORT;
         std::ofstream ofSr;
         ofSr.open(actualPath);
@@ -89,17 +194,41 @@ std::vector<AModel*> MeshLoader::ImportModel(std::string path, std::string saveP
         AModel* model = new AModel();
         model->name = name + std::to_string(idx);
 
-        model->path = actualPath;
+        model->path = savePath;
         model->originalPath = path;
         model->indexCount = index_count;
         model->vertCount = vertex_count;
-        
+
+        LOD lod0;
+        lod0.distance = 0;
+        lod0.indexOffset = 0;
+        lod0.lenght = index_count;
+        model->lods.push_back(lod0);
+
+        if (settings.autoLOD) {
+            float simp = 1 / settings.lodCount;
+
+            for (uint32_t i = 0; i < settings.lodCount; i++)
+            {
+                std::vector<unsigned int> lodIdx = CreateLOD(i* simp, &indices[0], index_count, &vertices[0], vertex_count);
+                LOD lodn;
+                lodn.distance = i*10;
+                lodn.indexOffset = indices.size();
+                lodn.lenght = lodIdx.size();
+                indices.reserve(lodn.lenght);
+                for (uint32_t& idx : lodIdx)
+                {
+                    indices.push_back(idx);
+                }
+            }
+        }
+
         if (settings.compress) {
             // compression
             std::vector<unsigned char> vbuf(meshopt_encodeVertexBufferBound(vertex_count, sizeof(utils::Vertex)));
             vbuf.resize(meshopt_encodeVertexBuffer(&vbuf[0], vbuf.size(), &vertices[0], vertex_count, sizeof(utils::Vertex)));
 
-            std::vector<unsigned char> ibuf(meshopt_encodeIndexBufferBound(index_count, vertex_count));
+            std::vector<unsigned char> ibuf(meshopt_encodeIndexBufferBound(indices.size(), vertex_count));
             ibuf.resize(meshopt_encodeIndexBuffer(&ibuf[0], ibuf.size(), &indices[0], index_count));
 
 
@@ -116,7 +245,7 @@ std::vector<AModel*> MeshLoader::ImportModel(std::string path, std::string saveP
             // data
             model->off = 7;
             model->lenght = ibuf.size() + vbuf.size();
-
+            model->iBuffLenght = ibuf.size();
             fwrite(ibuf.data(), sizeof(unsigned char), ibuf.size(), outF);
             fwrite(vbuf.data(), sizeof(unsigned char), vbuf.size(), outF);
         }
@@ -132,14 +261,26 @@ std::vector<AModel*> MeshLoader::ImportModel(std::string path, std::string saveP
 
             // data
             model->off = 7;
-            model->lenght = indices.size() + vertices.size();
-
+            model->lenght = (indices.size() * sizeof(uint32_t)) + ((vertices.size() * sizeof(utils::Vertex)));
+            model->iBuffLenght = indices.size();
             fwrite(indices.data(), sizeof(unsigned int), indices.size(), outF);
             fwrite(vertices.data(), sizeof(utils::Vertex), vertices.size(), outF);
         }
-        ret.push_back(model);
     }
     
-    return ret;
+    return;
+}
+
+std::vector<unsigned int> MeshLoader::CreateLOD(float siplificationAmmount, const unsigned int* originalIndices, uint32_t indexCount, const void* originalVerices, uint32_t vertexCount)
+{
+
+    size_t target_index_count = size_t(indexCount * siplificationAmmount);
+    float target_error = 1e-2f;
+
+    std::vector<unsigned int> lod(indexCount);
+    float lod_error = 0.f;
+    lod.resize(meshopt_simplify(&lod[0], originalIndices, indexCount, (float*)originalVerices, vertexCount, sizeof(utils::Vertex), target_index_count, target_error, /* options= */ 0, &lod_error));
+
+    return lod;
 }
 
