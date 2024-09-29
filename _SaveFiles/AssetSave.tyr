@@ -1,6 +1,1289 @@
 {
-    "Head": {
-        "Count": 0
+    "Assets": {
+        "0": {
+            "DefaultMat": 0,
+            "IBuffLenght": 47041,
+            "ID": 0,
+            "IndexCount": 139110,
+            "LODCount": 1,
+            "Lenght": 994885,
+            "Lods": {
+                "0": {
+                    "Distance": 0.0,
+                    "IndexCount": 139110,
+                    "IndexOffset": 0
+                }
+            },
+            "Name": "MCRN_Donager1",
+            "Offset": 7,
+            "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
+            "Path": "AssetDirectory/new folder/MCRN_Donager",
+            "Type": "Model",
+            "VertexCount": 65508
+        },
+        "1": {
+            "DefaultMat": 0,
+            "IBuffLenght": 42772,
+            "ID": 1,
+            "IndexCount": 126933,
+            "LODCount": 1,
+            "Lenght": 1030005,
+            "Lods": {
+                "0": {
+                    "Distance": 0.0,
+                    "IndexCount": 126933,
+                    "IndexOffset": 0
+                }
+            },
+            "Name": "MCRN_Donager2",
+            "Offset": 7,
+            "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
+            "Path": "AssetDirectory/new folder/MCRN_Donager",
+            "Type": "Model",
+            "VertexCount": 65498
+        },
+        "10": {
+            "DefaultMat": 0,
+            "IBuffLenght": 35864,
+            "ID": 10,
+            "IndexCount": 107136,
+            "LODCount": 1,
+            "Lenght": 996879,
+            "Lods": {
+                "0": {
+                    "Distance": 0.0,
+                    "IndexCount": 107136,
+                    "IndexOffset": 0
+                }
+            },
+            "Name": "MCRN_Donager11",
+            "Offset": 7,
+            "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
+            "Path": "AssetDirectory/new folder/MCRN_Donager",
+            "Type": "Model",
+            "VertexCount": 65534
+        },
+        "11": {
+            "DefaultMat": 0,
+            "IBuffLenght": 35815,
+            "ID": 11,
+            "IndexCount": 107004,
+            "LODCount": 1,
+            "Lenght": 985446,
+            "Lods": {
+                "0": {
+                    "Distance": 0.0,
+                    "IndexCount": 107004,
+                    "IndexOffset": 0
+                }
+            },
+            "Name": "MCRN_Donager12",
+            "Offset": 7,
+            "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
+            "Path": "AssetDirectory/new folder/MCRN_Donager",
+            "Type": "Model",
+            "VertexCount": 65532
+        },
+        "12": {
+            "DefaultMat": 0,
+            "IBuffLenght": 35907,
+            "ID": 12,
+            "IndexCount": 107292,
+            "LODCount": 1,
+            "Lenght": 950043,
+            "Lods": {
+                "0": {
+                    "Distance": 0.0,
+                    "IndexCount": 107292,
+                    "IndexOffset": 0
+                }
+            },
+            "Name": "MCRN_Donager13",
+            "Offset": 7,
+            "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
+            "Path": "AssetDirectory/new folder/MCRN_Donager",
+            "Type": "Model",
+            "VertexCount": 65532
+        },
+        "13": {
+            "DefaultMat": 0,
+            "IBuffLenght": 36546,
+            "ID": 13,
+            "IndexCount": 109014,
+            "LODCount": 1,
+            "Lenght": 1026164,
+            "Lods": {
+                "0": {
+                    "Distance": 0.0,
+                    "IndexCount": 109014,
+                    "IndexOffset": 0
+                }
+            },
+            "Name": "MCRN_Donager14",
+            "Offset": 7,
+            "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
+            "Path": "AssetDirectory/new folder/MCRN_Donager",
+            "Type": "Model",
+            "VertexCount": 65532
+        },
+        "14": {
+            "DefaultMat": 0,
+            "IBuffLenght": 34652,
+            "ID": 14,
+            "IndexCount": 103788,
+            "LODCount": 1,
+            "Lenght": 1031204,
+            "Lods": {
+                "0": {
+                    "Distance": 0.0,
+                    "IndexCount": 103788,
+                    "IndexOffset": 0
+                }
+            },
+            "Name": "MCRN_Donager15",
+            "Offset": 7,
+            "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
+            "Path": "AssetDirectory/new folder/MCRN_Donager",
+            "Type": "Model",
+            "VertexCount": 65532
+        },
+        "15": {
+            "DefaultMat": 0,
+            "IBuffLenght": 34084,
+            "ID": 15,
+            "IndexCount": 101958,
+            "LODCount": 1,
+            "Lenght": 961147,
+            "Lods": {
+                "0": {
+                    "Distance": 0.0,
+                    "IndexCount": 101958,
+                    "IndexOffset": 0
+                }
+            },
+            "Name": "MCRN_Donager16",
+            "Offset": 7,
+            "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
+            "Path": "AssetDirectory/new folder/MCRN_Donager",
+            "Type": "Model",
+            "VertexCount": 65532
+        },
+        "16": {
+            "DefaultMat": 0,
+            "IBuffLenght": 35793,
+            "ID": 16,
+            "IndexCount": 106914,
+            "LODCount": 1,
+            "Lenght": 979983,
+            "Lods": {
+                "0": {
+                    "Distance": 0.0,
+                    "IndexCount": 106914,
+                    "IndexOffset": 0
+                }
+            },
+            "Name": "MCRN_Donager17",
+            "Offset": 7,
+            "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
+            "Path": "AssetDirectory/new folder/MCRN_Donager",
+            "Type": "Model",
+            "VertexCount": 65532
+        },
+        "17": {
+            "DefaultMat": 0,
+            "IBuffLenght": 35071,
+            "ID": 17,
+            "IndexCount": 104916,
+            "LODCount": 1,
+            "Lenght": 972375,
+            "Lods": {
+                "0": {
+                    "Distance": 0.0,
+                    "IndexCount": 104916,
+                    "IndexOffset": 0
+                }
+            },
+            "Name": "MCRN_Donager18",
+            "Offset": 7,
+            "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
+            "Path": "AssetDirectory/new folder/MCRN_Donager",
+            "Type": "Model",
+            "VertexCount": 65534
+        },
+        "18": {
+            "DefaultMat": 0,
+            "IBuffLenght": 31602,
+            "ID": 18,
+            "IndexCount": 94521,
+            "LODCount": 1,
+            "Lenght": 901029,
+            "Lods": {
+                "0": {
+                    "Distance": 0.0,
+                    "IndexCount": 94521,
+                    "IndexOffset": 0
+                }
+            },
+            "Name": "MCRN_Donager19",
+            "Offset": 7,
+            "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
+            "Path": "AssetDirectory/new folder/MCRN_Donager",
+            "Type": "Model",
+            "VertexCount": 59419
+        },
+        "19": {
+            "DefaultMat": 0,
+            "IBuffLenght": 14710,
+            "ID": 19,
+            "IndexCount": 43584,
+            "LODCount": 1,
+            "Lenght": 336442,
+            "Lods": {
+                "0": {
+                    "Distance": 0.0,
+                    "IndexCount": 43584,
+                    "IndexOffset": 0
+                }
+            },
+            "Name": "MCRN_Donager20",
+            "Offset": 7,
+            "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
+            "Path": "AssetDirectory/new folder/MCRN_Donager",
+            "Type": "Model",
+            "VertexCount": 22548
+        },
+        "2": {
+            "DefaultMat": 0,
+            "IBuffLenght": 42111,
+            "ID": 2,
+            "IndexCount": 124563,
+            "LODCount": 1,
+            "Lenght": 1044466,
+            "Lods": {
+                "0": {
+                    "Distance": 0.0,
+                    "IndexCount": 124563,
+                    "IndexOffset": 0
+                }
+            },
+            "Name": "MCRN_Donager3",
+            "Offset": 7,
+            "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
+            "Path": "AssetDirectory/new folder/MCRN_Donager",
+            "Type": "Model",
+            "VertexCount": 65492
+        },
+        "20": {
+            "DefaultMat": 0,
+            "IBuffLenght": 12284,
+            "ID": 20,
+            "IndexCount": 36672,
+            "LODCount": 1,
+            "Lenght": 263774,
+            "Lods": {
+                "0": {
+                    "Distance": 0.0,
+                    "IndexCount": 36672,
+                    "IndexOffset": 0
+                }
+            },
+            "Name": "MCRN_Donager21",
+            "Offset": 7,
+            "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
+            "Path": "AssetDirectory/new folder/MCRN_Donager",
+            "Type": "Model",
+            "VertexCount": 20352
+        },
+        "21": {
+            "DefaultMat": 0,
+            "IBuffLenght": 3313,
+            "ID": 21,
+            "IndexCount": 9888,
+            "LODCount": 1,
+            "Lenght": 75466,
+            "Lods": {
+                "0": {
+                    "Distance": 0.0,
+                    "IndexCount": 9888,
+                    "IndexOffset": 0
+                }
+            },
+            "Name": "MCRN_Donager22",
+            "Offset": 7,
+            "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
+            "Path": "AssetDirectory/new folder/MCRN_Donager",
+            "Type": "Model",
+            "VertexCount": 5760
+        },
+        "22": {
+            "DefaultMat": 0,
+            "IBuffLenght": 1041,
+            "ID": 22,
+            "IndexCount": 3072,
+            "LODCount": 1,
+            "Lenght": 27609,
+            "Lods": {
+                "0": {
+                    "Distance": 0.0,
+                    "IndexCount": 3072,
+                    "IndexOffset": 0
+                }
+            },
+            "Name": "MCRN_Donager23",
+            "Offset": 7,
+            "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
+            "Path": "AssetDirectory/new folder/MCRN_Donager",
+            "Type": "Model",
+            "VertexCount": 2048
+        },
+        "23": {
+            "DefaultMat": 0,
+            "IBuffLenght": 46623,
+            "ID": 23,
+            "IndexCount": 138342,
+            "LODCount": 1,
+            "Lenght": 993385,
+            "Lods": {
+                "0": {
+                    "Distance": 0.0,
+                    "IndexCount": 138342,
+                    "IndexOffset": 0
+                }
+            },
+            "Name": "MCRN_Donager24",
+            "Offset": 7,
+            "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
+            "Path": "AssetDirectory/new folder/MCRN_Donager",
+            "Type": "Model",
+            "VertexCount": 65532
+        },
+        "24": {
+            "DefaultMat": 0,
+            "IBuffLenght": 42902,
+            "ID": 24,
+            "IndexCount": 127914,
+            "LODCount": 1,
+            "Lenght": 1008054,
+            "Lods": {
+                "0": {
+                    "Distance": 0.0,
+                    "IndexCount": 127914,
+                    "IndexOffset": 0
+                }
+            },
+            "Name": "MCRN_Donager25",
+            "Offset": 7,
+            "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
+            "Path": "AssetDirectory/new folder/MCRN_Donager",
+            "Type": "Model",
+            "VertexCount": 65532
+        },
+        "25": {
+            "DefaultMat": 0,
+            "IBuffLenght": 24741,
+            "ID": 25,
+            "IndexCount": 73848,
+            "LODCount": 1,
+            "Lenght": 568420,
+            "Lods": {
+                "0": {
+                    "Distance": 0.0,
+                    "IndexCount": 73848,
+                    "IndexOffset": 0
+                }
+            },
+            "Name": "MCRN_Donager26",
+            "Offset": 7,
+            "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
+            "Path": "AssetDirectory/new folder/MCRN_Donager",
+            "Type": "Model",
+            "VertexCount": 38488
+        },
+        "26": {
+            "DefaultMat": 0,
+            "IBuffLenght": 1553,
+            "ID": 26,
+            "IndexCount": 4584,
+            "LODCount": 1,
+            "Lenght": 27249,
+            "Lods": {
+                "0": {
+                    "Distance": 0.0,
+                    "IndexCount": 4584,
+                    "IndexOffset": 0
+                }
+            },
+            "Name": "MCRN_Donager27",
+            "Offset": 7,
+            "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
+            "Path": "AssetDirectory/new folder/MCRN_Donager",
+            "Type": "Model",
+            "VertexCount": 1920
+        },
+        "27": {
+            "DefaultMat": 0,
+            "IBuffLenght": 6029,
+            "ID": 27,
+            "IndexCount": 17904,
+            "LODCount": 1,
+            "Lenght": 145004,
+            "Lods": {
+                "0": {
+                    "Distance": 0.0,
+                    "IndexCount": 17904,
+                    "IndexOffset": 0
+                }
+            },
+            "Name": "MCRN_Donager28",
+            "Offset": 7,
+            "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
+            "Path": "AssetDirectory/new folder/MCRN_Donager",
+            "Type": "Model",
+            "VertexCount": 9944
+        },
+        "28": {
+            "DefaultMat": 0,
+            "IBuffLenght": 43769,
+            "ID": 28,
+            "IndexCount": 130182,
+            "LODCount": 1,
+            "Lenght": 1016363,
+            "Lods": {
+                "0": {
+                    "Distance": 0.0,
+                    "IndexCount": 130182,
+                    "IndexOffset": 0
+                }
+            },
+            "Name": "MCRN_Donager29",
+            "Offset": 7,
+            "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
+            "Path": "AssetDirectory/new folder/MCRN_Donager",
+            "Type": "Model",
+            "VertexCount": 65531
+        },
+        "29": {
+            "DefaultMat": 0,
+            "IBuffLenght": 13113,
+            "ID": 29,
+            "IndexCount": 39135,
+            "LODCount": 1,
+            "Lenght": 335529,
+            "Lods": {
+                "0": {
+                    "Distance": 0.0,
+                    "IndexCount": 39135,
+                    "IndexOffset": 0
+                }
+            },
+            "Name": "MCRN_Donager30",
+            "Offset": 7,
+            "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
+            "Path": "AssetDirectory/new folder/MCRN_Donager",
+            "Type": "Model",
+            "VertexCount": 21714
+        },
+        "3": {
+            "DefaultMat": 0,
+            "IBuffLenght": 40340,
+            "ID": 3,
+            "IndexCount": 120126,
+            "LODCount": 1,
+            "Lenght": 1015891,
+            "Lods": {
+                "0": {
+                    "Distance": 0.0,
+                    "IndexCount": 120126,
+                    "IndexOffset": 0
+                }
+            },
+            "Name": "MCRN_Donager4",
+            "Offset": 7,
+            "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
+            "Path": "AssetDirectory/new folder/MCRN_Donager",
+            "Type": "Model",
+            "VertexCount": 65507
+        },
+        "30": {
+            "DefaultMat": 0,
+            "IBuffLenght": 38859,
+            "ID": 30,
+            "IndexCount": 116397,
+            "LODCount": 1,
+            "Lenght": 961622,
+            "Lods": {
+                "0": {
+                    "Distance": 0.0,
+                    "IndexCount": 116397,
+                    "IndexOffset": 0
+                }
+            },
+            "Name": "MCRN_Donager31",
+            "Offset": 7,
+            "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
+            "Path": "AssetDirectory/new folder/MCRN_Donager",
+            "Type": "Model",
+            "VertexCount": 65521
+        },
+        "31": {
+            "DefaultMat": 0,
+            "IBuffLenght": 31665,
+            "ID": 31,
+            "IndexCount": 94875,
+            "LODCount": 1,
+            "Lenght": 794068,
+            "Lods": {
+                "0": {
+                    "Distance": 0.0,
+                    "IndexCount": 94875,
+                    "IndexOffset": 0
+                }
+            },
+            "Name": "MCRN_Donager32",
+            "Offset": 7,
+            "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
+            "Path": "AssetDirectory/new folder/MCRN_Donager",
+            "Type": "Model",
+            "VertexCount": 54977
+        },
+        "32": {
+            "DefaultMat": 0,
+            "IBuffLenght": 38605,
+            "ID": 32,
+            "IndexCount": 115083,
+            "LODCount": 1,
+            "Lenght": 914132,
+            "Lods": {
+                "0": {
+                    "Distance": 0.0,
+                    "IndexCount": 115083,
+                    "IndexOffset": 0
+                }
+            },
+            "Name": "MCRN_Donager33",
+            "Offset": 7,
+            "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
+            "Path": "AssetDirectory/new folder/MCRN_Donager",
+            "Type": "Model",
+            "VertexCount": 65511
+        },
+        "33": {
+            "DefaultMat": 0,
+            "IBuffLenght": 36517,
+            "ID": 33,
+            "IndexCount": 108744,
+            "LODCount": 1,
+            "Lenght": 986601,
+            "Lods": {
+                "0": {
+                    "Distance": 0.0,
+                    "IndexCount": 108744,
+                    "IndexOffset": 0
+                }
+            },
+            "Name": "MCRN_Donager34",
+            "Offset": 7,
+            "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
+            "Path": "AssetDirectory/new folder/MCRN_Donager",
+            "Type": "Model",
+            "VertexCount": 65500
+        },
+        "34": {
+            "DefaultMat": 0,
+            "IBuffLenght": 38200,
+            "ID": 34,
+            "IndexCount": 113325,
+            "LODCount": 1,
+            "Lenght": 974075,
+            "Lods": {
+                "0": {
+                    "Distance": 0.0,
+                    "IndexCount": 113325,
+                    "IndexOffset": 0
+                }
+            },
+            "Name": "MCRN_Donager35",
+            "Offset": 7,
+            "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
+            "Path": "AssetDirectory/new folder/MCRN_Donager",
+            "Type": "Model",
+            "VertexCount": 65514
+        },
+        "35": {
+            "DefaultMat": 0,
+            "IBuffLenght": 35826,
+            "ID": 35,
+            "IndexCount": 107091,
+            "LODCount": 1,
+            "Lenght": 938721,
+            "Lods": {
+                "0": {
+                    "Distance": 0.0,
+                    "IndexCount": 107091,
+                    "IndexOffset": 0
+                }
+            },
+            "Name": "MCRN_Donager36",
+            "Offset": 7,
+            "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
+            "Path": "AssetDirectory/new folder/MCRN_Donager",
+            "Type": "Model",
+            "VertexCount": 65520
+        },
+        "36": {
+            "DefaultMat": 0,
+            "IBuffLenght": 34412,
+            "ID": 36,
+            "IndexCount": 102639,
+            "LODCount": 1,
+            "Lenght": 944836,
+            "Lods": {
+                "0": {
+                    "Distance": 0.0,
+                    "IndexCount": 102639,
+                    "IndexOffset": 0
+                }
+            },
+            "Name": "MCRN_Donager37",
+            "Offset": 7,
+            "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
+            "Path": "AssetDirectory/new folder/MCRN_Donager",
+            "Type": "Model",
+            "VertexCount": 65519
+        },
+        "37": {
+            "DefaultMat": 0,
+            "IBuffLenght": 34434,
+            "ID": 37,
+            "IndexCount": 102915,
+            "LODCount": 1,
+            "Lenght": 924827,
+            "Lods": {
+                "0": {
+                    "Distance": 0.0,
+                    "IndexCount": 102915,
+                    "IndexOffset": 0
+                }
+            },
+            "Name": "MCRN_Donager38",
+            "Offset": 7,
+            "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
+            "Path": "AssetDirectory/new folder/MCRN_Donager",
+            "Type": "Model",
+            "VertexCount": 65532
+        },
+        "38": {
+            "DefaultMat": 0,
+            "IBuffLenght": 35624,
+            "ID": 38,
+            "IndexCount": 106359,
+            "LODCount": 1,
+            "Lenght": 924977,
+            "Lods": {
+                "0": {
+                    "Distance": 0.0,
+                    "IndexCount": 106359,
+                    "IndexOffset": 0
+                }
+            },
+            "Name": "MCRN_Donager39",
+            "Offset": 7,
+            "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
+            "Path": "AssetDirectory/new folder/MCRN_Donager",
+            "Type": "Model",
+            "VertexCount": 65521
+        },
+        "39": {
+            "DefaultMat": 0,
+            "IBuffLenght": 37000,
+            "ID": 39,
+            "IndexCount": 110235,
+            "LODCount": 1,
+            "Lenght": 941216,
+            "Lods": {
+                "0": {
+                    "Distance": 0.0,
+                    "IndexCount": 110235,
+                    "IndexOffset": 0
+                }
+            },
+            "Name": "MCRN_Donager40",
+            "Offset": 7,
+            "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
+            "Path": "AssetDirectory/new folder/MCRN_Donager",
+            "Type": "Model",
+            "VertexCount": 65524
+        },
+        "4": {
+            "DefaultMat": 0,
+            "IBuffLenght": 32645,
+            "ID": 4,
+            "IndexCount": 97212,
+            "LODCount": 1,
+            "Lenght": 815557,
+            "Lods": {
+                "0": {
+                    "Distance": 0.0,
+                    "IndexCount": 97212,
+                    "IndexOffset": 0
+                }
+            },
+            "Name": "MCRN_Donager5",
+            "Offset": 7,
+            "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
+            "Path": "AssetDirectory/new folder/MCRN_Donager",
+            "Type": "Model",
+            "VertexCount": 52911
+        },
+        "40": {
+            "DefaultMat": 0,
+            "IBuffLenght": 35611,
+            "ID": 40,
+            "IndexCount": 106326,
+            "LODCount": 1,
+            "Lenght": 943303,
+            "Lods": {
+                "0": {
+                    "Distance": 0.0,
+                    "IndexCount": 106326,
+                    "IndexOffset": 0
+                }
+            },
+            "Name": "MCRN_Donager41",
+            "Offset": 7,
+            "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
+            "Path": "AssetDirectory/new folder/MCRN_Donager",
+            "Type": "Model",
+            "VertexCount": 65522
+        },
+        "41": {
+            "DefaultMat": 0,
+            "IBuffLenght": 35178,
+            "ID": 41,
+            "IndexCount": 105090,
+            "LODCount": 1,
+            "Lenght": 950718,
+            "Lods": {
+                "0": {
+                    "Distance": 0.0,
+                    "IndexCount": 105090,
+                    "IndexOffset": 0
+                }
+            },
+            "Name": "MCRN_Donager42",
+            "Offset": 7,
+            "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
+            "Path": "AssetDirectory/new folder/MCRN_Donager",
+            "Type": "Model",
+            "VertexCount": 65530
+        },
+        "42": {
+            "DefaultMat": 0,
+            "IBuffLenght": 34590,
+            "ID": 42,
+            "IndexCount": 103440,
+            "LODCount": 1,
+            "Lenght": 970610,
+            "Lods": {
+                "0": {
+                    "Distance": 0.0,
+                    "IndexCount": 103440,
+                    "IndexOffset": 0
+                }
+            },
+            "Name": "MCRN_Donager43",
+            "Offset": 7,
+            "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
+            "Path": "AssetDirectory/new folder/MCRN_Donager",
+            "Type": "Model",
+            "VertexCount": 65518
+        },
+        "43": {
+            "DefaultMat": 0,
+            "IBuffLenght": 35322,
+            "ID": 43,
+            "IndexCount": 105696,
+            "LODCount": 1,
+            "Lenght": 971842,
+            "Lods": {
+                "0": {
+                    "Distance": 0.0,
+                    "IndexCount": 105696,
+                    "IndexOffset": 0
+                }
+            },
+            "Name": "MCRN_Donager44",
+            "Offset": 7,
+            "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
+            "Path": "AssetDirectory/new folder/MCRN_Donager",
+            "Type": "Model",
+            "VertexCount": 65360
+        },
+        "44": {
+            "DefaultMat": 0,
+            "IBuffLenght": 33488,
+            "ID": 44,
+            "IndexCount": 100350,
+            "LODCount": 1,
+            "Lenght": 953420,
+            "Lods": {
+                "0": {
+                    "Distance": 0.0,
+                    "IndexCount": 100350,
+                    "IndexOffset": 0
+                }
+            },
+            "Name": "MCRN_Donager45",
+            "Offset": 7,
+            "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
+            "Path": "AssetDirectory/new folder/MCRN_Donager",
+            "Type": "Model",
+            "VertexCount": 65440
+        },
+        "45": {
+            "DefaultMat": 0,
+            "IBuffLenght": 35297,
+            "ID": 45,
+            "IndexCount": 105450,
+            "LODCount": 1,
+            "Lenght": 898501,
+            "Lods": {
+                "0": {
+                    "Distance": 0.0,
+                    "IndexCount": 105450,
+                    "IndexOffset": 0
+                }
+            },
+            "Name": "MCRN_Donager46",
+            "Offset": 7,
+            "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
+            "Path": "AssetDirectory/new folder/MCRN_Donager",
+            "Type": "Model",
+            "VertexCount": 65534
+        },
+        "46": {
+            "DefaultMat": 0,
+            "IBuffLenght": 27164,
+            "ID": 46,
+            "IndexCount": 80607,
+            "LODCount": 1,
+            "Lenght": 392492,
+            "Lods": {
+                "0": {
+                    "Distance": 0.0,
+                    "IndexCount": 80607,
+                    "IndexOffset": 0
+                }
+            },
+            "Name": "MCRN_Donager47",
+            "Offset": 7,
+            "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
+            "Path": "AssetDirectory/new folder/MCRN_Donager",
+            "Type": "Model",
+            "VertexCount": 36319
+        },
+        "47": {
+            "DefaultMat": 0,
+            "IBuffLenght": 41938,
+            "ID": 47,
+            "IndexCount": 124128,
+            "LODCount": 1,
+            "Lenght": 900312,
+            "Lods": {
+                "0": {
+                    "Distance": 0.0,
+                    "IndexCount": 124128,
+                    "IndexOffset": 0
+                }
+            },
+            "Name": "MCRN_Donager48",
+            "Offset": 7,
+            "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
+            "Path": "AssetDirectory/new folder/MCRN_Donager",
+            "Type": "Model",
+            "VertexCount": 65488
+        },
+        "48": {
+            "DefaultMat": 0,
+            "IBuffLenght": 38013,
+            "ID": 48,
+            "IndexCount": 113400,
+            "LODCount": 1,
+            "Lenght": 943764,
+            "Lods": {
+                "0": {
+                    "Distance": 0.0,
+                    "IndexCount": 113400,
+                    "IndexOffset": 0
+                }
+            },
+            "Name": "MCRN_Donager49",
+            "Offset": 7,
+            "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
+            "Path": "AssetDirectory/new folder/MCRN_Donager",
+            "Type": "Model",
+            "VertexCount": 65383
+        },
+        "49": {
+            "DefaultMat": 0,
+            "IBuffLenght": 37384,
+            "ID": 49,
+            "IndexCount": 111126,
+            "LODCount": 1,
+            "Lenght": 894120,
+            "Lods": {
+                "0": {
+                    "Distance": 0.0,
+                    "IndexCount": 111126,
+                    "IndexOffset": 0
+                }
+            },
+            "Name": "MCRN_Donager50",
+            "Offset": 7,
+            "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
+            "Path": "AssetDirectory/new folder/MCRN_Donager",
+            "Type": "Model",
+            "VertexCount": 65369
+        },
+        "5": {
+            "DefaultMat": 0,
+            "IBuffLenght": 49454,
+            "ID": 5,
+            "IndexCount": 146718,
+            "LODCount": 1,
+            "Lenght": 870257,
+            "Lods": {
+                "0": {
+                    "Distance": 0.0,
+                    "IndexCount": 146718,
+                    "IndexOffset": 0
+                }
+            },
+            "Name": "MCRN_Donager6",
+            "Offset": 7,
+            "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
+            "Path": "AssetDirectory/new folder/MCRN_Donager",
+            "Type": "Model",
+            "VertexCount": 65532
+        },
+        "50": {
+            "DefaultMat": 0,
+            "IBuffLenght": 39516,
+            "ID": 50,
+            "IndexCount": 117723,
+            "LODCount": 1,
+            "Lenght": 885893,
+            "Lods": {
+                "0": {
+                    "Distance": 0.0,
+                    "IndexCount": 117723,
+                    "IndexOffset": 0
+                }
+            },
+            "Name": "MCRN_Donager51",
+            "Offset": 7,
+            "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
+            "Path": "AssetDirectory/new folder/MCRN_Donager",
+            "Type": "Model",
+            "VertexCount": 65435
+        },
+        "51": {
+            "DefaultMat": 0,
+            "IBuffLenght": 15590,
+            "ID": 51,
+            "IndexCount": 46644,
+            "LODCount": 1,
+            "Lenght": 432721,
+            "Lods": {
+                "0": {
+                    "Distance": 0.0,
+                    "IndexCount": 46644,
+                    "IndexOffset": 0
+                }
+            },
+            "Name": "MCRN_Donager52",
+            "Offset": 7,
+            "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
+            "Path": "AssetDirectory/new folder/MCRN_Donager",
+            "Type": "Model",
+            "VertexCount": 28007
+        },
+        "52": {
+            "DefaultMat": 0,
+            "IBuffLenght": 41819,
+            "ID": 52,
+            "IndexCount": 124158,
+            "LODCount": 1,
+            "Lenght": 968475,
+            "Lods": {
+                "0": {
+                    "Distance": 0.0,
+                    "IndexCount": 124158,
+                    "IndexOffset": 0
+                }
+            },
+            "Name": "MCRN_Donager53",
+            "Offset": 7,
+            "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
+            "Path": "AssetDirectory/new folder/MCRN_Donager",
+            "Type": "Model",
+            "VertexCount": 65373
+        },
+        "53": {
+            "DefaultMat": 0,
+            "IBuffLenght": 30334,
+            "ID": 53,
+            "IndexCount": 90588,
+            "LODCount": 1,
+            "Lenght": 751641,
+            "Lods": {
+                "0": {
+                    "Distance": 0.0,
+                    "IndexCount": 90588,
+                    "IndexOffset": 0
+                }
+            },
+            "Name": "MCRN_Donager54",
+            "Offset": 7,
+            "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
+            "Path": "AssetDirectory/new folder/MCRN_Donager",
+            "Type": "Model",
+            "VertexCount": 51650
+        },
+        "54": {
+            "DefaultMat": 0,
+            "IBuffLenght": 2073,
+            "ID": 54,
+            "IndexCount": 6168,
+            "LODCount": 1,
+            "Lenght": 26795,
+            "Lods": {
+                "0": {
+                    "Distance": 0.0,
+                    "IndexCount": 6168,
+                    "IndexOffset": 0
+                }
+            },
+            "Name": "MCRN_Donager55",
+            "Offset": 7,
+            "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
+            "Path": "AssetDirectory/new folder/MCRN_Donager",
+            "Type": "Model",
+            "VertexCount": 2512
+        },
+        "55": {
+            "DefaultMat": 0,
+            "IBuffLenght": 1913,
+            "ID": 55,
+            "IndexCount": 5688,
+            "LODCount": 1,
+            "Lenght": 38784,
+            "Lods": {
+                "0": {
+                    "Distance": 0.0,
+                    "IndexCount": 5688,
+                    "IndexOffset": 0
+                }
+            },
+            "Name": "MCRN_Donager56",
+            "Offset": 7,
+            "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
+            "Path": "AssetDirectory/new folder/MCRN_Donager",
+            "Type": "Model",
+            "VertexCount": 3600
+        },
+        "56": {
+            "DefaultMat": 0,
+            "IBuffLenght": 6877,
+            "ID": 56,
+            "IndexCount": 20580,
+            "LODCount": 1,
+            "Lenght": 153772,
+            "Lods": {
+                "0": {
+                    "Distance": 0.0,
+                    "IndexCount": 20580,
+                    "IndexOffset": 0
+                }
+            },
+            "Name": "MCRN_Donager57",
+            "Offset": 7,
+            "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
+            "Path": "AssetDirectory/new folder/MCRN_Donager",
+            "Type": "Model",
+            "VertexCount": 11742
+        },
+        "57": {
+            "DefaultMat": 0,
+            "IBuffLenght": 19063,
+            "ID": 57,
+            "IndexCount": 56409,
+            "LODCount": 1,
+            "Lenght": 339189,
+            "Lods": {
+                "0": {
+                    "Distance": 0.0,
+                    "IndexCount": 56409,
+                    "IndexOffset": 0
+                }
+            },
+            "Name": "MCRN_Donager58",
+            "Offset": 7,
+            "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
+            "Path": "AssetDirectory/new folder/MCRN_Donager",
+            "Type": "Model",
+            "VertexCount": 24213
+        },
+        "58": {
+            "DefaultMat": 0,
+            "IBuffLenght": 2302,
+            "ID": 58,
+            "IndexCount": 6765,
+            "LODCount": 1,
+            "Lenght": 51532,
+            "Lods": {
+                "0": {
+                    "Distance": 0.0,
+                    "IndexCount": 6765,
+                    "IndexOffset": 0
+                }
+            },
+            "Name": "MCRN_Donager59",
+            "Offset": 7,
+            "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
+            "Path": "AssetDirectory/new folder/MCRN_Donager",
+            "Type": "Model",
+            "VertexCount": 3713
+        },
+        "59": {
+            "DefaultMat": 0,
+            "IBuffLenght": 4494,
+            "ID": 59,
+            "IndexCount": 13332,
+            "LODCount": 1,
+            "Lenght": 108227,
+            "Lods": {
+                "0": {
+                    "Distance": 0.0,
+                    "IndexCount": 13332,
+                    "IndexOffset": 0
+                }
+            },
+            "Name": "MCRN_Donager60",
+            "Offset": 7,
+            "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
+            "Path": "AssetDirectory/new folder/MCRN_Donager",
+            "Type": "Model",
+            "VertexCount": 7548
+        },
+        "6": {
+            "DefaultMat": 0,
+            "IBuffLenght": 39639,
+            "ID": 6,
+            "IndexCount": 117213,
+            "LODCount": 1,
+            "Lenght": 977924,
+            "Lods": {
+                "0": {
+                    "Distance": 0.0,
+                    "IndexCount": 117213,
+                    "IndexOffset": 0
+                }
+            },
+            "Name": "MCRN_Donager7",
+            "Offset": 7,
+            "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
+            "Path": "AssetDirectory/new folder/MCRN_Donager",
+            "Type": "Model",
+            "VertexCount": 65533
+        },
+        "60": {
+            "DefaultMat": 0,
+            "IBuffLenght": 3452816845,
+            "ID": 60,
+            "IndexCount": 384,
+            "LODCount": 1,
+            "Lenght": 3452816845,
+            "Lods": {
+                "0": {
+                    "Distance": 0.0,
+                    "IndexCount": 384,
+                    "IndexOffset": 0
+                }
+            },
+            "Name": "MCRN_Donager61",
+            "Offset": 3452816845,
+            "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
+            "Path": "AssetDirectory/new folder/MCRN_Donager",
+            "Type": "Model",
+            "VertexCount": 256
+        },
+        "7": {
+            "DefaultMat": 0,
+            "IBuffLenght": 40185,
+            "ID": 7,
+            "IndexCount": 118581,
+            "LODCount": 1,
+            "Lenght": 994092,
+            "Lods": {
+                "0": {
+                    "Distance": 0.0,
+                    "IndexCount": 118581,
+                    "IndexOffset": 0
+                }
+            },
+            "Name": "MCRN_Donager8",
+            "Offset": 7,
+            "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
+            "Path": "AssetDirectory/new folder/MCRN_Donager",
+            "Type": "Model",
+            "VertexCount": 65532
+        },
+        "8": {
+            "DefaultMat": 0,
+            "IBuffLenght": 39890,
+            "ID": 8,
+            "IndexCount": 117600,
+            "LODCount": 1,
+            "Lenght": 991490,
+            "Lods": {
+                "0": {
+                    "Distance": 0.0,
+                    "IndexCount": 117600,
+                    "IndexOffset": 0
+                }
+            },
+            "Name": "MCRN_Donager9",
+            "Offset": 7,
+            "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
+            "Path": "AssetDirectory/new folder/MCRN_Donager",
+            "Type": "Model",
+            "VertexCount": 65532
+        },
+        "9": {
+            "DefaultMat": 0,
+            "IBuffLenght": 38588,
+            "ID": 9,
+            "IndexCount": 114633,
+            "LODCount": 1,
+            "Lenght": 1015235,
+            "Lods": {
+                "0": {
+                    "Distance": 0.0,
+                    "IndexCount": 114633,
+                    "IndexOffset": 0
+                }
+            },
+            "Name": "MCRN_Donager10",
+            "Offset": 7,
+            "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
+            "Path": "AssetDirectory/new folder/MCRN_Donager",
+            "Type": "Model",
+            "VertexCount": 65533
+        }
     },
-    "LastID": 0
+    "Head": {
+        "Count": 61
+    },
+    "LastID": 60
 }

@@ -76,7 +76,7 @@ void AssetManager::Init()
     //curDir = new Node("Root", nullptr);
     //rootNode = curDir;
     curPath = utils::GetCFullPath("", utils::CustomFolder::ASSETDIR);
-    rootPath = utils::GetCFullPath("", utils::CustomFolder::ASSETDIR);
+    rootPath = curPath;
 
     // load map
     

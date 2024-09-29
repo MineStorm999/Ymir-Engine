@@ -20,6 +20,7 @@ void MeshLoader::ImportModel(std::string path, std::string savePath, std::string
 
     if (settings.createFolder) {
         savePath.append("/" + name);
+        std::filesystem::create_directories(savePath);
     }
 
     if (settings.singleModel) {
@@ -188,6 +189,7 @@ void MeshLoader::ImportModel(std::string path, std::string savePath, std::string
         ofSr.close();
         FILE* outF = fopen(actualPath.c_str(), "wb");
         if (!outF) {
+            Log::Error("Mesh Importer", "Couldnt create: " + actualPath);
             continue;
         }
 
@@ -267,7 +269,6 @@ void MeshLoader::ImportModel(std::string path, std::string savePath, std::string
             fwrite(vertices.data(), sizeof(utils::Vertex), vertices.size(), outF);
         }
     }
-    
     return;
 }
 
