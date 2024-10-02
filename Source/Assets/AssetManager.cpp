@@ -268,6 +268,8 @@ void AssetManager::AssetExplorer()
         isImPorting = true;
     }
     
+    ImGuiConfigFlags_Dock
+    
 
     float width = ImGui::GetContentRegionAvail().x;
     unsigned int wouldFit = width / (size * 144);
