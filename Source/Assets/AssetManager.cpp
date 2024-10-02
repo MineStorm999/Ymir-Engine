@@ -268,7 +268,7 @@ void AssetManager::AssetExplorer()
         isImPorting = true;
     }
     
-    ImGuiConfigFlags_Dock
+    //ImGuiConfigFlags_Dock
     
 
     float width = ImGui::GetContentRegionAvail().x;
