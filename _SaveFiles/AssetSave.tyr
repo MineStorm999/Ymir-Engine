@@ -3,19 +3,19 @@
         "0": {
             "ID": 0,
             "Lenght": 4294967295,
-            "Name": "test_texture_0",
+            "Name": "TestAsset_texture_0",
             "Offset": 3452816845,
             "OriginalPath": "_Data/Textures/black.png",
-            "Path": "AssetDirectory/new folder/test/Textures/",
+            "Path": "AssetDirectory/new folder/TestAsset/Textures/",
             "Type": "Texture"
         },
         "1": {
             "ID": 1,
             "Lenght": 4294967295,
-            "Name": "test_texture_1",
+            "Name": "TestAsset_texture_1",
             "Offset": 3452816845,
             "OriginalPath": "_Data/Textures/white.png",
-            "Path": "AssetDirectory/new folder/test/Textures/",
+            "Path": "AssetDirectory/new folder/TestAsset/Textures/",
             "Type": "Texture"
         },
         "10": {
@@ -82,10 +82,10 @@
                     "IndexOffset": 856347
                 }
             },
-            "Name": "test3",
+            "Name": "TestAsset3",
             "Offset": 7,
             "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
-            "Path": "AssetDirectory/new folder/test",
+            "Path": "AssetDirectory/new folder/TestAsset",
             "Type": "Model",
             "VertexCount": 65492
         },
@@ -153,10 +153,10 @@
                     "IndexOffset": 941046
                 }
             },
-            "Name": "test4",
+            "Name": "TestAsset4",
             "Offset": 7,
             "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
-            "Path": "AssetDirectory/new folder/test",
+            "Path": "AssetDirectory/new folder/TestAsset",
             "Type": "Model",
             "VertexCount": 65507
         },
@@ -224,10 +224,10 @@
                     "IndexOffset": 758868
                 }
             },
-            "Name": "test5",
+            "Name": "TestAsset5",
             "Offset": 7,
             "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
-            "Path": "AssetDirectory/new folder/test",
+            "Path": "AssetDirectory/new folder/TestAsset",
             "Type": "Model",
             "VertexCount": 52911
         },
@@ -295,10 +295,10 @@
                     "IndexOffset": 601806
                 }
             },
-            "Name": "test6",
+            "Name": "TestAsset6",
             "Offset": 7,
             "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
-            "Path": "AssetDirectory/new folder/test",
+            "Path": "AssetDirectory/new folder/TestAsset",
             "Type": "Model",
             "VertexCount": 65532
         },
@@ -366,10 +366,10 @@
                     "IndexOffset": 1040421
                 }
             },
-            "Name": "test7",
+            "Name": "TestAsset7",
             "Offset": 7,
             "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
-            "Path": "AssetDirectory/new folder/test",
+            "Path": "AssetDirectory/new folder/TestAsset",
             "Type": "Model",
             "VertexCount": 65533
         },
@@ -437,10 +437,10 @@
                     "IndexOffset": 1049157
                 }
             },
-            "Name": "test8",
+            "Name": "TestAsset8",
             "Offset": 7,
             "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
-            "Path": "AssetDirectory/new folder/test",
+            "Path": "AssetDirectory/new folder/TestAsset",
             "Type": "Model",
             "VertexCount": 65532
         },
@@ -508,10 +508,10 @@
                     "IndexOffset": 1046184
                 }
             },
-            "Name": "test9",
+            "Name": "TestAsset9",
             "Offset": 7,
             "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
-            "Path": "AssetDirectory/new folder/test",
+            "Path": "AssetDirectory/new folder/TestAsset",
             "Type": "Model",
             "VertexCount": 65532
         },
@@ -579,10 +579,10 @@
                     "IndexOffset": 1016313
                 }
             },
-            "Name": "test10",
+            "Name": "TestAsset10",
             "Offset": 7,
             "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
-            "Path": "AssetDirectory/new folder/test",
+            "Path": "AssetDirectory/new folder/TestAsset",
             "Type": "Model",
             "VertexCount": 65533
         },
@@ -650,10 +650,10 @@
                     "IndexOffset": 935184
                 }
             },
-            "Name": "test11",
+            "Name": "TestAsset11",
             "Offset": 7,
             "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
-            "Path": "AssetDirectory/new folder/test",
+            "Path": "AssetDirectory/new folder/TestAsset",
             "Type": "Model",
             "VertexCount": 65534
         },
@@ -721,20 +721,20 @@
                     "IndexOffset": 951420
                 }
             },
-            "Name": "test12",
+            "Name": "TestAsset12",
             "Offset": 7,
             "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
-            "Path": "AssetDirectory/new folder/test",
+            "Path": "AssetDirectory/new folder/TestAsset",
             "Type": "Model",
             "VertexCount": 65532
         },
         "2": {
             "ID": 2,
             "Lenght": 4294967295,
-            "Name": "test_texture_2",
+            "Name": "TestAsset_texture_2",
             "Offset": 3452816845,
             "OriginalPath": "_Data/Textures/checkerboard0.dds",
-            "Path": "AssetDirectory/new folder/test/Textures/",
+            "Path": "AssetDirectory/new folder/TestAsset/Textures/",
             "Type": "Texture"
         },
         "20": {
@@ -801,10 +801,10 @@
                     "IndexOffset": 936084
                 }
             },
-            "Name": "test13",
+            "Name": "TestAsset13",
             "Offset": 7,
             "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
-            "Path": "AssetDirectory/new folder/test",
+            "Path": "AssetDirectory/new folder/TestAsset",
             "Type": "Model",
             "VertexCount": 65532
         },
@@ -872,10 +872,10 @@
                     "IndexOffset": 971598
                 }
             },
-            "Name": "test14",
+            "Name": "TestAsset14",
             "Offset": 7,
             "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
-            "Path": "AssetDirectory/new folder/test",
+            "Path": "AssetDirectory/new folder/TestAsset",
             "Type": "Model",
             "VertexCount": 65532
         },
@@ -943,10 +943,10 @@
                     "IndexOffset": 929484
                 }
             },
-            "Name": "test15",
+            "Name": "TestAsset15",
             "Offset": 7,
             "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
-            "Path": "AssetDirectory/new folder/test",
+            "Path": "AssetDirectory/new folder/TestAsset",
             "Type": "Model",
             "VertexCount": 65532
         },
@@ -1014,10 +1014,10 @@
                     "IndexOffset": 910710
                 }
             },
-            "Name": "test16",
+            "Name": "TestAsset16",
             "Offset": 7,
             "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
-            "Path": "AssetDirectory/new folder/test",
+            "Path": "AssetDirectory/new folder/TestAsset",
             "Type": "Model",
             "VertexCount": 65532
         },
@@ -1085,10 +1085,10 @@
                     "IndexOffset": 935802
                 }
             },
-            "Name": "test17",
+            "Name": "TestAsset17",
             "Offset": 7,
             "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
-            "Path": "AssetDirectory/new folder/test",
+            "Path": "AssetDirectory/new folder/TestAsset",
             "Type": "Model",
             "VertexCount": 65532
         },
@@ -1156,10 +1156,10 @@
                     "IndexOffset": 924564
                 }
             },
-            "Name": "test18",
+            "Name": "TestAsset18",
             "Offset": 7,
             "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
-            "Path": "AssetDirectory/new folder/test",
+            "Path": "AssetDirectory/new folder/TestAsset",
             "Type": "Model",
             "VertexCount": 65534
         },
@@ -1227,10 +1227,10 @@
                     "IndexOffset": 842553
                 }
             },
-            "Name": "test19",
+            "Name": "TestAsset19",
             "Offset": 7,
             "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
-            "Path": "AssetDirectory/new folder/test",
+            "Path": "AssetDirectory/new folder/TestAsset",
             "Type": "Model",
             "VertexCount": 59419
         },
@@ -1298,10 +1298,10 @@
                     "IndexOffset": 324744
                 }
             },
-            "Name": "test20",
+            "Name": "TestAsset20",
             "Offset": 7,
             "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
-            "Path": "AssetDirectory/new folder/test",
+            "Path": "AssetDirectory/new folder/TestAsset",
             "Type": "Model",
             "VertexCount": 22548
         },
@@ -1369,10 +1369,10 @@
                     "IndexOffset": 330048
                 }
             },
-            "Name": "test21",
+            "Name": "TestAsset21",
             "Offset": 7,
             "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
-            "Path": "AssetDirectory/new folder/test",
+            "Path": "AssetDirectory/new folder/TestAsset",
             "Type": "Model",
             "VertexCount": 20352
         },
@@ -1440,20 +1440,20 @@
                     "IndexOffset": 88992
                 }
             },
-            "Name": "test22",
+            "Name": "TestAsset22",
             "Offset": 7,
             "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
-            "Path": "AssetDirectory/new folder/test",
+            "Path": "AssetDirectory/new folder/TestAsset",
             "Type": "Model",
             "VertexCount": 5760
         },
         "3": {
             "ID": 3,
             "Lenght": 4294967295,
-            "Name": "test_texture_3",
+            "Name": "TestAsset_texture_3",
             "Offset": 3452816845,
             "OriginalPath": "_Data/Textures/flatnormal.png",
-            "Path": "AssetDirectory/new folder/test/Textures/",
+            "Path": "AssetDirectory/new folder/TestAsset/Textures/",
             "Type": "Texture"
         },
         "30": {
@@ -1520,10 +1520,10 @@
                     "IndexOffset": 24576
                 }
             },
-            "Name": "test23",
+            "Name": "TestAsset23",
             "Offset": 7,
             "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
-            "Path": "AssetDirectory/new folder/test",
+            "Path": "AssetDirectory/new folder/TestAsset",
             "Type": "Model",
             "VertexCount": 2048
         },
@@ -1591,10 +1591,10 @@
                     "IndexOffset": 944502
                 }
             },
-            "Name": "test24",
+            "Name": "TestAsset24",
             "Offset": 7,
             "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
-            "Path": "AssetDirectory/new folder/test",
+            "Path": "AssetDirectory/new folder/TestAsset",
             "Type": "Model",
             "VertexCount": 65532
         },
@@ -1662,10 +1662,10 @@
                     "IndexOffset": 946626
                 }
             },
-            "Name": "test25",
+            "Name": "TestAsset25",
             "Offset": 7,
             "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
-            "Path": "AssetDirectory/new folder/test",
+            "Path": "AssetDirectory/new folder/TestAsset",
             "Type": "Model",
             "VertexCount": 65532
         },
@@ -1733,10 +1733,10 @@
                     "IndexOffset": 567048
                 }
             },
-            "Name": "test26",
+            "Name": "TestAsset26",
             "Offset": 7,
             "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
-            "Path": "AssetDirectory/new folder/test",
+            "Path": "AssetDirectory/new folder/TestAsset",
             "Type": "Model",
             "VertexCount": 38488
         },
@@ -1804,10 +1804,10 @@
                     "IndexOffset": 16464
                 }
             },
-            "Name": "test27",
+            "Name": "TestAsset27",
             "Offset": 7,
             "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
-            "Path": "AssetDirectory/new folder/test",
+            "Path": "AssetDirectory/new folder/TestAsset",
             "Type": "Model",
             "VertexCount": 1920
         },
@@ -1875,10 +1875,10 @@
                     "IndexOffset": 160560
                 }
             },
-            "Name": "test28",
+            "Name": "TestAsset28",
             "Offset": 7,
             "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
-            "Path": "AssetDirectory/new folder/test",
+            "Path": "AssetDirectory/new folder/TestAsset",
             "Type": "Model",
             "VertexCount": 9944
         },
@@ -1946,10 +1946,10 @@
                     "IndexOffset": 965022
                 }
             },
-            "Name": "test29",
+            "Name": "TestAsset29",
             "Offset": 7,
             "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
-            "Path": "AssetDirectory/new folder/test",
+            "Path": "AssetDirectory/new folder/TestAsset",
             "Type": "Model",
             "VertexCount": 65531
         },
@@ -2017,10 +2017,10 @@
                     "IndexOffset": 309711
                 }
             },
-            "Name": "test30",
+            "Name": "TestAsset30",
             "Offset": 7,
             "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
-            "Path": "AssetDirectory/new folder/test",
+            "Path": "AssetDirectory/new folder/TestAsset",
             "Type": "Model",
             "VertexCount": 21714
         },
@@ -2088,10 +2088,10 @@
                     "IndexOffset": 974013
                 }
             },
-            "Name": "test31",
+            "Name": "TestAsset31",
             "Offset": 7,
             "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
-            "Path": "AssetDirectory/new folder/test",
+            "Path": "AssetDirectory/new folder/TestAsset",
             "Type": "Model",
             "VertexCount": 65521
         },
@@ -2159,20 +2159,20 @@
                     "IndexOffset": 829827
                 }
             },
-            "Name": "test32",
+            "Name": "TestAsset32",
             "Offset": 7,
             "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
-            "Path": "AssetDirectory/new folder/test",
+            "Path": "AssetDirectory/new folder/TestAsset",
             "Type": "Model",
             "VertexCount": 54977
         },
         "4": {
             "ID": 4,
             "Lenght": 4294967295,
-            "Name": "test_texture_4",
+            "Name": "TestAsset_texture_4",
             "Offset": 3452816845,
             "OriginalPath": "_Data/Textures/scrambling_ranking_128x128_2d_4spp.png",
-            "Path": "AssetDirectory/new folder/test/Textures/",
+            "Path": "AssetDirectory/new folder/TestAsset/Textures/",
             "Type": "Texture"
         },
         "40": {
@@ -2239,10 +2239,10 @@
                     "IndexOffset": 880923
                 }
             },
-            "Name": "test33",
+            "Name": "TestAsset33",
             "Offset": 7,
             "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
-            "Path": "AssetDirectory/new folder/test",
+            "Path": "AssetDirectory/new folder/TestAsset",
             "Type": "Model",
             "VertexCount": 65511
         },
@@ -2310,10 +2310,10 @@
                     "IndexOffset": 966960
                 }
             },
-            "Name": "test34",
+            "Name": "TestAsset34",
             "Offset": 7,
             "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
-            "Path": "AssetDirectory/new folder/test",
+            "Path": "AssetDirectory/new folder/TestAsset",
             "Type": "Model",
             "VertexCount": 65500
         },
@@ -2381,10 +2381,10 @@
                     "IndexOffset": 953877
                 }
             },
-            "Name": "test35",
+            "Name": "TestAsset35",
             "Offset": 7,
             "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
-            "Path": "AssetDirectory/new folder/test",
+            "Path": "AssetDirectory/new folder/TestAsset",
             "Type": "Model",
             "VertexCount": 65514
         },
@@ -2452,10 +2452,10 @@
                     "IndexOffset": 944307
                 }
             },
-            "Name": "test36",
+            "Name": "TestAsset36",
             "Offset": 7,
             "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
-            "Path": "AssetDirectory/new folder/test",
+            "Path": "AssetDirectory/new folder/TestAsset",
             "Type": "Model",
             "VertexCount": 65520
         },
@@ -2523,10 +2523,10 @@
                     "IndexOffset": 857007
                 }
             },
-            "Name": "test37",
+            "Name": "TestAsset37",
             "Offset": 7,
             "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
-            "Path": "AssetDirectory/new folder/test",
+            "Path": "AssetDirectory/new folder/TestAsset",
             "Type": "Model",
             "VertexCount": 65519
         },
@@ -2594,10 +2594,10 @@
                     "IndexOffset": 917403
                 }
             },
-            "Name": "test38",
+            "Name": "TestAsset38",
             "Offset": 7,
             "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
-            "Path": "AssetDirectory/new folder/test",
+            "Path": "AssetDirectory/new folder/TestAsset",
             "Type": "Model",
             "VertexCount": 65532
         },
@@ -2665,10 +2665,10 @@
                     "IndexOffset": 938919
                 }
             },
-            "Name": "test39",
+            "Name": "TestAsset39",
             "Offset": 7,
             "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
-            "Path": "AssetDirectory/new folder/test",
+            "Path": "AssetDirectory/new folder/TestAsset",
             "Type": "Model",
             "VertexCount": 65521
         },
@@ -2736,10 +2736,10 @@
                     "IndexOffset": 950931
                 }
             },
-            "Name": "test40",
+            "Name": "TestAsset40",
             "Offset": 7,
             "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
-            "Path": "AssetDirectory/new folder/test",
+            "Path": "AssetDirectory/new folder/TestAsset",
             "Type": "Model",
             "VertexCount": 65524
         },
@@ -2807,10 +2807,10 @@
                     "IndexOffset": 939150
                 }
             },
-            "Name": "test41",
+            "Name": "TestAsset41",
             "Offset": 7,
             "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
-            "Path": "AssetDirectory/new folder/test",
+            "Path": "AssetDirectory/new folder/TestAsset",
             "Type": "Model",
             "VertexCount": 65522
         },
@@ -2878,20 +2878,20 @@
                     "IndexOffset": 926418
                 }
             },
-            "Name": "test42",
+            "Name": "TestAsset42",
             "Offset": 7,
             "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
-            "Path": "AssetDirectory/new folder/test",
+            "Path": "AssetDirectory/new folder/TestAsset",
             "Type": "Model",
             "VertexCount": 65530
         },
         "5": {
             "ID": 5,
             "Lenght": 4294967295,
-            "Name": "test_texture_5",
+            "Name": "TestAsset_texture_5",
             "Offset": 3452816845,
             "OriginalPath": "_Data/Textures/sobol_256_4d.png",
-            "Path": "AssetDirectory/new folder/test/Textures/",
+            "Path": "AssetDirectory/new folder/TestAsset/Textures/",
             "Type": "Texture"
         },
         "50": {
@@ -2958,10 +2958,10 @@
                     "IndexOffset": 919248
                 }
             },
-            "Name": "test43",
+            "Name": "TestAsset43",
             "Offset": 7,
             "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
-            "Path": "AssetDirectory/new folder/test",
+            "Path": "AssetDirectory/new folder/TestAsset",
             "Type": "Model",
             "VertexCount": 65518
         },
@@ -3029,10 +3029,10 @@
                     "IndexOffset": 925296
                 }
             },
-            "Name": "test44",
+            "Name": "TestAsset44",
             "Offset": 7,
             "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
-            "Path": "AssetDirectory/new folder/test",
+            "Path": "AssetDirectory/new folder/TestAsset",
             "Type": "Model",
             "VertexCount": 65360
         },
@@ -3100,10 +3100,10 @@
                     "IndexOffset": 901974
                 }
             },
-            "Name": "test45",
+            "Name": "TestAsset45",
             "Offset": 7,
             "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
-            "Path": "AssetDirectory/new folder/test",
+            "Path": "AssetDirectory/new folder/TestAsset",
             "Type": "Model",
             "VertexCount": 65440
         },
@@ -3171,10 +3171,10 @@
                     "IndexOffset": 904434
                 }
             },
-            "Name": "test46",
+            "Name": "TestAsset46",
             "Offset": 7,
             "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
-            "Path": "AssetDirectory/new folder/test",
+            "Path": "AssetDirectory/new folder/TestAsset",
             "Type": "Model",
             "VertexCount": 65534
         },
@@ -3242,10 +3242,10 @@
                     "IndexOffset": 502719
                 }
             },
-            "Name": "test47",
+            "Name": "TestAsset47",
             "Offset": 7,
             "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
-            "Path": "AssetDirectory/new folder/test",
+            "Path": "AssetDirectory/new folder/TestAsset",
             "Type": "Model",
             "VertexCount": 36319
         },
@@ -3313,10 +3313,10 @@
                     "IndexOffset": 892800
                 }
             },
-            "Name": "test48",
+            "Name": "TestAsset48",
             "Offset": 7,
             "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
-            "Path": "AssetDirectory/new folder/test",
+            "Path": "AssetDirectory/new folder/TestAsset",
             "Type": "Model",
             "VertexCount": 65488
         },
@@ -3384,10 +3384,10 @@
                     "IndexOffset": 939336
                 }
             },
-            "Name": "test49",
+            "Name": "TestAsset49",
             "Offset": 7,
             "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
-            "Path": "AssetDirectory/new folder/test",
+            "Path": "AssetDirectory/new folder/TestAsset",
             "Type": "Model",
             "VertexCount": 65383
         },
@@ -3455,10 +3455,10 @@
                     "IndexOffset": 860046
                 }
             },
-            "Name": "test50",
+            "Name": "TestAsset50",
             "Offset": 7,
             "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
-            "Path": "AssetDirectory/new folder/test",
+            "Path": "AssetDirectory/new folder/TestAsset",
             "Type": "Model",
             "VertexCount": 65369
         },
@@ -3526,10 +3526,10 @@
                     "IndexOffset": 926451
                 }
             },
-            "Name": "test51",
+            "Name": "TestAsset51",
             "Offset": 7,
             "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
-            "Path": "AssetDirectory/new folder/test",
+            "Path": "AssetDirectory/new folder/TestAsset",
             "Type": "Model",
             "VertexCount": 65435
         },
@@ -3597,20 +3597,20 @@
                     "IndexOffset": 386700
                 }
             },
-            "Name": "test52",
+            "Name": "TestAsset52",
             "Offset": 7,
             "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
-            "Path": "AssetDirectory/new folder/test",
+            "Path": "AssetDirectory/new folder/TestAsset",
             "Type": "Model",
             "VertexCount": 28007
         },
         "6": {
             "ID": 6,
             "Lenght": 4294967295,
-            "Name": "test_texture_6",
+            "Name": "TestAsset_texture_6",
             "Offset": 3452816845,
             "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\textures/GreyHull_baseColor.jpeg",
-            "Path": "AssetDirectory/new folder/test/Textures/",
+            "Path": "AssetDirectory/new folder/TestAsset/Textures/",
             "Type": "Texture"
         },
         "60": {
@@ -3677,10 +3677,10 @@
                     "IndexOffset": 906798
                 }
             },
-            "Name": "test53",
+            "Name": "TestAsset53",
             "Offset": 7,
             "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
-            "Path": "AssetDirectory/new folder/test",
+            "Path": "AssetDirectory/new folder/TestAsset",
             "Type": "Model",
             "VertexCount": 65373
         },
@@ -3748,10 +3748,10 @@
                     "IndexOffset": 718284
                 }
             },
-            "Name": "test54",
+            "Name": "TestAsset54",
             "Offset": 7,
             "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
-            "Path": "AssetDirectory/new folder/test",
+            "Path": "AssetDirectory/new folder/TestAsset",
             "Type": "Model",
             "VertexCount": 51650
         },
@@ -3819,10 +3819,10 @@
                     "IndexOffset": 14712
                 }
             },
-            "Name": "test55",
+            "Name": "TestAsset55",
             "Offset": 7,
             "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
-            "Path": "AssetDirectory/new folder/test",
+            "Path": "AssetDirectory/new folder/TestAsset",
             "Type": "Model",
             "VertexCount": 2512
         },
@@ -3890,10 +3890,10 @@
                     "IndexOffset": 50040
                 }
             },
-            "Name": "test56",
+            "Name": "TestAsset56",
             "Offset": 7,
             "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
-            "Path": "AssetDirectory/new folder/test",
+            "Path": "AssetDirectory/new folder/TestAsset",
             "Type": "Model",
             "VertexCount": 3600
         },
@@ -3961,10 +3961,10 @@
                     "IndexOffset": 184932
                 }
             },
-            "Name": "test57",
+            "Name": "TestAsset57",
             "Offset": 7,
             "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
-            "Path": "AssetDirectory/new folder/test",
+            "Path": "AssetDirectory/new folder/TestAsset",
             "Type": "Model",
             "VertexCount": 11742
         },
@@ -4032,10 +4032,10 @@
                     "IndexOffset": 340569
                 }
             },
-            "Name": "test58",
+            "Name": "TestAsset58",
             "Offset": 7,
             "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
-            "Path": "AssetDirectory/new folder/test",
+            "Path": "AssetDirectory/new folder/TestAsset",
             "Type": "Model",
             "VertexCount": 24213
         },
@@ -4103,10 +4103,10 @@
                     "IndexOffset": 53709
                 }
             },
-            "Name": "test59",
+            "Name": "TestAsset59",
             "Offset": 7,
             "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
-            "Path": "AssetDirectory/new folder/test",
+            "Path": "AssetDirectory/new folder/TestAsset",
             "Type": "Model",
             "VertexCount": 3713
         },
@@ -4174,10 +4174,10 @@
                     "IndexOffset": 108348
                 }
             },
-            "Name": "test60",
+            "Name": "TestAsset60",
             "Offset": 7,
             "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
-            "Path": "AssetDirectory/new folder/test",
+            "Path": "AssetDirectory/new folder/TestAsset",
             "Type": "Model",
             "VertexCount": 7548
         },
@@ -4245,20 +4245,20 @@
                     "IndexOffset": 3264
                 }
             },
-            "Name": "test61",
+            "Name": "TestAsset61",
             "Offset": 3452816845,
             "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
-            "Path": "AssetDirectory/new folder/test",
+            "Path": "AssetDirectory/new folder/TestAsset",
             "Type": "Model",
             "VertexCount": 256
         },
         "7": {
             "ID": 7,
             "Lenght": 4294967295,
-            "Name": "test_texture_7",
+            "Name": "TestAsset_texture_7",
             "Offset": 3452816845,
             "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\textures/OrangeHull_baseColor.jpeg",
-            "Path": "AssetDirectory/new folder/test/Textures/",
+            "Path": "AssetDirectory/new folder/TestAsset/Textures/",
             "Type": "Texture"
         },
         "8": {
@@ -4325,10 +4325,10 @@
                     "IndexOffset": 874854
                 }
             },
-            "Name": "test1",
+            "Name": "TestAsset1",
             "Offset": 7,
             "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
-            "Path": "AssetDirectory/new folder/test",
+            "Path": "AssetDirectory/new folder/TestAsset",
             "Type": "Model",
             "VertexCount": 65508
         },
@@ -4396,10 +4396,10 @@
                     "IndexOffset": 907341
                 }
             },
-            "Name": "test2",
+            "Name": "TestAsset2",
             "Offset": 7,
             "OriginalPath": "F:\\Models\\GLTF\\MCRN_Donager\\scene.gltf",
-            "Path": "AssetDirectory/new folder/test",
+            "Path": "AssetDirectory/new folder/TestAsset",
             "Type": "Model",
             "VertexCount": 65498
         }

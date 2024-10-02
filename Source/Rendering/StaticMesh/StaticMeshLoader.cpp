@@ -159,6 +159,8 @@ void Importer::ImportModel(std::string path, std::string savePath, std::string n
             model->iBuffLenght = ibuf.size();
             fwrite(ibuf.data(), sizeof(unsigned char), ibuf.size(), outF);
             fwrite(vbuf.data(), sizeof(unsigned char), vbuf.size(), outF);
+
+            fclose(outF);
         }
         else {
             // head
@@ -176,6 +178,8 @@ void Importer::ImportModel(std::string path, std::string savePath, std::string n
             model->iBuffLenght = indices.size();
             fwrite(indices.data(), sizeof(unsigned int), indices.size(), outF);
             fwrite(vertices.data(), sizeof(utils::Vertex), vertices.size(), outF);
+
+            fclose(outF);
         }
         return;
     }
@@ -301,6 +305,7 @@ void Importer::ImportModel(std::string path, std::string savePath, std::string n
             model->iBuffLenght = ibuf.size();
             fwrite(ibuf.data(), sizeof(unsigned char), ibuf.size(), outF);
             fwrite(vbuf.data(), sizeof(unsigned char), vbuf.size(), outF);
+            fclose(outF);
         }
         else {
             // head
@@ -318,6 +323,7 @@ void Importer::ImportModel(std::string path, std::string savePath, std::string n
             model->iBuffLenght = indices.size();
             fwrite(indices.data(), sizeof(unsigned int), indices.size(), outF);
             fwrite(vertices.data(), sizeof(utils::Vertex), vertices.size(), outF);
+            fclose(outF);
         }
     }
     return;
@@ -361,10 +367,24 @@ AssetID Importer::ImportTexture(std::string path, std::string savePath, std::str
         return INVALID_ASSET_ID;
     }
 
-    fwrite(head, 1, 2, f);
-    fwrite(&flag, 1, 1, f);
-    fwrite(&id, 4, 1, f);
-
+    if (fwrite(head, 1, 2, f) != 2) {
+        Log::Error("Importer(Texture)", "Couldn't create: " + tex->GetActualPath());
+        fclose(f);
+        return INVALID_ASSET_ID;
+    }
+    if (fwrite(&flag, 1, 1, f) != 1) {
+        Log::Error("Importer(Texture)", "Couldn't create: " + tex->GetActualPath());
+        fclose(f);
+        return INVALID_ASSET_ID;
+    }
+    if (fwrite(&id, 4, 1, f) != 1) {
+        Log::Error("Importer(Texture)", "Couldn't create: " + tex->GetActualPath());
+        fclose(f);
+        return INVALID_ASSET_ID;
+    }
+    //fwrite(&flag, 1, 1, f);
+    //fwrite(&id, 4, 1, f);
+    fclose(f);
     return id;
 }
 
