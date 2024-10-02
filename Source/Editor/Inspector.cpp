@@ -135,7 +135,7 @@ void Inspector::ShowAsset()
 	}
 
 	ImGui::Text("Asset ID: %i", sAsset);
-	ImGui::Text("Asset Original Path: %i", AssetManager::GetAsset(sAsset)->originalPath);
+	ImGui::Text("Asset Original Path: %s", AssetManager::GetAsset(sAsset)->originalPath.c_str());
 
 	ImGui::End();
 }

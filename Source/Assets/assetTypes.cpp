@@ -93,8 +93,8 @@ AssetID AssetUtils::GetAssetIDFromImported(std::filesystem::path path)
 	}
 
 	uint8_t head[2];
-
-	if (fread(head, 2, 1, file) == 0) {
+	fseek(file, 0, SEEK_SET);
+	if (fread(&head[0], 2, 1, file) == 0) {
 		fclose(file);
 		return ret;
 	}
@@ -170,6 +170,32 @@ void AScene::AddTexture(AssetID id)
 }
 
 nlohmann::json AScene::Save()
+{
+	nlohmann::json j = AssetBase::Save();
+	return j;
+}
+
+nlohmann::json ATexture::Save()
+{
+	nlohmann::json j = AssetBase::Save();
+	return j;
+}
+
+utils::Texture* ATexture::GetTexture()
+{
+	utils::Texture* texture = new utils::Texture();
+	std::filesystem::path pt(path);
+	pt /= (name + ".ytex");
+
+	if (utils::LoadTexture(pt.string(), *texture)) {
+		return texture;
+	}
+	
+	delete texture;
+	return nullptr;
+}
+
+nlohmann::json AMaterial::Save()
 {
 	nlohmann::json j = AssetBase::Save();
 	return j;

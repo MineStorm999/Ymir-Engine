@@ -31,6 +31,8 @@ public:
 
 	static AssetID RegisterAsset(AssetBase* asset);
 
+	static bool HasAsset(AssetID* id, std::string originalPath);
+
 private:
 
 	static void AssetExplorer();

@@ -6,7 +6,9 @@
 #include "meshoptimizer.h"
 #include <fstream>
 
-void MeshLoader::ImportModel(std::string path, std::string savePath, std::string name, MeshImportSettings settings)
+#include "Stb_Image/stb_image.h"
+
+void Importer::ImportModel(std::string path, std::string savePath, std::string name, MeshImportSettings settings)
 {
     FILE* loadF = fopen(path.c_str(), "r");
     if (!loadF) {
@@ -18,9 +20,28 @@ void MeshLoader::ImportModel(std::string path, std::string savePath, std::string
     utils::Scene packedScene;
     utils::LoadScene(path, packedScene, false);
 
+
+
     if (settings.createFolder) {
         savePath.append("/" + name);
         std::filesystem::create_directories(savePath);
+    }
+
+    std::vector<AssetID> textures;
+    textures.reserve(packedScene.textures.size());
+
+    std::string textureSavePath = savePath + "/" + "Textures/";
+    std::filesystem::create_directories(textureSavePath);
+
+    uint32_t i = 0;
+    for (auto& tex : packedScene.textures)
+    {
+        textures.push_back(ImportTexture(tex->name, textureSavePath, name + "_texture_" + std::to_string(i++)));
+    }
+
+    for (auto& mat : packedScene.materials)
+    {
+        
     }
 
     if (settings.singleModel) {
@@ -85,6 +106,33 @@ void MeshLoader::ImportModel(std::string path, std::string savePath, std::string
         model->originalPath = path;
         model->indexCount = index_count;
         model->vertCount = vertex_count;
+
+        LOD lod0;
+        lod0.distance = 0;
+        lod0.indexOffset = 0;
+        lod0.lenght = index_count;
+        model->lods.push_back(lod0);
+
+        if (settings.autoLOD) {
+            float simp = 1 / settings.lodCount;
+
+            for (uint32_t i = 0; i < settings.lodCount; i++)
+            {
+                //Log::Message("Importer", "Create LOD" + std::to_string(i));
+                std::vector<unsigned int> lodIdx = CreateLOD(i * simp, &indices[0], index_count, &vertices[0], vertex_count);
+                LOD lodn;
+                lodn.distance = i * 10;
+                lodn.indexOffset = indices.size();
+                lodn.lenght = lodIdx.size();
+                model->lods.push_back(lodn);
+
+                indices.reserve(lodn.lenght);
+                for (uint32_t& idx : lodIdx)
+                {
+                    indices.push_back(idx);
+                }
+            }
+        }
 
         if (settings.compress) {
             // compression
@@ -212,11 +260,14 @@ void MeshLoader::ImportModel(std::string path, std::string savePath, std::string
 
             for (uint32_t i = 0; i < settings.lodCount; i++)
             {
+                //Log::Message("Importer", "Create LOD" + std::to_string(i));
                 std::vector<unsigned int> lodIdx = CreateLOD(i* simp, &indices[0], index_count, &vertices[0], vertex_count);
                 LOD lodn;
                 lodn.distance = i*10;
                 lodn.indexOffset = indices.size();
                 lodn.lenght = lodIdx.size();
+                model->lods.push_back(lodn);
+
                 indices.reserve(lodn.lenght);
                 for (uint32_t& idx : lodIdx)
                 {
@@ -272,7 +323,7 @@ void MeshLoader::ImportModel(std::string path, std::string savePath, std::string
     return;
 }
 
-std::vector<unsigned int> MeshLoader::CreateLOD(float siplificationAmmount, const unsigned int* originalIndices, uint32_t indexCount, const void* originalVerices, uint32_t vertexCount)
+std::vector<unsigned int> Importer::CreateLOD(float siplificationAmmount, const unsigned int* originalIndices, uint32_t indexCount, const void* originalVerices, uint32_t vertexCount)
 {
 
     size_t target_index_count = size_t(indexCount * siplificationAmmount);
@@ -283,5 +334,47 @@ std::vector<unsigned int> MeshLoader::CreateLOD(float siplificationAmmount, cons
     lod.resize(meshopt_simplify(&lod[0], originalIndices, indexCount, (float*)originalVerices, vertexCount, sizeof(utils::Vertex), target_index_count, target_error, /* options= */ 0, &lod_error));
 
     return lod;
+}
+
+// only temporary
+AssetID Importer::ImportTexture(std::string path, std::string savePath, std::string name)
+{
+    uint32_t off = path.find_last_of(".");
+    std::string fileE = path.substr(off, path.size() - off);
+    if (!std::filesystem::copy_file(path, (savePath + name + fileE))) {
+        return INVALID_ASSET_ID;
+    }
+
+    ATexture* tex = new ATexture();
+    tex->lenght = 0xffffffff;
+    tex->name = name;
+    tex->originalPath = path;
+    tex->path = savePath;
+    
+    uint8_t head[2] = { A_DISC_VERI0, A_DISC_VERI1 };
+    uint8_t flag = (uint8_t)AssetLoadFlags::None;
+    AssetID id = AssetManager::RegisterAsset(dynamic_cast<AssetBase*>(tex));
+
+    FILE* f = fopen(tex->GetActualPath().c_str(), "wb");
+    if (!f){
+        Log::Error("Importer(Texture)", "Couldn't create: " + tex->GetActualPath());
+        return INVALID_ASSET_ID;
+    }
+
+    fwrite(head, 1, 2, f);
+    fwrite(&flag, 1, 1, f);
+    fwrite(&id, 4, 1, f);
+
+    return id;
+}
+
+AssetID Importer::ImportTexture(utils::Texture texture, std::string savePath)
+{
+    return INVALID_ASSET_ID;
+}
+
+AssetID Importer::ImportMaterial(utils::Material, std::string savePath, std::string name)
+{
+    return AssetID();
 }
 

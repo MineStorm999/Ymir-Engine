@@ -17,10 +17,12 @@
 using AssetID = uint32_t;
 
 
-
+/*
 struct AssetHeader {
 	char type[4];
+
 };
+*/
 
 enum class AssetType : uint8_t
 {
@@ -43,6 +45,7 @@ public:
 	static AssetID GetAssetIDFromImported(std::filesystem::path path);
 };
 
+/*
 struct Node
 {
 	Node(std::string n, Node* p) {
@@ -73,7 +76,7 @@ struct Node
 	AssetType type;
 
 	AssetID realName;
-};
+};*/
 
 namespace std {
 
@@ -144,7 +147,13 @@ public:
 
 class ATexture : public AssetBase {
 public:
-	ATexture() { type = AssetType::Audio; };
+	ATexture() { type = AssetType::Texture; };
+
+	// !!!TODO!!!
+	nlohmann::json Save() override;
+	
+
+	utils::Texture* GetTexture();
 };
 
 class AMaterial : public AssetBase
@@ -157,6 +166,8 @@ public:
 	AssetID roughnessMetalnessTex;
 	AssetID normalTex;
 	AssetID emissiveTex;
+	// !!!TODO!!!
+	nlohmann::json Save() override;
 };
 
 struct LOD {
@@ -178,7 +189,7 @@ public:
 	uint32_t iBuffLenght;
 
 	std::vector<uint8_t> Load() override;
-
+	// !!!TODO!!!
 	nlohmann::json Save() override;
 
 	std::vector<LOD> lods;

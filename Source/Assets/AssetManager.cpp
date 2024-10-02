@@ -46,7 +46,7 @@ AssetID GetNext() {
 }
 
 
-ExtendToType extToTypeMap = { {"gltf", AssetType::Model}, {".gltf", AssetType::Model} };
+ExtendToType extToTypeMap = { {"gltf", AssetType::Model}, {".gltf", AssetType::Model}, {"png", AssetType::Texture}, {".png", AssetType::Texture}, {"jpeg", AssetType::Texture}, {".jpeg", AssetType::Texture} };
 
 //Node* curDir = nullptr;
 //Node* rootNode = nullptr;
@@ -70,6 +70,12 @@ void AssetManager::Init()
         }
 
         return dynamic_cast<AssetBase*>(m);
+        };
+
+    loadMap[AssetType::Texture] = [](nlohmann::json j) {
+        ATexture* tex = new ATexture();
+        //tex->name = "";// if you remove this line you get 
+        return dynamic_cast<AssetBase*>(tex);
         };
 
 
@@ -299,7 +305,7 @@ void AssetManager::AssetExplorer()
                 curAsset = AssetUtils::GetAssetIDFromImported(it.path().string());
 
                 if (!AssetManager::IsValid(curAsset)) {
-                    //Log::Message("AssetManager", "Cur Asset is invalid, continuing..." + std::to_string(curAsset));
+                    Log::Message("AssetManager", "Cur Asset is invalid, continuing..." + std::to_string(curAsset));
                     continue;
                 }
                 cache[it.path().string()] = { curAsset, it.last_write_time() };
@@ -317,6 +323,8 @@ void AssetManager::AssetExplorer()
         else {
             if (ImGui::Button(std::to_string(GetAsset(curAsset)->type).c_str(), ImVec2(144 * size, 144 * size))) {
                 //Open(n);
+                Inspector::Select(curAsset);
+
             }
             ImGui::Text(GetAsset(curAsset)->name.c_str());
         }
@@ -461,7 +469,7 @@ void AssetManager::AssetImporter()
         if (ImGui::Button("Import")) {
             
             
-            MeshLoader::ImportModel(pt, curPath.string(), name, settings);
+            Importer::ImportModel(pt, curPath.string(), name, settings);
 
             isImPorting = false;
 
