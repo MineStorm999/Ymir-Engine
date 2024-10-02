@@ -245,6 +245,7 @@ std::unordered_map<std::string, CachedDirEntry> cache;
 
 void AssetManager::AssetExplorer()
 {
+    ImGui::SetNextWindowSize(ImVec2(700, 400), ImGuiCond_Once);
     ImGui::Begin("AssetManager");
 
     if (curPath.string() != rootPath.string()) {
@@ -252,6 +253,7 @@ void AssetManager::AssetExplorer()
             curPath = curPath.parent_path();
         }
     }
+    
 
     ImGui::SameLine();
     ImGui::SliderFloat("Size", &size, .4f, 2);
@@ -383,6 +385,8 @@ void AssetManager::AssetExplorer()
     if (!IsValid(toEdit)) {
         return;
     }
+
+    ImGui::SetNextWindowSize(ImVec2(500, 200), ImGuiCond_Once);
     ImGui::Begin("Rename");
     
     ImGui::InputText("New Name", nName, 1024);
@@ -420,6 +424,7 @@ void AssetManager::AssetImporter()
     static char path[2048] = "C:/";
     //static std::string curP = "C:/";
 
+    ImGui::SetNextWindowSize(ImVec2(300, 400), ImGuiCond_Once);
     ImGui::Begin("Import Asset");
     
     if (pt != "") {
