@@ -1,6 +1,6 @@
 # Ymir Engine
 
-Currently in work, nothing to see jet.
+Currently NOT in work, nothing to see jet.
 
 # Roadmap:
 # Rendering
