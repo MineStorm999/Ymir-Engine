@@ -8,7 +8,7 @@
 
 #include "Stb_Image/stb_image.h"
 
-void Importer::ImportModel(std::string path, std::string savePath, std::string name, MeshImportSettings settings)
+void Importer::ImportModel(std::string path, std::string savePath, std::string name, MeshImportSettings settings, AssetID* out)
 {
     FILE* loadF = fopen(path.c_str(), "r");
     if (!loadF) {
@@ -30,6 +30,9 @@ void Importer::ImportModel(std::string path, std::string savePath, std::string n
     std::vector<AssetID> textures;
     textures.reserve(packedScene.textures.size());
 
+    std::vector<AssetID> materials;
+    materials.reserve(packedScene.materials.size());
+
     std::string textureSavePath = savePath + "/" + "Textures/";
     std::filesystem::create_directories(textureSavePath);
 
@@ -39,9 +42,11 @@ void Importer::ImportModel(std::string path, std::string savePath, std::string n
         textures.push_back(ImportTexture(tex->name, textureSavePath, name + "_texture_" + std::to_string(i++)));
     }
 
+    i = 0;
+    std::string materialSavePath = savePath + "/" + "Materials/";
     for (auto& mat : packedScene.materials)
     {
-        
+        ImportMaterial(savePath, name + "_material_" + std::to_string(i++), &mat, textures);
     }
 
     if (settings.singleModel) {
@@ -104,11 +109,11 @@ void Importer::ImportModel(std::string path, std::string savePath, std::string n
 
         model->path = savePath;
         model->originalPath = path;
-        model->indexCount = index_count;
         model->vertCount = vertex_count;
 
+
         LOD lod0;
-        lod0.distance = 0;
+        lod0.distance = 10;
         lod0.indexOffset = 0;
         lod0.lenght = index_count;
         model->lods.push_back(lod0);
@@ -119,20 +124,22 @@ void Importer::ImportModel(std::string path, std::string savePath, std::string n
             for (uint32_t i = 0; i < settings.lodCount; i++)
             {
                 //Log::Message("Importer", "Create LOD" + std::to_string(i));
-                std::vector<unsigned int> lodIdx = CreateLOD(i * simp, &indices[0], index_count, &vertices[0], vertex_count);
+                std::vector<unsigned int> lodIdx = CreateLOD(1 - (i * simp), &indices[0], index_count, &vertices[0], vertex_count);
                 LOD lodn;
-                lodn.distance = i * 10;
+                lodn.distance = (i + 2) * 10;
                 lodn.indexOffset = indices.size();
                 lodn.lenght = lodIdx.size();
                 model->lods.push_back(lodn);
 
-                indices.reserve(lodn.lenght);
+                indices.reserve(indices.size() + lodn.lenght);
                 for (uint32_t& idx : lodIdx)
                 {
                     indices.push_back(idx);
                 }
             }
         }
+
+        model->indexCount = index_count;
 
         if (settings.compress) {
             // compression
@@ -147,7 +154,9 @@ void Importer::ImportModel(std::string path, std::string savePath, std::string n
             uint8_t head[2] = { A_DISC_VERI0, A_DISC_VERI1 };
             uint8_t flag = (uint8_t)AssetLoadFlags::Compressed;
             AssetID id = AssetManager::RegisterAsset(dynamic_cast<AssetBase*>(model));
-
+            if (out) {
+                *out = id;
+            }
 
             fwrite(head, 2, 1, outF);
             fwrite(&flag, 1, 1, outF);
@@ -167,6 +176,9 @@ void Importer::ImportModel(std::string path, std::string savePath, std::string n
             uint8_t head[2] = { A_DISC_VERI0, A_DISC_VERI1 };
             uint8_t flag = (uint8_t)AssetLoadFlags::None;
             AssetID id = AssetManager::RegisterAsset(dynamic_cast<AssetBase*>(model));
+            if (out) {
+                *out = id;
+            }
 
             fwrite(head, 2, 1, outF);
             fwrite(&flag, 1, 1, outF);
@@ -250,11 +262,12 @@ void Importer::ImportModel(std::string path, std::string savePath, std::string n
 
         model->path = savePath;
         model->originalPath = path;
-        model->indexCount = index_count;
+        
         model->vertCount = vertex_count;
+        
 
         LOD lod0;
-        lod0.distance = 0;
+        lod0.distance = 10;
         lod0.indexOffset = 0;
         lod0.lenght = index_count;
         model->lods.push_back(lod0);
@@ -267,18 +280,20 @@ void Importer::ImportModel(std::string path, std::string savePath, std::string n
                 //Log::Message("Importer", "Create LOD" + std::to_string(i));
                 std::vector<unsigned int> lodIdx = CreateLOD(i* simp, &indices[0], index_count, &vertices[0], vertex_count);
                 LOD lodn;
-                lodn.distance = i*10;
+                lodn.distance = (i + 2) * 10;
                 lodn.indexOffset = indices.size();
                 lodn.lenght = lodIdx.size();
                 model->lods.push_back(lodn);
 
-                indices.reserve(lodn.lenght);
+                indices.reserve(indices.size() + lodn.lenght);
                 for (uint32_t& idx : lodIdx)
                 {
                     indices.push_back(idx);
                 }
             }
         }
+
+        model->indexCount = index_count;
 
         if (settings.compress) {
             // compression
@@ -368,17 +383,17 @@ AssetID Importer::ImportTexture(std::string path, std::string savePath, std::str
     }
 
     if (fwrite(head, 1, 2, f) != 2) {
-        Log::Error("Importer(Texture)", "Couldn't create: " + tex->GetActualPath());
+        Log::Error("Importer(Texture)", "Couldn't write: " + tex->GetActualPath());
         fclose(f);
         return INVALID_ASSET_ID;
     }
     if (fwrite(&flag, 1, 1, f) != 1) {
-        Log::Error("Importer(Texture)", "Couldn't create: " + tex->GetActualPath());
+        Log::Error("Importer(Texture)", "Couldn't write: " + tex->GetActualPath());
         fclose(f);
         return INVALID_ASSET_ID;
     }
     if (fwrite(&id, 4, 1, f) != 1) {
-        Log::Error("Importer(Texture)", "Couldn't create: " + tex->GetActualPath());
+        Log::Error("Importer(Texture)", "Couldn't write: " + tex->GetActualPath());
         fclose(f);
         return INVALID_ASSET_ID;
     }
@@ -393,8 +408,53 @@ AssetID Importer::ImportTexture(utils::Texture texture, std::string savePath)
     return INVALID_ASSET_ID;
 }
 
-AssetID Importer::ImportMaterial(utils::Material, std::string savePath, std::string name)
+AssetID Importer::ImportMaterial(std::string savePath, std::string name, utils::Material* material, std::vector<AssetID>& originalTextureIds)
 {
-    return AssetID();
+    if (!material) {
+        return INVALID_ASSET_ID;
+    }
+    AMaterial* mat = new AMaterial();
+    mat->normalTex = originalTextureIds[material->normalTexIndex];
+    mat->baseColorTex = originalTextureIds[material->baseColorTexIndex];
+    mat->emissiveTex = originalTextureIds[material->emissiveTexIndex];
+    mat->roughnessMetalnessTex = originalTextureIds[material->roughnessMetalnessTexIndex];
+
+    mat->baseColorAndMetallic = material->baseColorAndMetalnessScale;
+    mat->emissiveColorAndRoughness = material->emissiveAndRoughnessScale;
+    mat->alphaMode = (uint8_t)material->alphaMode;
+
+    uint8_t head[2] = { A_DISC_VERI0, A_DISC_VERI1 };
+    uint8_t flag = (uint8_t)AssetLoadFlags::None;
+    AssetID id = AssetManager::RegisterAsset(dynamic_cast<AssetBase*>(mat));
+
+    FILE* f = fopen(mat->GetActualPath().c_str(), "wb");
+    if (!f) {
+        Log::Error("Importer(Texture)", "Couldn't create: " + mat->GetActualPath());
+        return INVALID_ASSET_ID;
+    }
+
+    if (fwrite(head, 1, 2, f) != 2) {
+        Log::Error("Importer(Texture)", "Couldn't write: " + mat->GetActualPath());
+        fclose(f);
+        return INVALID_ASSET_ID;
+    }
+    if (fwrite(&flag, 1, 1, f) != 1) {
+        Log::Error("Importer(Texture)", "Couldn't write: " + mat->GetActualPath());
+        fclose(f);
+        return INVALID_ASSET_ID;
+    }
+    if (fwrite(&id, 4, 1, f) != 1) {
+        Log::Error("Importer(Texture)", "Couldn't write: " + mat->GetActualPath());
+        fclose(f);
+        return INVALID_ASSET_ID;
+    }
+    //fwrite(&flag, 1, 1, f);
+    //fwrite(&id, 4, 1, f);
+    fclose(f);
+}
+
+AssetID Importer::ImportMaterial(std::string savePath, std::string name, const std::vector<std::string>& texturePaths)
+{
+    return INVALID_ASSET_ID;
 }
 

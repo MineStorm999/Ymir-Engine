@@ -31,17 +31,13 @@ public:
 
 	static AssetID RegisterAsset(AssetBase* asset);
 
-	static bool HasAsset(AssetID* id, std::string originalPath);
+	//static bool HasAsset(AssetID* id, std::string originalPath);
+
 
 private:
 
 	static void AssetExplorer();
 	static void AssetImporter();
 	
-	
-	
-	
-
-
-	
+	static AssetID CreateDefaultScene();
 };

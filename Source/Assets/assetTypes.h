@@ -4,6 +4,7 @@
 #include <filesystem>
 #include "NRIFramework.h"
 #include "JSON/json.hpp"
+#include "Rendering/RenderTypes.h"
 //#include "../Rendering/VirtualGeometry/MeshletStructs.h"
 //#include "../ECS/components.h"
 
@@ -134,7 +135,6 @@ public:
 	uint32_t off;
 	uint32_t lenght;
 
-	virtual std::vector<uint8_t> Load() { return std::vector<uint8_t>(); };
 	virtual nlohmann::json Save();
 
 	std::string GetActualPath();
@@ -161,11 +161,14 @@ class AMaterial : public AssetBase
 public:
 	AMaterial() { type = AssetType::Material; };
 	float4 baseColorAndMetallic;
+	float4 emissiveColorAndRoughness;
+	uint8_t alphaMode;
 
 	AssetID baseColorTex;
 	AssetID roughnessMetalnessTex;
 	AssetID normalTex;
 	AssetID emissiveTex;
+
 	// !!!TODO!!!
 	nlohmann::json Save() override;
 };
@@ -179,7 +182,7 @@ struct LOD {
 class AModel : public AssetBase {
 public:
 	AModel() { type = AssetType::Model; };
-	uint32_t DefaultMaterialID{};
+	AssetID DefaultMaterialID{};
 	// std::string matName;														todo future
 
 	//std::vector<Transform> defaultTransforms;
@@ -188,32 +191,28 @@ public:
 	uint32_t vertCount;
 	uint32_t iBuffLenght;
 
-	std::vector<uint8_t> Load() override;
-	// !!!TODO!!!
+	bool Load(std::vector<uint32_t>& indexes, std::vector<utils::Vertex>& vertices);
+	
 	nlohmann::json Save() override;
 
 	std::vector<LOD> lods;
 
 	// !!!TODO!!!
-	uint32_t GetRenderID(float disFromCam) { return 0xffffffff; };
+	RenderID GetRenderID(float disFromCam, AssetID id);
 };
 
 class AScene : public AssetBase{
 public:
 	AScene() { type = AssetType::Scene; };
 
-	std::unordered_map<AssetID, uint32_t> renderIds;
-
-	void Add(AssetID id);
+	std::vector<AssetID> usedMeshes;
+	std::vector<AssetID> usedTextures;
+	std::vector<AssetID> usedMaterials;
 
 	// TODO
 	nlohmann::json Save() override;
-
 private:
-	//TODO
-	void AddModel(AssetID id);
-	void AddMaterial(AssetID id);
-	void AddTexture(AssetID id);
+	uint32_t lastRenderID;
 };
 
 

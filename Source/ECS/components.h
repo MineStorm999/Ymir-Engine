@@ -12,11 +12,13 @@ struct Transform {
 	float3 localScale{ 1,1,1 };
 	float3 localRot{ 0,0,0 };
 
+	float4x4 localToWorldMat;
+
 	bool changed;
 };
 
 struct MeshInstance {
-	uint32_t materialID{ 0xffffffff };
+	AssetID materialID{ 0xffffffff };
 	AssetID modelID;
 };
 
@@ -29,3 +31,6 @@ struct Identity {
 	std::vector<entt::entity> childs{};
 };
 
+struct CameraComp {
+
+};

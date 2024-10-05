@@ -76,8 +76,8 @@ void WindowManager::Show()
 
 void WindowManager::Init()
 {
-	Log::Init();
-	AssetManager::Init();
+	//Log::Init();
+	//AssetManager::Init();
 
 #ifdef EXPERIMENTAL
 	NodeViewer::Init();

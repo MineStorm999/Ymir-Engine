@@ -1,8 +1,18 @@
 
+
+#ifndef THIS
+#define THIS
+#include "../External/NRIFramework/External/NRI/Include/NRICompatibility.hlsli"
+
+
+#define MAX_INSTANCES 1000000
+#define MAX_BATCH_DESCS 100000
+
 struct CullingConstants
 {
 	float4 Frustum;
 	uint32_t DrawCount;
+	uint32_t BatchCount;
 	uint32_t EnableCulling;
 	uint32_t ScreenWidth;
 	uint32_t ScreenHeight;
@@ -33,8 +43,15 @@ struct InstanceData
     float4x4 transform;
 };
 
-NRI_RESOURCE( cbuffer, GlobalConstants, b, 0, 0 )
+struct BatchDesc {
+    uint32_t offset;
+    uint32_t count;
+};
+
+NRI_RESOURCE(cbuffer, GlobalConstants, b, 0, 0 )
 {
     float4x4 gWorldToClip;
     float3 gCameraPos;
+    uint32_t batchCount;
 };
+#endif // !THIS

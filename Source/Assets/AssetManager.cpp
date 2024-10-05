@@ -17,6 +17,9 @@
 #include "../Rendering/StaticMesh/StaticMeshLoader.h"
 #include <chrono>
 
+#include "AssetHelper.h"
+
+#include "World/SceneManager.h"
 //#include "Imgui/misc/cpp/imgui_stdlib.h"
 
 
@@ -72,10 +75,53 @@ void AssetManager::Init()
         return dynamic_cast<AssetBase*>(m);
         };
 
+    loadMap[AssetType::Scene] = [](nlohmann::json j) {
+        AScene* scene = new AScene();
+
+        uint32_t count = j["MeshCount"];
+        scene->usedMeshes.reserve(count);
+        for (size_t i = 0; i < count; i++)
+        {
+            scene->usedMeshes.push_back(j["Meshes"][std::to_string(i)]);
+        }
+
+        count = j["MaterialCount"];
+        scene->usedMaterials.reserve(count);
+        for (size_t i = 0; i < count; i++)
+        {
+            scene->usedMaterials.push_back(j["Materials"][std::to_string(i)]);
+        }
+
+        count = j["TextureCount"];
+        scene->usedTextures.reserve(count);
+        for (size_t i = 0; i < count; i++)
+        {
+            scene->usedTextures.push_back(j["Textures"][std::to_string(i)]);
+        }
+
+        return dynamic_cast<AssetBase*>(scene);
+        };
+
     loadMap[AssetType::Texture] = [](nlohmann::json j) {
         ATexture* tex = new ATexture();
         //tex->name = "";// if you remove this line you get 
         return dynamic_cast<AssetBase*>(tex);
+        };
+
+    loadMap[AssetType::Material] = [](nlohmann::json j) {
+        AMaterial* mat = new AMaterial();
+
+        mat->baseColorAndMetallic = JSONHelper::FrmJsonf4(j["BaseColorAndMetallic"]);
+        mat->emissiveColorAndRoughness = JSONHelper::FrmJsonf4(j["EmissiveColorAndRoughness"]);
+        mat->alphaMode = j["AlphaMode"];
+
+        // textures
+        mat->baseColorTex = j["BaseTexture"];
+        mat->roughnessMetalnessTex = j["RoughnessTexture"];
+        mat->normalTex = j["NormalTexture"];
+        mat->emissiveTex = j["EmissiveTexture"];
+
+        return dynamic_cast<AssetBase*>(mat);
         };
 
 
@@ -88,6 +134,7 @@ void AssetManager::Init()
     
     std::fstream fStream(utils::GetCFullPath("AssetSave.tyr", utils::CustomFolder::SAVEFILES));
     if (!fStream.is_open()) {
+        CreateDefaultScene();
         return;
     }
     nlohmann::json j = nlohmann::json::parse(fStream);
@@ -121,7 +168,13 @@ void AssetManager::Init()
 
         map[asset["ID"]] = bAss;
     }
-    
+    AssetID lastOpenScene = j["LastOpenScene"];
+    if (lastOpenScene == INVALID_ASSET_ID) {
+        CreateDefaultScene();
+    }
+    else {
+        SceneManager::UseScene(lastOpenScene);
+    }
     /*Node* tRoot = LoadDir(j["VirtualFSys"], nullptr);
     if (tRoot) {
         curDir = tRoot;
@@ -199,7 +252,7 @@ void AssetManager::Save()
     //j["VirtualFSys"] = SaveDir(rootNode);
 
     j["LastID"] = lastID;
-
+    j["LastOpenScene"] = SceneManager::GetSceneID();
     ofStream << std::setw(4) << j << "\n";
 }
 
@@ -492,6 +545,45 @@ void AssetManager::AssetImporter()
         isImPorting = false;
     }
     ImGui::End();
+}
+
+AssetID AssetManager::CreateDefaultScene()
+{
+    Log::Message("AssetManager", "Creating Default Scene");
+    AScene* scene = new AScene();
+    scene->name = "Default_Scene";
+    scene->originalPath = "";
+    scene->path = "AssetDirectory/_Default_/Scene";
+    
+    AssetID id = RegisterAsset(scene);
+
+    SceneManager::UseScene(id);
+    
+    RenderScene* rScene = SceneManager::GetRenderScene();
+
+    if (!rScene) {
+        Log::Error("AssetManager", "Error creating render scene");
+        return INVALID_ASSET_ID;
+    }
+    AssetID defMesh = INVALID_ASSET_ID;
+
+    MeshImportSettings settings;
+    settings.autoLOD = true;
+    settings.compress = true;
+    settings.createFolder = true;
+    settings.lodCount = 10;
+    settings.optimize = true;
+    settings.singleModel = true;
+    
+
+    Importer::ImportModel(utils::GetFullPath("Ymir_Default_Scene/model.gltf", utils::DataFolder::SCENES), "AssetDirectory/_Default_/Assets", "YMIR_Mesh", settings, &defMesh);
+
+
+    if (!IsValid(defMesh)) {
+        Log::Error("AssetManager", "Couldn't load default scene mesh");
+        return INVALID_ASSET_ID;
+    }
+    rScene->Add(defMesh);
 }
 
 AssetID AssetManager::RegisterAsset(AssetBase* asset)

@@ -82,7 +82,7 @@ void Inspector::ShowAsset()
 		if (!m) {
 			break;
 		}
-		ImGui::Text("Current Render ID: %i", m->GetRenderID(0));
+		ImGui::Text("Current Render ID: %i", m->GetRenderID(0, sAsset));
 		if (ImGui::Button("Default Material")) {
 			Select(m->DefaultMaterialID);
 		}

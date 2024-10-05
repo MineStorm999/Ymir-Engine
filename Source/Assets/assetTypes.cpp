@@ -2,55 +2,126 @@
 #include "AssetManager.h"
 #include "meshoptimizer.h"
 
-std::vector<uint8_t> AModel::Load()
+#include "AssetHelper.h"
+
+#include "World/SceneManager.h"
+
+bool AModel::Load(std::vector<uint32_t>& indexes, std::vector<utils::Vertex>& vertices)
 {
-	std::vector<unsigned char> ret;
+	
 	std::string actualPath = GetActualPath();
 
 	if (actualPath.find_last_of(".") == std::string::npos) {
-		return ret;
+		return false;
 	}
-	if (!(actualPath.substr(path.find_last_of(".")) == ASSET_SHORT || actualPath.substr(actualPath.find_last_of(".")) == '.' + ASSET_SHORT)) {
-		return ret;
-	}
-
-	if (!file) {
-		file = fopen(actualPath.c_str(), "rb");
-		if (!file) {
-			return ret;
-		}
+	if (path.find_last_of('.' + ASSET_SHORT) == std::string::npos) {
+		return false;
 	}
 
-	fseek(file, 0, SEEK_SET);
+	FILE* f = fopen(actualPath.c_str(), "rb");
+	if (!f) {
+		return false;
+	}
+
+	fseek(f, 0, SEEK_SET);
 	uint8_t head[2];
 
-	if (fread(head, 2, 1, file) == 0) {
-		return ret;
+	if (fread(head, 2, 1, f) == 0) {
+		return false;
 	}
 	if (head[0] != A_DISC_VERI0) {
-		return ret;
+		return false;
 	}
 	if (head[1] != A_DISC_VERI1) {
-		return ret;
+		return false;
 	}
 
 	uint8_t flags = 0;
-	fread(&flags, 1, 1, file);
+	fread(&flags, 1, 1, f);
 
-	std::vector<uint8_t> data(lenght);
-	fseek(file, off, SEEK_SET);
 	
-	fread(data.data(), lenght, 1, file);
+	fseek(f, off, SEEK_SET);
+	
+	
 
-	fclose(file);
+	uint32_t offI = indexes.size();
+	indexes.resize(indexCount);
+
+	uint32_t offV = vertices.size();
+	vertices.resize(vertCount);
+
+	
 	if (flags == 0) {
-		return ret;
+		if (1 != fread(&indexes[offI], iBuffLenght, 1, file)) {
+			for (size_t i = 0; i < indexCount; i++)
+			{
+				indexes.pop_back();
+			}
+			for (size_t i = 0; i < vertCount; i++)
+			{
+				vertices.pop_back();
+			}
+			fclose(f);
+			return false;
+		}
+		if (1 != fread(&vertices[offV], lenght - iBuffLenght, 1, file)) {
+			for (size_t i = 0; i < indexCount; i++)
+			{
+				indexes.pop_back();
+			}
+			for (size_t i = 0; i < vertCount; i++)
+			{
+				vertices.pop_back();
+			}
+			fclose(f);
+			return false;
+		}
+		fclose(f);
+		return true;
 	}
 
-	std::vector<uint8_t> outData(indexCount * sizeof(uint32_t) + (vertCount * sizeof(utils::Vertex)));
+	unsigned char* idxRaw;
+	unsigned char* vertRaw;
+	idxRaw = (unsigned char*)malloc(iBuffLenght);
+	vertRaw = (unsigned char*)malloc(lenght - iBuffLenght);
+	fseek(f, off, SEEK_SET);
+	if (1 != fread(idxRaw, iBuffLenght, 1, f)) {
+		for (size_t i = 0; i < indexCount; i++)
+		{
+			indexes.pop_back();
+		}
+		for (size_t i = 0; i < vertCount; i++)
+		{
+			vertices.pop_back();
+		}
+		free(idxRaw);
+		free(vertRaw);
+		fclose(f);
+		return false;
+	}
 
-	int resib = meshopt_decodeIndexBuffer((uint32_t*)&outData[0], indexCount, &data[0], iBuffLenght);
-	int resvb = meshopt_decodeVertexBuffer(&outData[indexCount], vertCount, sizeof(utils::Vertex), &data[iBuffLenght], data.size() - iBuffLenght);
+	if (1 != fread(vertRaw, lenght - iBuffLenght, 1, f)) {
+		for (size_t i = 0; i < indexCount; i++)
+		{
+			indexes.pop_back();
+		}
+		for (size_t i = 0; i < vertCount; i++)
+		{
+			vertices.pop_back();
+		}
+		free(idxRaw);
+		free(vertRaw);
+		fclose(f);
+		return false;
+	}
+
+	int resib = meshopt_decodeIndexBuffer(&indexes[offI], indexCount, idxRaw, iBuffLenght);
+	int resvb = meshopt_decodeVertexBuffer(&vertices[offV], vertCount, sizeof(utils::Vertex), vertRaw, lenght - iBuffLenght);
+
+	free(idxRaw);
+	free(vertRaw);
+	fclose(f);
+	return true;
 }
 
 nlohmann::json AModel::Save()
@@ -74,6 +145,29 @@ nlohmann::json AModel::Save()
 	}
 
 	return j;
+}
+
+RenderID AModel::GetRenderID(float disFromCam, AssetID id)
+{
+	RenderScene* rScene = SceneManager::GetRenderScene();
+	if (!rScene) {
+		return INVALID_RENDER_ID;
+	}
+
+	RenderID ret = rScene->renderIds[id];
+
+	if (ret == INVALID_RENDER_ID) {
+		return INVALID_RENDER_ID;
+	}
+
+	
+	for (LOD& lod : lods)
+	{
+		if (lod.distance > disFromCam) {
+			return ret;
+		}
+		ret++;
+	}
 }
 
 AssetID AssetUtils::GetAssetIDFromImported(std::filesystem::path path)
@@ -132,46 +226,26 @@ std::string AssetBase::GetActualPath()
 	return pt0.string();
 }
 
-void AScene::Add(AssetID id)
-{
-	if (!AssetManager::IsValid(id)) {
-		return;
-	}
-	switch (AssetManager::GetAsset(id)->type)
-	{
-	case AssetType::Model:
-		AddModel(id);
-	case AssetType::Texture:
-		AddTexture(id);
-	case AssetType::Material:
-		AddMaterial(id);
-	case AssetType::Audio:
-		break;
-	case AssetType::Scene:
-		break;
-	default:
-		break;
-	}
-}
-
-void AScene::AddModel(AssetID id)
-{
-
-}
-
-void AScene::AddMaterial(AssetID id)
-{
-
-}
-
-void AScene::AddTexture(AssetID id)
-{
-
-}
 
 nlohmann::json AScene::Save()
 {
 	nlohmann::json j = AssetBase::Save();
+
+	j["MeshCount"] = usedMeshes.size();
+	for (size_t i = 0; i < usedMeshes.size(); i++)
+	{
+		j["Meshes"][std::to_string(i)] = usedMeshes[i];
+	}
+	j["MaterialCount"] = usedMaterials.size();
+	for (size_t i = 0; i < usedMaterials.size(); i++)
+	{
+		j["Materials"][std::to_string(i)] = usedMaterials[i];
+	}
+	j["TextureCount"] = usedTextures.size();
+	for (size_t i = 0; i < usedTextures.size(); i++)
+	{
+		j["Textures"][std::to_string(i)] = usedTextures[i];
+	}
 	return j;
 }
 
@@ -198,5 +272,15 @@ utils::Texture* ATexture::GetTexture()
 nlohmann::json AMaterial::Save()
 {
 	nlohmann::json j = AssetBase::Save();
+
+	j["BaseColorAndMetallic"] = JSONHelper::TJson(baseColorAndMetallic);
+	j["EmissiveColorAndRoughness"] = JSONHelper::TJson(emissiveColorAndRoughness);
+	j["AlphaMode"] = alphaMode;
+
+	j["BaseTexture"] = baseColorTex;
+	j["RoughnessTexture"] = roughnessMetalnessTex;
+	j["NormalTexture"] = normalTex;
+	j["EmissiveTexture"] = emissiveTex;
+
 	return j;
 }
