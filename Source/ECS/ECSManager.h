@@ -4,8 +4,10 @@
 #include <entt/entt.hpp>
 
 #include "../JSON/json.hpp"
+#include "Assets/assetTypes.h"
 
 using ECSWorld = entt::registry;
+
 
 using ViewID = uint32_t;
 using CallBack = std::function<ViewID(ECSWorld&)>;
@@ -25,6 +27,6 @@ public:
 
 	static void Init();
 
-	static entt::entity CreateEntity(std::string name);
-	static entt::entity CreateEntity(std::string name, entt::entity parent);
+	static entt::entity CreateEntity(std::string name, entt::entity parent = entt::null);
+	static entt::entity CreateEntity(std::string name, AssetID assetOriginal, entt::entity parent = entt::null);
 };

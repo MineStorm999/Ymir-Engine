@@ -154,7 +154,7 @@ void RenderScene::LoadMeshes()
 		renderIds[id] = lastRenderID;
 		lastRenderID++;
 
-		Log::Message("RenderScene", "Load Meshes " + std::to_string(i++) + "/" + std::to_string(sceneAsset->usedMeshes.size()));
+		Log::Message("RenderScene", "Load Meshes " + std::to_string((i++ + 1)) + "/" + std::to_string(sceneAsset->usedMeshes.size()));
 	}
 }
 

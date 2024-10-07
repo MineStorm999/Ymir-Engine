@@ -11,6 +11,7 @@
 #define A_DISC_VERI0 6
 #define A_DISC_VERI1 66
 #define ASSET_SHORT "yasset"
+#define SAVE_SHORT "ysave"
 
 #define INVALID_ASSET_ID 0xffffffff
 

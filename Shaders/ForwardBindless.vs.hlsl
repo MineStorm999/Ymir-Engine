@@ -7,6 +7,8 @@
 
 NRI_ENABLE_DRAW_PARAMETERS;
 
+NRI_RESOURCE(StructuredBuffer<InstanceData>, Instances, t, 2, 0);
+
 struct Input
 {
     float3 Position : POSITION;
@@ -33,7 +35,10 @@ Attributes main( in Input input, NRI_DECLARE_DRAW_PARAMETERS )
     float4 T = input.Tangent * 2.0 - 1.0;
     float3 V = gCameraPos - input.Position;
 
-    output.Position = mul( gWorldToClip, float4( input.Position, 1 ) );
+    
+
+    output.Position = mul(Instances[NRI_INSTANCE_ID_OFFSET].transform, float4(input.Position, 1));
+    output.Position =  mul(gWorldToClip, output.Position);
     output.Normal = float4( N, input.TexCoord.x );
     output.View = float4( V, input.TexCoord.y );
     output.Tangent = T;

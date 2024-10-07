@@ -10,5 +10,6 @@ float4 main( in Attributes input ) : SV_Target
     float4 output = Shade( float4( albedo, diffuse.w ), Rf0, roughness, emissive, N, L, V, Clight, FAKE_AMBIENT );
 
     output.xyz = Color::HdrToLinear( output.xyz * exposure );
+
     return output;
 }

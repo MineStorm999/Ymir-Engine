@@ -26,6 +26,8 @@ struct BindlessAttributes
     nointerpolation uint DrawParameters : ATTRIBUTES;
 };
 
+
+
 [earlydepthstencil]
 float4 main( in BindlessAttributes input ) : SV_Target
 {
@@ -49,6 +51,7 @@ float4 main( in BindlessAttributes input ) : SV_Target
     float4 T = input.Tangent;
     T.xyz = normalize( T.xyz );
 
+
     float4 diffuse = DiffuseMap.Sample( AnisotropicSampler, uv );
     float3 materialProps = SpecularMap.Sample( AnisotropicSampler, uv ).xyz;
     float3 emissive = EmissiveMap.Sample( AnisotropicSampler, uv ).xyz;
@@ -58,14 +61,15 @@ float4 main( in BindlessAttributes input ) : SV_Target
     float3 albedo, Rf0;
     BRDF::ConvertBaseColorMetalnessToAlbedoRf0( diffuse.xyz, materialProps.z, albedo, Rf0 );
     float roughness = materialProps.y;
-    const float3 sunDirection = normalize( float3( -0.8, -0.8, 1.0 ) );
+    const float3 sunDirection = normalize( float3( 0, -1, 0.0 ) );
     float3 L = ImportanceSampling::CorrectDirectionToInfiniteSource( N, sunDirection, V, tan( SUN_ANGULAR_SIZE ) );
     const float3 Clight = 80000.0;
     const float exposure = 0.00025;
 
-    float4 output = Shade( float4( albedo, diffuse.w ), Rf0, roughness, emissive, N, L, V, Clight, FAKE_AMBIENT );
+    float4 output = Shade(float4(albedo, diffuse.w), Rf0, roughness, emissive, N, L, V, Clight, FAKE_AMBIENT);
     output.xyz = Color::HdrToLinear( output.xyz * exposure );
 
+    //output = instanceIndex;
     return output;
 }
 

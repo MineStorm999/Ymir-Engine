@@ -1,0 +1,184 @@
+{
+    "Assets": {
+        "0": {
+            "ID": 0,
+            "Lenght": 3452816845,
+            "MaterialCount": 0,
+            "MeshCount": 1,
+            "Meshes": {
+                "0": 9
+            },
+            "Name": "Default_Scene",
+            "Offset": 3452816845,
+            "OriginalPath": "",
+            "Path": "AssetDirectory/_Default_/Scene",
+            "TextureCount": 0,
+            "Type": "Scene"
+        },
+        "1": {
+            "ID": 1,
+            "Lenght": 4294967295,
+            "Name": "YMIR_Mesh_texture_0",
+            "Offset": 3452816845,
+            "OriginalPath": "_Data/Textures/black.png",
+            "Path": "AssetDirectory/_Default_/Assets/YMIR_Mesh/Textures/",
+            "Type": "Texture"
+        },
+        "2": {
+            "ID": 2,
+            "Lenght": 4294967295,
+            "Name": "YMIR_Mesh_texture_1",
+            "Offset": 3452816845,
+            "OriginalPath": "_Data/Textures/white.png",
+            "Path": "AssetDirectory/_Default_/Assets/YMIR_Mesh/Textures/",
+            "Type": "Texture"
+        },
+        "3": {
+            "ID": 3,
+            "Lenght": 4294967295,
+            "Name": "YMIR_Mesh_texture_2",
+            "Offset": 3452816845,
+            "OriginalPath": "_Data/Textures/checkerboard0.dds",
+            "Path": "AssetDirectory/_Default_/Assets/YMIR_Mesh/Textures/",
+            "Type": "Texture"
+        },
+        "4": {
+            "ID": 4,
+            "Lenght": 4294967295,
+            "Name": "YMIR_Mesh_texture_3",
+            "Offset": 3452816845,
+            "OriginalPath": "_Data/Textures/flatnormal.png",
+            "Path": "AssetDirectory/_Default_/Assets/YMIR_Mesh/Textures/",
+            "Type": "Texture"
+        },
+        "5": {
+            "ID": 5,
+            "Lenght": 4294967295,
+            "Name": "YMIR_Mesh_texture_4",
+            "Offset": 3452816845,
+            "OriginalPath": "_Data/Textures/scrambling_ranking_128x128_2d_4spp.png",
+            "Path": "AssetDirectory/_Default_/Assets/YMIR_Mesh/Textures/",
+            "Type": "Texture"
+        },
+        "6": {
+            "ID": 6,
+            "Lenght": 4294967295,
+            "Name": "YMIR_Mesh_texture_5",
+            "Offset": 3452816845,
+            "OriginalPath": "_Data/Textures/sobol_256_4d.png",
+            "Path": "AssetDirectory/_Default_/Assets/YMIR_Mesh/Textures/",
+            "Type": "Texture"
+        },
+        "7": {
+            "ID": 7,
+            "Lenght": 4294967295,
+            "Name": "YMIR_Mesh_texture_6",
+            "Offset": 3452816845,
+            "OriginalPath": "C:\\packman-repo\\chk\\nri_data\\2.3\\Scenes\\Ymir_Default_Scene\\textures/Image_0.jpg",
+            "Path": "AssetDirectory/_Default_/Assets/YMIR_Mesh/Textures/",
+            "Type": "Texture"
+        },
+        "8": {
+            "AlphaMode": 0,
+            "BaseColorAndMetallic": {
+                "W": 0.0,
+                "X": 1.0,
+                "Y": 1.0,
+                "Z": 1.0
+            },
+            "BaseTexture": 7,
+            "EmissiveColorAndRoughness": {
+                "W": 0.800000011920929,
+                "X": 0.0,
+                "Y": 0.0,
+                "Z": 0.0
+            },
+            "EmissiveTexture": 1,
+            "ID": 8,
+            "Lenght": 3452816845,
+            "Name": "",
+            "NormalTexture": 4,
+            "Offset": 3452816845,
+            "OriginalPath": "",
+            "Path": "",
+            "RoughnessTexture": 2,
+            "Type": "Material"
+        },
+        "9": {
+            "DefaultMat": 0,
+            "IBuffLenght": 34297,
+            "ID": 9,
+            "IndexCount": 89997,
+            "LODCount": 11,
+            "Lenght": 513501,
+            "Lods": {
+                "0": {
+                    "Distance": 10.0,
+                    "IndexCount": 89997,
+                    "IndexOffset": 0
+                },
+                "1": {
+                    "Distance": 20.0,
+                    "IndexCount": 89997,
+                    "IndexOffset": 89997
+                },
+                "10": {
+                    "Distance": 110.0,
+                    "IndexCount": 89997,
+                    "IndexOffset": 899970
+                },
+                "2": {
+                    "Distance": 30.0,
+                    "IndexCount": 89997,
+                    "IndexOffset": 179994
+                },
+                "3": {
+                    "Distance": 40.0,
+                    "IndexCount": 89997,
+                    "IndexOffset": 269991
+                },
+                "4": {
+                    "Distance": 50.0,
+                    "IndexCount": 89997,
+                    "IndexOffset": 359988
+                },
+                "5": {
+                    "Distance": 60.0,
+                    "IndexCount": 89997,
+                    "IndexOffset": 449985
+                },
+                "6": {
+                    "Distance": 70.0,
+                    "IndexCount": 89997,
+                    "IndexOffset": 539982
+                },
+                "7": {
+                    "Distance": 80.0,
+                    "IndexCount": 89997,
+                    "IndexOffset": 629979
+                },
+                "8": {
+                    "Distance": 90.0,
+                    "IndexCount": 89997,
+                    "IndexOffset": 719976
+                },
+                "9": {
+                    "Distance": 100.0,
+                    "IndexCount": 89997,
+                    "IndexOffset": 809973
+                }
+            },
+            "Name": "YMIR_Mesh",
+            "Offset": 7,
+            "OriginalPath": "_Data/Scenes/Ymir_Default_Scene/model1.gltf",
+            "Path": "AssetDirectory/_Default_/Assets/YMIR_Mesh",
+            "Type": "Model",
+            "VertexCount": 24381
+        }
+    },
+    "Head": {
+        "Count": 10
+    },
+    "LastID": 9,
+    "LastOpenScene": 0
+}

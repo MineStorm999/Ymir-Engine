@@ -81,6 +81,6 @@ void WindowManager::Init()
 
 #ifdef EXPERIMENTAL
 	NodeViewer::Init();
-	StructEditor::Init("F:/GameEngines/NRISamples/_SaveFiles/Component_Save.ymir");
+	StructEditor::Init("F:/GameEngines/NRISamples/_SaveFiles/Component_Save.ysave");
 #endif
 }

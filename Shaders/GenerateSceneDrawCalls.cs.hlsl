@@ -7,8 +7,10 @@ NRI_PUSH_CONSTANTS(CullingConstants, Constants, 0);
 NRI_RESOURCE(StructuredBuffer<MaterialData>, Materials, t, 0, 0);
 NRI_RESOURCE(StructuredBuffer<MeshData>, Meshes, t, 1, 0);
 NRI_RESOURCE(StructuredBuffer<InstanceData>, Instances, t, 2, 0);
+NRI_RESOURCE(StructuredBuffer<BatchDesc>, Batches, t, 3, 0);
 NRI_RESOURCE(RWBuffer<uint>, DrawCount, u, 0, 0);
 NRI_RESOURCE(RWBuffer<uint>, Commands, u, 1, 0);
+
 
 groupshared uint s_DrawCount;
 
@@ -22,18 +24,19 @@ void main(uint threadId : SV_DispatchThreadId)
 
     GroupMemoryBarrierWithGroupSync();
 
-    for (uint instanceIndex = threadId; instanceIndex < Constants.DrawCount; instanceIndex += CTA_SIZE)
+    for (uint batchIndex = threadId; batchIndex < Constants.DrawCount; batchIndex += CTA_SIZE)
     {
         uint drawIndex = 0;
         InterlockedAdd(s_DrawCount, 1, drawIndex);
 
-        uint meshIndex = Instances[instanceIndex].meshIndex;
+        uint meshIndex = Instances[Batches[batchIndex].offset].meshIndex;
+
         NRI_FILL_DRAW_INDEXED_DESC(Commands, drawIndex,
             Meshes[meshIndex].idxCount,
-            1, // TODO: batch draw instances with same mesh into one draw call
+            Batches[batchIndex].count, // TODO: batch draw instances with same mesh into one draw call
             Meshes[meshIndex].idxOffset,
             Meshes[meshIndex].vtxOffset,
-            instanceIndex
+            Batches[batchIndex].offset
         );
     }
 

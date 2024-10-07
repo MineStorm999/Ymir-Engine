@@ -6,6 +6,7 @@
 #include "Editor/ToolBarWindowManager.h"
 #include <chrono>
 #include "ECS/components.h"
+#include "ECS/ECSManager.h"
 #include "World/SceneManager.h"
 #include "Log/Log.h"
 
@@ -54,6 +55,9 @@ Sample::~Sample()
 bool Sample::Initialize(nri::GraphicsAPI graphicsAPI)
 {
     Log::Init();
+
+    EntityManager::Init();
+
     AssetManager::Init();
     
     if (graphicsAPI == nri::GraphicsAPI::D3D11) {
@@ -273,7 +277,7 @@ bool Sample::Initialize(nri::GraphicsAPI graphicsAPI)
     //NRI_ABORT_ON_FALSE(utils::LoadScene(sceneFile, m_Scene, false));
 
     // Camera
-    m_Camera.Initialize({ 0,0,0 }, {0,0,1}, false);
+    m_Camera.Initialize({ 0,0,0 }, {0,1,0}, false);
 
     const uint32_t textureNum = (uint32_t)scene->texturesCPU.size();
     const uint32_t materialNum = (uint32_t)scene->materialsCPU.size();
@@ -606,7 +610,7 @@ bool Sample::Initialize(nri::GraphicsAPI graphicsAPI)
             {scene->meshesCPU.data(), scene->meshesCPU.size() * sizeof(MeshData), m_Buffers[MESH_BUFFER], 0,  {nri::AccessBits::SHADER_RESOURCE, nri::StageBits::FRAGMENT_SHADER | nri::StageBits::COMPUTE_SHADER}},
             //{scene->materialsCPU.data(), scene->materialsCPU.size() * sizeof(MaterialData), m_Buffers[MATERIAL_BUFFER], 0,  {nri::AccessBits::SHADER_RESOURCE, nri::StageBits::FRAGMENT_SHADER | nri::StageBits::COMPUTE_SHADER}},
             {scene->verticesCPU.data(), helper::GetByteSizeOf(scene->verticesCPU), m_Buffers[VERTEX_BUFFER], 0, {nri::AccessBits::VERTEX_BUFFER}},
-            {scene->indicesCPU.data(), helper::GetByteSizeOf(scene->verticesCPU), m_Buffers[INDEX_BUFFER], 0, {nri::AccessBits::INDEX_BUFFER}},
+            {scene->indicesCPU.data(), helper::GetByteSizeOf(scene->indicesCPU), m_Buffers[INDEX_BUFFER], 0, {nri::AccessBits::INDEX_BUFFER}},
         };
 
         NRI_ABORT_ON_FAILURE(NRI.UploadData(*m_CommandQueue, /*textureData.data() */nullptr , 0/*(uint32_t)textureData.size()*/, bufferData, helper::GetCountOf(bufferData)));
@@ -638,12 +642,22 @@ bool Sample::Initialize(nri::GraphicsAPI graphicsAPI)
         return false;
     }
     WindowManager::Init();
+
+    scene->rel = false;
+    scene->relMeshes = false;
+    scene->relMaterials = false;
+    scene->relTextures = false;
     return true;
 }
+
+float lastTime = 0;
 
 void Sample::PrepareFrame(uint32_t frameIndex)
 {
     BeginUI();
+    float dt = glfwGetTime() - lastTime;
+    lastTime = glfwGetTime();
+    float fps = 1 / dt;
 
     WindowManager::Show();
 
@@ -656,6 +670,7 @@ void Sample::PrepareFrame(uint32_t frameIndex)
         ImGui::SetNextWindowSize(ImVec2(0, 0));
         ImGui::Begin("Stats");
         {
+            ImGui::Text("fps                          : %.3f", fps);
             ImGui::Text("Input vertices               : %llu", pipelineStats->inputVertexNum);
             ImGui::Text("Input primitives             : %llu", pipelineStats->inputPrimitiveNum);
             ImGui::Text("Vertex shader invocations    : %llu", pipelineStats->vertexShaderInvocationNum);
@@ -677,6 +692,8 @@ void Sample::PrepareFrame(uint32_t frameIndex)
     desc.nearZ = 0.1f;
     desc.isReversedZ = (CLEAR_DEPTH == 0.0f);
     GetCameraDescFromInputDevices(desc);
+
+
 
     m_Camera.Update(desc, frameIndex);
 
@@ -755,7 +772,7 @@ void Sample::RenderFrame(uint32_t frameIndex)
 
             // Culling
             CullingConstants cullingConstants = {};
-            cullingConstants.DrawCount = (uint32_t)m_Scene.instances.size();
+            cullingConstants.DrawCount = batchCount;
             NRI.CmdSetConstants(commandBuffer, 0, &cullingConstants, sizeof(cullingConstants));
 
             NRI.CmdSetPipeline(commandBuffer, *m_ComputePipeline);
@@ -797,14 +814,15 @@ void Sample::RenderFrame(uint32_t frameIndex)
                 NRI.CmdSetVertexBuffers(commandBuffer, 0, 1, &m_Buffers[VERTEX_BUFFER], &offset);
 
                 if (m_UseGPUDrawGeneration) {
-                    NRI.CmdDrawIndexedIndirect(commandBuffer, *m_Buffers[INDIRECT_BUFFER], 0, (uint32_t)m_Scene.instances.size(), GetDrawIndexedCommandSize(), m_Buffers[INDIRECT_COUNT_BUFFER], 0);
+                    NRI.CmdDrawIndexedIndirect(commandBuffer, *m_Buffers[INDIRECT_BUFFER], 0, batchCount, GetDrawIndexedCommandSize(), m_Buffers[INDIRECT_COUNT_BUFFER], 0);
                 }
                 else {
-                    for (uint32_t i = 0; i < m_Scene.instances.size(); i++) {
+                    exit(1);
+                    /*for (uint32_t i = 0; i < m_Scene.instances.size(); i++) {
                         const utils::Instance& instance = m_Scene.instances[i];
                         const utils::Mesh& mesh = m_Scene.meshes[instance.meshInstanceIndex];
                         NRI.CmdDrawIndexed(commandBuffer, { mesh.indexNum, 1, mesh.indexOffset, (int32_t)mesh.vertexOffset, i });
-                    }
+                    }*/
                 }
             }
             NRI.CmdEndRendering(commandBuffer);
@@ -865,12 +883,21 @@ void Sample::IterateChildren(entt::entity e, float4x4 pMat) {
 
     auto& transform = EntityManager::GetWorld().get<Transform>(e);
 
+    float4x4 transformMat, rotationMap, scaleMap;
+
+    transformMat.SetupByTranslation(transform.localPos);
+    rotationMap.SetupByRotationYPR(transform.localRot.x, transform.localRot.y, transform.localRot.z);
+    scaleMap.SetupByScale(transform.localScale - float3(1));
+
+    transform.localMat = transformMat * rotationMap * scaleMap;
+    //transform.localMat.Invert();
+
     float4x4 localToWorld = pMat * transform.localMat;
 
     transform.localToWorldMat = localToWorld;
 
     auto& identity = EntityManager::GetWorld().get<Identity>(e);
-    Log::Message("Entites", "Iterate: " + identity.name);
+    //Log::Message("Entites", "Iterate: " + identity.name);
     for (entt::entity& child : identity.childs)
     {
         IterateChildren(child, localToWorld);
@@ -884,7 +911,14 @@ bool CmpInstance(InstanceData& a, InstanceData& b) {
 
 uint32_t Sample::PrepareEntities()
 {
-    IterateChildren(EntityManager::GetRoot(), float4x4::Identity());
+    float timeBef = glfwGetTime();
+    float4x4 fxf = float4x4::Identity();
+    //fxf.Invert();
+    IterateChildren(EntityManager::GetRoot(), fxf);
+
+    float dt = glfwGetTime() - timeBef;
+    Log::Message("Renderer", "Iterating Took " + std::to_string(dt * 1000) + "ms");
+
 
     std::vector<InstanceData> instancesToRender;
     std::vector<BatchDesc> batchdescs;
@@ -893,17 +927,24 @@ uint32_t Sample::PrepareEntities()
     batchdescs.clear();
 
     // need to sort that, trying to use an array
-    instancesToRender.reserve(EntityManager::GetWorld().group<Transform, MeshInstance>().size());
+    //instancesToRender.reserve(EntityManager::GetWorld().group<MeshInstance>().size());
     RenderScene* s = SceneManager::GetRenderScene();
     if (!s) {
         return 0;
     }
 
-    EntityManager::GetWorld().group<Transform, MeshInstance>().each([&instancesToRender, s](Transform& t, MeshInstance& meshInst) {
+    EntityManager::GetWorld().group<MeshInstance>().each([&instancesToRender, s](auto entity, MeshInstance& meshInst) {
+       
+        if (!EntityManager::GetWorld().group<Transform/*, Identity*/>().contains(entity)) {
+            return;
+        }
+            
         AModel* m = dynamic_cast<AModel*>(AssetManager::GetAsset(meshInst.modelID));
+        
         if (!m) {
             return;
         }
+        Transform& t = EntityManager::GetWorld().get<Transform>(entity);
         float dis = 0;
 
         RenderID meshRenderID = m->GetRenderID(dis, meshInst.modelID);
@@ -923,8 +964,8 @@ uint32_t Sample::PrepareEntities()
     instancesToRender.resize(min(MAX_INSTANCES, (int)instancesToRender.size()));
 
 
-    uint32_t curMeshID, count, offset;
-    for (auto& instData : instancesToRender)
+    uint32_t curMeshID = 0, count = 0, offset = 0;
+    for (InstanceData& instData : instancesToRender)
     {
         if (instData.meshIndex == curMeshID) {
             count++;
@@ -935,6 +976,7 @@ uint32_t Sample::PrepareEntities()
         count = 1;
         curMeshID = instData.meshIndex;
     }
+    batchdescs.push_back({ offset, count });
 
     nri::BufferUploadDesc bufferData[] =
     {
@@ -944,7 +986,15 @@ uint32_t Sample::PrepareEntities()
 
     NRI_ABORT_ON_FAILURE(NRI.UploadData(*m_CommandQueue, nullptr, 0, bufferData, helper::GetCountOf(bufferData)));
 
-    return batchdescs.size();
+    //Log::Message("Renderer", "Render " + std::to_string(instancesToRender.size()) + "Instances, " + std::to_string(batchdescs.size()) + "batchDescs");
+
+    uint32_t ret = batchdescs.size();
+    batchdescs.clear();
+    instancesToRender.clear();
+
+    dt = glfwGetTime() - timeBef;
+    Log::Message("Renderer", "Preparing Took " + std::to_string(dt*1000) + "ms");
+    return ret;
 }
 
 void Sample::ProzessAddRrmRequests()
@@ -1037,16 +1087,17 @@ void Sample::ReloadMeshes()
     // delet old
     NRI.DestroyDescriptor(*m_Descriptors[INDEX_BUFFER]);
     NRI.DestroyBuffer(*m_Buffers[INDEX_BUFFER]);
-    NRI.FreeMemory(*m_MemoryAllocations[INDEX_BUFFER]);
+
 
     NRI.DestroyDescriptor(*m_Descriptors[VERTEX_BUFFER]);
     NRI.DestroyBuffer(*m_Buffers[VERTEX_BUFFER]);
-    NRI.FreeMemory(*m_MemoryAllocations[VERTEX_BUFFER]);
 
     NRI.DestroyDescriptor(*m_Descriptors[MESH_BUFFER]);
     NRI.DestroyBuffer(*m_Buffers[MESH_BUFFER]);
-    NRI.FreeMemory(*m_MemoryAllocations[MESH_BUFFER]);
 
+
+    NRI.FreeMemory(*m_MemoryAllocations[2]);
+    m_MemoryAllocations.pop_back();
 
     // buffer
     // 
@@ -1069,21 +1120,15 @@ void Sample::ReloadMeshes()
 
     // memory
     nri::ResourceGroupDesc resourceGroupDesc = {};
-
     resourceGroupDesc.memoryLocation = nri::MemoryLocation::DEVICE;
-    resourceGroupDesc.bufferNum = 2;
+    resourceGroupDesc.bufferNum = (uint32_t)SceneBuffers::MAX_NUM - 2;
     resourceGroupDesc.buffers = &m_Buffers[INDEX_BUFFER];
+    resourceGroupDesc.textureNum = (uint32_t)m_Textures.size();
+    resourceGroupDesc.textures = m_Textures.data();
 
-    uint32_t baseAllocation = INDEX_BUFFER;
-    NRI_ABORT_ON_FAILURE(NRI.AllocateAndBindMemory(*m_Device, resourceGroupDesc, m_MemoryAllocations.data() + baseAllocation));
-
-    resourceGroupDesc = {};
-
-    resourceGroupDesc.memoryLocation = nri::MemoryLocation::DEVICE;
-    resourceGroupDesc.bufferNum = 1;
-    resourceGroupDesc.buffers = &m_Buffers[MESH_BUFFER];
-
-    baseAllocation = MESH_BUFFER;
+    uint32_t baseAllocation = m_MemoryAllocations.size();
+    uint32_t allocationNum = NRI.CalculateAllocationNumber(*m_Device, resourceGroupDesc);
+    m_MemoryAllocations.resize(baseAllocation + allocationNum, nullptr);
     NRI_ABORT_ON_FAILURE(NRI.AllocateAndBindMemory(*m_Device, resourceGroupDesc, m_MemoryAllocations.data() + baseAllocation));
 
 
@@ -1098,14 +1143,16 @@ void Sample::ReloadMeshes()
     for (size_t i = 0; i < BUFFERED_FRAME_MAX_NUM; i++)
     {
         nri::DescriptorRangeUpdateDesc rangeUpdateDescs[1] = {};
-        rangeUpdateDescs[1].descriptorNum = BUFFER_COUNT;
-        rangeUpdateDescs[1].descriptors = m_recourceDescs;
+        rangeUpdateDescs[0].descriptorNum = BUFFER_COUNT;
+        rangeUpdateDescs[0].descriptors = m_recourceDescs;
+        rangeUpdateDescs[0].offsetInRange = 2;
+
         NRI.UpdateDescriptorRanges(*m_DescriptorSets[i], 2, 1, rangeUpdateDescs);
     }
 
     nri::DescriptorRangeUpdateDesc rangeUpdateDescs[1] = {};
-    rangeUpdateDescs[1].descriptorNum = BUFFER_COUNT;
-    rangeUpdateDescs[1].descriptors = m_recourceDescs;
+    rangeUpdateDescs[0].descriptorNum = BUFFER_COUNT;
+    rangeUpdateDescs[0].descriptors = m_recourceDescs;
     NRI.UpdateDescriptorRanges(*m_DescriptorSets[BUFFERED_FRAME_MAX_NUM + 1], 1, 1, rangeUpdateDescs);
 
 

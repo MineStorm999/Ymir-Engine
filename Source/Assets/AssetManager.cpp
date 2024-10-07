@@ -20,6 +20,8 @@
 #include "AssetHelper.h"
 
 #include "World/SceneManager.h"
+#include "ECS/ECSManager.h"
+#include "ECS/components.h"
 //#include "Imgui/misc/cpp/imgui_stdlib.h"
 
 
@@ -56,7 +58,7 @@ ExtendToType extToTypeMap = { {"gltf", AssetType::Model}, {".gltf", AssetType::M
 
 void AssetManager::Init()
 {
-
+    // load map                             load map                                            load map
     loadMap[AssetType::Model] = [](nlohmann::json j) {
         AModel* m = new AModel();
 
@@ -125,14 +127,15 @@ void AssetManager::Init()
         };
 
 
+    // loading save file                        loading save file                                           loading save file
     //curDir = new Node("Root", nullptr);
     //rootNode = curDir;
     curPath = utils::GetCFullPath("", utils::CustomFolder::ASSETDIR);
     rootPath = curPath;
 
-    // load map
     
-    std::fstream fStream(utils::GetCFullPath("AssetSave.tyr", utils::CustomFolder::SAVEFILES));
+    
+    std::fstream fStream(utils::GetCFullPath((std::string("AssetSave.") + SAVE_SHORT), utils::CustomFolder::SAVEFILES));
     if (!fStream.is_open()) {
         CreateDefaultScene();
         return;
@@ -174,6 +177,27 @@ void AssetManager::Init()
     }
     else {
         SceneManager::UseScene(lastOpenScene);
+        AScene* scene = SceneManager::GetSceneAsset();
+        RenderScene* rScene = SceneManager::GetRenderScene();
+        if (scene && rScene) {
+            for (AssetID id : scene->usedMeshes)
+            {
+                entt::entity p = entt::null;
+                for (size_t i = 0; i < 1000; i++)
+                {
+                    AssetBase* asset = GetAsset(id);
+                    if (!asset) {
+                        rScene->Remove(id);
+                        continue;
+                    }
+                    entt::entity e = EntityManager::CreateEntity(asset->name + std::to_string(i), id, p);
+                    Transform& t = EntityManager::GetWorld().get<Transform>(e);
+                    t.localPos = { 30.f * i, 0, 0 };
+                    t.localScale = float3(.01f);
+                    t.localRot = { 90, 3, 4 };
+                }
+            }
+        }
     }
     /*Node* tRoot = LoadDir(j["VirtualFSys"], nullptr);
     if (tRoot) {
@@ -191,7 +215,7 @@ void AssetManager::Init()
 
 void AssetManager::Save()
 {
-    std::ofstream ofStream(utils::GetCFullPath("AssetSave.tyr", utils::CustomFolder::SAVEFILES));
+    std::ofstream ofStream(utils::GetCFullPath((std::string("AssetSave.") + SAVE_SHORT), utils::CustomFolder::SAVEFILES));
 
     if (!ofStream.is_open()) {
         Log::Error("AssetManager", "Wrong Path");
@@ -576,7 +600,7 @@ AssetID AssetManager::CreateDefaultScene()
     settings.singleModel = true;
     
 
-    Importer::ImportModel(utils::GetFullPath("Ymir_Default_Scene/model.gltf", utils::DataFolder::SCENES), "AssetDirectory/_Default_/Assets", "YMIR_Mesh", settings, &defMesh);
+    Importer::ImportModel(utils::GetFullPath("Ymir_Default_Scene/model1.gltf", utils::DataFolder::SCENES), "AssetDirectory/_Default_/Assets", "YMIR_Mesh", settings, &defMesh);
 
 
     if (!IsValid(defMesh)) {
@@ -584,6 +608,7 @@ AssetID AssetManager::CreateDefaultScene()
         return INVALID_ASSET_ID;
     }
     rScene->Add(defMesh);
+    Save();
 }
 
 AssetID AssetManager::RegisterAsset(AssetBase* asset)
