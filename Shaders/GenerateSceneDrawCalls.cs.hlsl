@@ -7,7 +7,6 @@ NRI_PUSH_CONSTANTS(CullingConstants, Constants, 0);
 NRI_RESOURCE(StructuredBuffer<MaterialData>, Materials, t, 0, 0);
 NRI_RESOURCE(StructuredBuffer<MeshData>, Meshes, t, 1, 0);
 NRI_RESOURCE(StructuredBuffer<InstanceData>, Instances, t, 2, 0);
-NRI_RESOURCE(StructuredBuffer<BatchDesc>, Batches, t, 3, 0);
 NRI_RESOURCE(RWBuffer<uint>, DrawCount, u, 0, 0);
 NRI_RESOURCE(RWBuffer<uint>, Commands, u, 1, 0);
 
@@ -15,6 +14,8 @@ NRI_RESOURCE(RWBuffer<uint>, Commands, u, 1, 0);
 groupshared uint s_DrawCount;
 
 #define CTA_SIZE 256
+
+
 
 [numthreads(CTA_SIZE, 1, 1)]
 void main(uint threadId : SV_DispatchThreadId)
@@ -24,20 +25,29 @@ void main(uint threadId : SV_DispatchThreadId)
 
     GroupMemoryBarrierWithGroupSync();
 
-    for (uint batchIndex = threadId; batchIndex < Constants.DrawCount; batchIndex += CTA_SIZE)
+    for (uint instanceIndex = threadId; instanceIndex < Constants.DrawCount; instanceIndex += CTA_SIZE)
     {
+        if (instanceIndex >= MAX_INSTANCES) {
+            continue;
+        }
+
+        if (Instances[instanceIndex].meshIndex != 0) {
+            continue;
+        }
+        
         uint drawIndex = 0;
         InterlockedAdd(s_DrawCount, 1, drawIndex);
 
-        uint meshIndex = Instances[Batches[batchIndex].offset].meshIndex;
+        uint meshIndex = Instances[instanceIndex].meshIndex;
+
 
         NRI_FILL_DRAW_INDEXED_DESC(Commands, drawIndex,
-            Meshes[meshIndex].idxCount,
-            Batches[batchIndex].count, // TODO: batch draw instances with same mesh into one draw call
-            Meshes[meshIndex].idxOffset,
-            Meshes[meshIndex].vtxOffset,
-            Batches[batchIndex].offset
-        );
+             Meshes[meshIndex].idxCount,
+             1, // TODO: batch draw instances with same mesh into one draw call
+             Meshes[meshIndex].idxOffset,
+             Meshes[meshIndex].vtxOffset,
+             instanceIndex
+         );
     }
 
     GroupMemoryBarrierWithGroupSync();
@@ -45,3 +55,5 @@ void main(uint threadId : SV_DispatchThreadId)
     if (threadId == 0)
         DrawCount[0] = s_DrawCount;
 }
+
+

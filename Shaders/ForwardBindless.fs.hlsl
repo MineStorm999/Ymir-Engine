@@ -26,7 +26,11 @@ struct BindlessAttributes
     nointerpolation uint DrawParameters : ATTRIBUTES;
 };
 
-
+float rand_1_05(in float2 uv)
+{
+    float2 noise = (frac(sin(dot(uv, float2(12.9898, 78.233) * 2.0)) * 43758.5453));
+    return abs(noise.x + noise.y) * 0.5;
+}
 
 [earlydepthstencil]
 float4 main( in BindlessAttributes input ) : SV_Target
@@ -67,9 +71,11 @@ float4 main( in BindlessAttributes input ) : SV_Target
     const float exposure = 0.00025;
 
     float4 output = Shade(float4(albedo, diffuse.w), Rf0, roughness, emissive, N, L, V, Clight, FAKE_AMBIENT);
-    output.xyz = Color::HdrToLinear( output.xyz * exposure );
+    output.xyz = Color::HdrToLinear( output.xyz * exposure);
 
-    //output = instanceIndex;
+    output.xyzw = float(0);
+    output.x = rand_1_05(float2(float(instanceIndex) / float(0xffffffff), 0));
+    
     return output;
 }
 

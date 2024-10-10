@@ -40,7 +40,11 @@ struct InstanceData
 {
     uint32_t meshIndex;
     uint32_t materialIndex;
+
+    uint32_t off0;
+    uint32_t off1;
     float4x4 transform;
+
 };
 
 struct BatchDesc {

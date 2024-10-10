@@ -37,7 +37,7 @@ Attributes main( in Input input, NRI_DECLARE_DRAW_PARAMETERS )
 
     
 
-    output.Position = mul(Instances[NRI_INSTANCE_ID_OFFSET].transform, float4(input.Position, 1));
+    output.Position =  mul(Instances[NRI_INSTANCE_ID_OFFSET].transform, float4(input.Position, 1));
     output.Position =  mul(gWorldToClip, output.Position);
     output.Normal = float4( N, input.TexCoord.x );
     output.View = float4( V, input.TexCoord.y );

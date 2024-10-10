@@ -54,6 +54,7 @@ Sample::~Sample()
 
 bool Sample::Initialize(nri::GraphicsAPI graphicsAPI)
 {
+    
     Log::Init();
 
     EntityManager::Init();
@@ -369,7 +370,7 @@ bool Sample::Initialize(nri::GraphicsAPI graphicsAPI)
 
 
         // INDIRECT_BUFFER
-        bufferDesc.size = MAX_BATCH_DESCS * GetDrawIndexedCommandSize();
+        bufferDesc.size = MAX_INSTANCES * GetDrawIndexedCommandSize();
         bufferDesc.structureStride = 0;
         bufferDesc.usageMask = nri::BufferUsageBits::SHADER_RESOURCE_STORAGE | nri::BufferUsageBits::ARGUMENT_BUFFER;
         NRI_ABORT_ON_FAILURE(NRI.CreateBuffer(*m_Device, bufferDesc, buffer));
@@ -465,7 +466,7 @@ bool Sample::Initialize(nri::GraphicsAPI graphicsAPI)
         // Indirect buffer 
         bufferViewDesc.viewType = nri::BufferViewType::SHADER_RESOURCE_STORAGE;
         bufferViewDesc.buffer = m_Buffers[INDIRECT_BUFFER];
-        bufferViewDesc.size = MAX_BATCH_DESCS * GetDrawIndexedCommandSize();
+        bufferViewDesc.size = MAX_INSTANCES * GetDrawIndexedCommandSize();
         bufferViewDesc.format = nri::Format::R32_UINT;
         NRI_ABORT_ON_FAILURE(NRI.CreateBufferView(bufferViewDesc, m_IndirectBufferStorageAttachement));
         m_Descriptors.push_back(m_IndirectBufferStorageAttachement);
@@ -604,9 +605,16 @@ bool Sample::Initialize(nri::GraphicsAPI graphicsAPI)
             subresourceBegin += texture.GetArraySize() * texture.GetMipNum();
         }
 
+        void* dummyInstances = malloc(MAX_INSTANCES * sizeof(InstanceData));
+        if (!dummyInstances) {
+            return false;
+        }
+        memset(dummyInstances, (uint8_t)0xffffffff, MAX_INSTANCES * sizeof(InstanceData));
+
         nri::BufferUploadDesc bufferData[] =
         {
             {nullptr, 0,  m_Buffers[INDIRECT_BUFFER], 0, {nri::AccessBits::ARGUMENT_BUFFER, nri::StageBits::INDIRECT }},
+            {dummyInstances, MAX_INSTANCES * sizeof(InstanceData), m_Buffers[INSTANCE_BUFFER], 0,  {nri::AccessBits::SHADER_RESOURCE, nri::StageBits::FRAGMENT_SHADER | nri::StageBits::COMPUTE_SHADER}},
             {scene->meshesCPU.data(), scene->meshesCPU.size() * sizeof(MeshData), m_Buffers[MESH_BUFFER], 0,  {nri::AccessBits::SHADER_RESOURCE, nri::StageBits::FRAGMENT_SHADER | nri::StageBits::COMPUTE_SHADER}},
             //{scene->materialsCPU.data(), scene->materialsCPU.size() * sizeof(MaterialData), m_Buffers[MATERIAL_BUFFER], 0,  {nri::AccessBits::SHADER_RESOURCE, nri::StageBits::FRAGMENT_SHADER | nri::StageBits::COMPUTE_SHADER}},
             {scene->verticesCPU.data(), helper::GetByteSizeOf(scene->verticesCPU), m_Buffers[VERTEX_BUFFER], 0, {nri::AccessBits::VERTEX_BUFFER}},
@@ -614,6 +622,7 @@ bool Sample::Initialize(nri::GraphicsAPI graphicsAPI)
         };
 
         NRI_ABORT_ON_FAILURE(NRI.UploadData(*m_CommandQueue, /*textureData.data() */nullptr , 0/*(uint32_t)textureData.size()*/, bufferData, helper::GetCountOf(bufferData)));
+        free(dummyInstances);
     }
 
     { // Pipeline statistics
@@ -814,7 +823,7 @@ void Sample::RenderFrame(uint32_t frameIndex)
                 NRI.CmdSetVertexBuffers(commandBuffer, 0, 1, &m_Buffers[VERTEX_BUFFER], &offset);
 
                 if (m_UseGPUDrawGeneration) {
-                    NRI.CmdDrawIndexedIndirect(commandBuffer, *m_Buffers[INDIRECT_BUFFER], 0, batchCount, GetDrawIndexedCommandSize(), m_Buffers[INDIRECT_COUNT_BUFFER], 0);
+                    NRI.CmdDrawIndexedIndirect(commandBuffer, *m_Buffers[INDIRECT_BUFFER], 0, MAX_INSTANCES, GetDrawIndexedCommandSize(), m_Buffers[INDIRECT_COUNT_BUFFER], 0);
                 }
                 else {
                     exit(1);
@@ -870,31 +879,78 @@ void Sample::RenderFrame(uint32_t frameIndex)
     }
 }
 
+InstanceData dummy;
+
 void Sample::IterateChildren(entt::entity e, float4x4 pMat) {
     if (!EntityManager::GetWorld().valid(e)) {
         return;
     }
-    if (!EntityManager::GetWorld().group<Transform/*, Identity*/>().contains(e)) {
+    if (!EntityManager::GetWorld().view<Transform, Identity>().contains(e)) {
         return;
     }
-    if (!EntityManager::GetWorld().group<Identity/*, Transform*/>().contains(e)) {
-        return;
-    }
-
     auto& transform = EntityManager::GetWorld().get<Transform>(e);
 
     float4x4 transformMat, rotationMap, scaleMap;
 
     transformMat.SetupByTranslation(transform.localPos);
     rotationMap.SetupByRotationYPR(transform.localRot.x, transform.localRot.y, transform.localRot.z);
-    scaleMap.SetupByScale(transform.localScale - float3(1));
+    scaleMap.SetupByScale(transform.localScale);
 
     transform.localMat = transformMat * rotationMap * scaleMap;
     //transform.localMat.Invert();
 
     float4x4 localToWorld = pMat * transform.localMat;
-
+    bool dirty = localToWorld != transform.localToWorldMat;
     transform.localToWorldMat = localToWorld;
+    if (!dirty) {
+        auto& identity = EntityManager::GetWorld().get<Identity>(e);
+        //Log::Message("Entites", "Iterate: " + identity.name);
+        for (entt::entity& child : identity.childs)
+        {
+            IterateChildren(child, localToWorld);
+        }
+        return;
+    }
+
+
+    MeshInstance* mesh = EntityManager::GetWorld().try_get<MeshInstance>(e);
+    if (mesh) {
+        if (mesh->instanceGPUID == INVALID_RENDER_ID) {
+            mesh->instanceGPUID = GetFreeGPUInstance();
+        }
+        if (mesh->instanceGPUID == INVALID_RENDER_ID) {
+            auto& identity = EntityManager::GetWorld().get<Identity>(e);
+            //Log::Message("Entites", "Iterate: " + identity.name);
+            for (entt::entity& child : identity.childs)
+            {
+                IterateChildren(child, localToWorld);
+            }
+            return;
+        }
+        RenderScene* rS = SceneManager::GetRenderScene();
+        if (!rS) {
+            auto& identity = EntityManager::GetWorld().get<Identity>(e);
+            //Log::Message("Entites", "Iterate: " + identity.name);
+            for (entt::entity& child : identity.childs)
+            {
+                IterateChildren(child, localToWorld);
+            }
+            return;
+        }
+
+        
+
+        dummy.meshIndex = rS->renderIds[mesh->modelID];
+        dummy.materialIndex = 0;//rS->indicesCPU[mesh->modelID];
+        dummy.transform = localToWorld;
+
+        nri::BufferUploadDesc bufferData[] = 
+        {
+            {&dummy, sizeof(InstanceData), m_Buffers[INSTANCE_BUFFER], sizeof(InstanceData) * mesh->instanceGPUID,  {nri::AccessBits::SHADER_RESOURCE, nri::StageBits::FRAGMENT_SHADER | nri::StageBits::COMPUTE_SHADER}},
+        };
+
+        NRI_ABORT_ON_FAILURE(NRI.UploadData(*m_CommandQueue, nullptr, 0, bufferData, helper::GetCountOf(bufferData)));
+    }
 
     auto& identity = EntityManager::GetWorld().get<Identity>(e);
     //Log::Message("Entites", "Iterate: " + identity.name);
@@ -913,88 +969,24 @@ uint32_t Sample::PrepareEntities()
 {
     float timeBef = glfwGetTime();
     float4x4 fxf = float4x4::Identity();
+    float4x4 transformMat, rotationMap, scaleMap;
+
+    transformMat.SetupByTranslation({ 10.0,0.0, 0.0 });
+    rotationMap.SetupByRotationYPR(0, 0, 0);
+    scaleMap.SetupByScale({ 1.0, 1.0, 1.0 });
+
+    fxf = transformMat * rotationMap * scaleMap;
+    
     //fxf.Invert();
     IterateChildren(EntityManager::GetRoot(), fxf);
 
     float dt = glfwGetTime() - timeBef;
-    Log::Message("Renderer", "Iterating Took " + std::to_string(dt * 1000) + "ms");
 
+    uint32_t freeInst = GetFreeGPUInstance();
 
-    std::vector<InstanceData> instancesToRender;
-    std::vector<BatchDesc> batchdescs;
+    Log::Message("Renderer", "Preparing Took " + std::to_string(dt * 1000) + "ms");
 
-    instancesToRender.clear();
-    batchdescs.clear();
-
-    // need to sort that, trying to use an array
-    //instancesToRender.reserve(EntityManager::GetWorld().group<MeshInstance>().size());
-    RenderScene* s = SceneManager::GetRenderScene();
-    if (!s) {
-        return 0;
-    }
-
-    EntityManager::GetWorld().group<MeshInstance>().each([&instancesToRender, s](auto entity, MeshInstance& meshInst) {
-       
-        if (!EntityManager::GetWorld().group<Transform/*, Identity*/>().contains(entity)) {
-            return;
-        }
-            
-        AModel* m = dynamic_cast<AModel*>(AssetManager::GetAsset(meshInst.modelID));
-        
-        if (!m) {
-            return;
-        }
-        Transform& t = EntityManager::GetWorld().get<Transform>(entity);
-        float dis = 0;
-
-        RenderID meshRenderID = m->GetRenderID(dis, meshInst.modelID);
-        if (meshRenderID == INVALID_RENDER_ID) {
-            return;
-        }
-        
-        RenderID materialRenderID = s->renderIds[meshInst.materialID];
-        if (materialRenderID == INVALID_RENDER_ID) {
-            return;
-        }
-
-        instancesToRender.push_back({ meshRenderID, materialRenderID, t.localToWorldMat });
-        });
-
-    std::sort(instancesToRender.begin(), instancesToRender.end(), CmpInstance);
-    instancesToRender.resize(min(MAX_INSTANCES, (int)instancesToRender.size()));
-
-
-    uint32_t curMeshID = 0, count = 0, offset = 0;
-    for (InstanceData& instData : instancesToRender)
-    {
-        if (instData.meshIndex == curMeshID) {
-            count++;
-            continue;
-        }
-        batchdescs.push_back({ offset, count });
-        offset += count;
-        count = 1;
-        curMeshID = instData.meshIndex;
-    }
-    batchdescs.push_back({ offset, count });
-
-    nri::BufferUploadDesc bufferData[] =
-    {
-        {instancesToRender.data(), instancesToRender.size() * sizeof(InstanceData), m_Buffers[INSTANCE_BUFFER], 0,  {nri::AccessBits::SHADER_RESOURCE, nri::StageBits::FRAGMENT_SHADER | nri::StageBits::COMPUTE_SHADER}},
-        {batchdescs.data(), batchdescs.size() * sizeof(BatchDesc), m_Buffers[BATCH_DESC_BUFFER], 0,  {nri::AccessBits::SHADER_RESOURCE, nri::StageBits::FRAGMENT_SHADER | nri::StageBits::COMPUTE_SHADER}},
-    };
-
-    NRI_ABORT_ON_FAILURE(NRI.UploadData(*m_CommandQueue, nullptr, 0, bufferData, helper::GetCountOf(bufferData)));
-
-    //Log::Message("Renderer", "Render " + std::to_string(instancesToRender.size()) + "Instances, " + std::to_string(batchdescs.size()) + "batchDescs");
-
-    uint32_t ret = batchdescs.size();
-    batchdescs.clear();
-    instancesToRender.clear();
-
-    dt = glfwGetTime() - timeBef;
-    Log::Message("Renderer", "Preparing Took " + std::to_string(dt*1000) + "ms");
-    return ret;
+    return MAX_INSTANCES;
 }
 
 void Sample::ProzessAddRrmRequests()
@@ -1174,4 +1166,20 @@ void Sample::ReloadTextures()                                       /// todo    
 void Sample::ReloadMaterials()                                      /// todo                todo                            todo
 {
 
+}
+
+RenderID Sample::GetFreeGPUInstance()
+{
+    static RenderID last = -1;
+
+    last++;
+    if (last >= MAX_INSTANCES) {
+        last = INVALID_RENDER_ID;
+        if (m_FreeInstances.size() > 0) {
+            RenderID id = m_FreeInstances[m_FreeInstances.size()-1];
+            m_FreeInstances.pop_back();
+            return id;
+        }
+    }
+    return last;
 }

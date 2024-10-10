@@ -183,18 +183,23 @@ void AssetManager::Init()
             for (AssetID id : scene->usedMeshes)
             {
                 entt::entity p = entt::null;
-                for (size_t i = 0; i < 1000; i++)
+                for (size_t j = 0; j < 10; j++)
                 {
-                    AssetBase* asset = GetAsset(id);
-                    if (!asset) {
-                        rScene->Remove(id);
-                        continue;
+                    for (size_t i = 0; i < 100; i++)
+                    {
+                        AssetBase* asset = GetAsset(id);
+                        if (!asset) {
+                            rScene->Remove(id);
+                            continue;
+                        }
+                        entt::entity e = EntityManager::CreateEntity(asset->name + std::to_string(i), id, p);
+                        Transform& t = EntityManager::GetWorld().get<Transform>(e);
+                        t.localPos = { 3, 2, 0 };
+                        t.localScale = float3(1);
+                        t.localRot = { 0, 90, 0 };
+                        p = e;
                     }
-                    entt::entity e = EntityManager::CreateEntity(asset->name + std::to_string(i), id, p);
-                    Transform& t = EntityManager::GetWorld().get<Transform>(e);
-                    t.localPos = { 30.f * i, 0, 0 };
-                    t.localScale = float3(.01f);
-                    t.localRot = { 90, 3, 4 };
+                    p = EntityManager::GetRoot();
                 }
             }
         }

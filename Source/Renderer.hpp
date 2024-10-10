@@ -52,6 +52,13 @@ struct Frame1
     uint32_t globalConstantBufferViewOffsets;
 };
 
+struct Instanceata
+{
+    uint32_t meshIndex;
+    uint32_t materialIndex;
+    float4x4 transform;
+};
+
 class Sample : public SampleBase
 {
 public:
@@ -121,4 +128,10 @@ private:
     void ReloadMeshes();
     void ReloadTextures();
     void ReloadMaterials();
+
+    std::vector<RenderID> m_FreeInstances;
+    RenderID GetFreeGPUInstance();
+
+    // todo
+    void RemoveGPUInstance() {};
 };

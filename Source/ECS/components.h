@@ -18,8 +18,9 @@ struct Transform {
 };
 
 struct MeshInstance {
-	AssetID materialID{ 0xffffffff };
-	AssetID modelID;
+	AssetID materialID{ INVALID_ASSET_ID };
+	AssetID modelID{ INVALID_ASSET_ID };
+	RenderID instanceGPUID {INVALID_RENDER_ID};
 };
 
 struct Root{};
