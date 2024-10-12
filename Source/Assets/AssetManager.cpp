@@ -190,14 +190,15 @@ void AssetManager::Init()
                         rScene->Remove(id);
                         continue;
                     }
+                    /*
                     entt::entity e = EntityManager::CreateEntity(asset->name + "first" + std::to_string(j), id, p);
                     Transform& t = EntityManager::GetWorld().get<Transform>(e);
                     t.localPos = { 2 * (float)j, 1, 0 };
                     t.localScale = float3(1);
-                    t.localRot = { 0, 0, 0 };
-                    p = e;
+                    t.localRot = { 0, 0, 0 };*/
+                    //p = e;
 
-                    for (size_t i = 0; i < 9; i++)
+                    for (size_t i = 0; i < 1000; i++)
                     {
                         AssetBase* asset = GetAsset(id);
                         if (!asset) {
@@ -206,10 +207,10 @@ void AssetManager::Init()
                         }
                         entt::entity e = EntityManager::CreateEntity(asset->name + std::to_string(i), id, p);
                         Transform& t = EntityManager::GetWorld().get<Transform>(e);
-                        t.localPos = { 0, 2, 0 };
+                        t.localPos = { 2 * (float)j, 2 * (float)i, 0 };
                         t.localScale = float3(1);
                         t.localRot = { 0, 0, 0 };
-                        p = e;
+                        //p = e;
                     }
                     p = EntityManager::GetRoot();
                 }
@@ -609,15 +610,15 @@ AssetID AssetManager::CreateDefaultScene()
     AssetID defMesh = INVALID_ASSET_ID;
 
     MeshImportSettings settings;
-    settings.autoLOD = true;
+    settings.autoLOD = false;
     settings.compress = true;
     settings.createFolder = true;
-    settings.lodCount = 10;
+    settings.lodCount = 0;
     settings.optimize = true;
     settings.singleModel = true;
     
 
-    Importer::ImportModel(utils::GetFullPath("Ymir_Default_Scene/model1.gltf", utils::DataFolder::SCENES), "AssetDirectory/_Default_/Assets", "YMIR_Mesh", settings, &defMesh);
+    Importer::ImportModel(utils::GetFullPath("Cube/1.gltf", utils::DataFolder::SCENES), "AssetDirectory/_Default_/Assets", "YMIR_Mesh", settings, &defMesh);
 
 
     if (!IsValid(defMesh)) {
