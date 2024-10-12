@@ -3,7 +3,7 @@
 
 #include <array>
 #include "ECS/ECSManager.h"
-
+#include "ECS/components.h"
 constexpr uint32_t GLOBAL_DESCRIPTOR_SET = 0;
 constexpr uint32_t MATERIAL_DESCRIPTOR_SET = 1;
 constexpr float CLEAR_DEPTH = 0.0f;
@@ -28,8 +28,8 @@ enum SceneBuffers
     MATERIAL_BUFFER,
     MESH_BUFFER,
     INSTANCE_BUFFER,
-    BATCH_DESC_BUFFER,
-
+    INSTANCE_MATRIX_BUFFER,
+    
     // storage buffer
     INDIRECT_BUFFER,
     INDIRECT_COUNT_BUFFER,
@@ -77,7 +77,7 @@ public:
     void PrepareFrame(uint32_t frameIndex) override;
     void RenderFrame(uint32_t frameIndex) override;
 
-    void IterateChildren(entt::entity e, float4x4 pMat);
+    void UpdateEntityTransform(entt::entity e, Transform& transform, Identity& idenetity);
 
     // returns the batch count (draw call(GPU side))
     uint32_t PrepareEntities();

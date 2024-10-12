@@ -27,6 +27,9 @@ public:
 
 	static void Init();
 
+	// todo
+	static void DeleteEntity(entt::entity e) {};
+
 	static entt::entity CreateEntity(std::string name, entt::entity parent = entt::null);
 	static entt::entity CreateEntity(std::string name, AssetID assetOriginal, entt::entity parent = entt::null);
 };

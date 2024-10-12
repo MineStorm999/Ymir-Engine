@@ -7,6 +7,8 @@ NRI_PUSH_CONSTANTS(CullingConstants, Constants, 0);
 NRI_RESOURCE(StructuredBuffer<MaterialData>, Materials, t, 0, 0);
 NRI_RESOURCE(StructuredBuffer<MeshData>, Meshes, t, 1, 0);
 NRI_RESOURCE(StructuredBuffer<InstanceData>, Instances, t, 2, 0);
+NRI_RESOURCE(StructuredBuffer<float4x4>, lWMatrixes, t, 3, 0);
+
 NRI_RESOURCE(RWBuffer<uint>, DrawCount, u, 0, 0);
 NRI_RESOURCE(RWBuffer<uint>, Commands, u, 1, 0);
 
@@ -15,7 +17,30 @@ groupshared uint s_DrawCount;
 
 #define CTA_SIZE 256
 
+bool Render(uint id) {
+    if (id >= MAX_TRANSFORMS) {
+        return false;
+    }
 
+    if (Instances[id].meshIndex != 0) {
+        return false;
+    }
+
+    return true;
+}
+
+float4x4 CreateLWMatrix(uint id) {
+    uint parent = Instances[id].parent;
+    float4x4 curMat = Instances[id].transform;
+
+    for (uint i = 0; i < MAX_TRANSFORMS && parent < MAX_TRANSFORMS; i++)
+    {
+        curMat = curMat * Instances[parent].transform;
+        parent = Instances[parent].parent;
+    }
+
+    return curMat;
+}
 
 [numthreads(CTA_SIZE, 1, 1)]
 void main(uint threadId : SV_DispatchThreadId)
@@ -27,19 +52,15 @@ void main(uint threadId : SV_DispatchThreadId)
 
     for (uint instanceIndex = threadId; instanceIndex < Constants.DrawCount; instanceIndex += CTA_SIZE)
     {
-        if (instanceIndex >= MAX_INSTANCES) {
+        if (!Render(instanceIndex)) {
             continue;
         }
-
-        if (Instances[instanceIndex].meshIndex != 0) {
-            continue;
-        }
-        
         uint drawIndex = 0;
         InterlockedAdd(s_DrawCount, 1, drawIndex);
 
         uint meshIndex = Instances[instanceIndex].meshIndex;
 
+        // todo create local to world
 
         NRI_FILL_DRAW_INDEXED_DESC(Commands, drawIndex,
              Meshes[meshIndex].idxCount,

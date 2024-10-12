@@ -79,10 +79,6 @@ void EntityManager::Init()
         ECSWorld* world = new ECSWorld();
         SetWorld(world);
     }
-
-    curWorld->group<Transform>();
-    curWorld->group<MeshInstance>();
-    curWorld->group<Identity>();
 }
 
 entt::entity EntityManager::CreateEntity(std::string name, entt::entity parent)
@@ -97,14 +93,17 @@ entt::entity EntityManager::CreateEntity(std::string name, entt::entity parent)
         return e;
     }
     if (parent == entt::null) {
+
         id.parent = GetRoot();
         Identity& id2 = GetWorld().get<Identity>(GetRoot());
         id2.childs.push_back(e);
+        GetWorld().emplace<Dirty>(e);
         return e;
     }
     id.parent = parent;
     Identity& id2 = GetWorld().get<Identity>(parent);
     id2.childs.push_back(e);
+    GetWorld().emplace<Dirty>(e);
     return e;
 }
 

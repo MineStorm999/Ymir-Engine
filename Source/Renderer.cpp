@@ -355,22 +355,22 @@ bool Sample::Initialize(nri::GraphicsAPI graphicsAPI)
         m_Buffers.push_back(buffer);
 
         // INSTANCE_BUFFER
-        bufferDesc.size = MAX_INSTANCES * sizeof(InstanceData);
+        bufferDesc.size = MAX_TRANSFORMS * sizeof(InstanceData);
         bufferDesc.structureStride = sizeof(InstanceData);
         bufferDesc.usageMask = nri::BufferUsageBits::SHADER_RESOURCE;
         NRI_ABORT_ON_FAILURE(NRI.CreateBuffer(*m_Device, bufferDesc, buffer));
         m_Buffers.push_back(buffer);
 
-        // BATCH_DESC_BUFFER
-        bufferDesc.size = MAX_BATCH_DESCS * sizeof(BatchDesc);
-        bufferDesc.structureStride = sizeof(BatchDesc);
+        // INSTANCE_MATRIX_BUFFER
+        bufferDesc.size = MAX_TRANSFORMS * sizeof(float4x4);
+        bufferDesc.structureStride = sizeof(float4x4);
         bufferDesc.usageMask = nri::BufferUsageBits::SHADER_RESOURCE;
         NRI_ABORT_ON_FAILURE(NRI.CreateBuffer(*m_Device, bufferDesc, buffer));
         m_Buffers.push_back(buffer);
 
 
         // INDIRECT_BUFFER
-        bufferDesc.size = MAX_INSTANCES * GetDrawIndexedCommandSize();
+        bufferDesc.size = MAX_TRANSFORMS * GetDrawIndexedCommandSize();
         bufferDesc.structureStride = 0;
         bufferDesc.usageMask = nri::BufferUsageBits::SHADER_RESOURCE_STORAGE | nri::BufferUsageBits::ARGUMENT_BUFFER;
         NRI_ABORT_ON_FAILURE(NRI.CreateBuffer(*m_Device, bufferDesc, buffer));
@@ -453,20 +453,20 @@ bool Sample::Initialize(nri::GraphicsAPI graphicsAPI)
 
         // Instance buffer 
         bufferViewDesc.buffer = m_Buffers[INSTANCE_BUFFER];
-        bufferViewDesc.size = MAX_INSTANCES * sizeof(InstanceData);
+        bufferViewDesc.size = MAX_TRANSFORMS * sizeof(InstanceData);
         NRI_ABORT_ON_FAILURE(NRI.CreateBufferView(bufferViewDesc, m_recourceDescs[2]));
         m_Descriptors.push_back(m_recourceDescs[2]);
 
-        // Batch Desc Buffer
-        bufferViewDesc.buffer = m_Buffers[BATCH_DESC_BUFFER];
-        bufferViewDesc.size = MAX_BATCH_DESCS * sizeof(BatchDesc);
+        // instance matrix Buffer
+        bufferViewDesc.buffer = m_Buffers[INSTANCE_MATRIX_BUFFER];
+        bufferViewDesc.size = MAX_TRANSFORMS * sizeof(float4x4);
         NRI_ABORT_ON_FAILURE(NRI.CreateBufferView(bufferViewDesc, m_recourceDescs[3]));
         m_Descriptors.push_back(m_recourceDescs[3]);
 
         // Indirect buffer 
         bufferViewDesc.viewType = nri::BufferViewType::SHADER_RESOURCE_STORAGE;
         bufferViewDesc.buffer = m_Buffers[INDIRECT_BUFFER];
-        bufferViewDesc.size = MAX_INSTANCES * GetDrawIndexedCommandSize();
+        bufferViewDesc.size = MAX_TRANSFORMS * GetDrawIndexedCommandSize();
         bufferViewDesc.format = nri::Format::R32_UINT;
         NRI_ABORT_ON_FAILURE(NRI.CreateBufferView(bufferViewDesc, m_IndirectBufferStorageAttachement));
         m_Descriptors.push_back(m_IndirectBufferStorageAttachement);
@@ -605,16 +605,16 @@ bool Sample::Initialize(nri::GraphicsAPI graphicsAPI)
             subresourceBegin += texture.GetArraySize() * texture.GetMipNum();
         }
 
-        void* dummyInstances = malloc(MAX_INSTANCES * sizeof(InstanceData));
+        void* dummyInstances = malloc(MAX_TRANSFORMS * sizeof(InstanceData));
         if (!dummyInstances) {
             return false;
         }
-        memset(dummyInstances, (uint8_t)0xffffffff, MAX_INSTANCES * sizeof(InstanceData));
+        memset(dummyInstances, (uint8_t)0xffffffff, MAX_TRANSFORMS * sizeof(InstanceData));
 
         nri::BufferUploadDesc bufferData[] =
         {
             {nullptr, 0,  m_Buffers[INDIRECT_BUFFER], 0, {nri::AccessBits::ARGUMENT_BUFFER, nri::StageBits::INDIRECT }},
-            {dummyInstances, MAX_INSTANCES * sizeof(InstanceData), m_Buffers[INSTANCE_BUFFER], 0,  {nri::AccessBits::SHADER_RESOURCE, nri::StageBits::FRAGMENT_SHADER | nri::StageBits::COMPUTE_SHADER}},
+            {dummyInstances, MAX_TRANSFORMS * sizeof(InstanceData), m_Buffers[INSTANCE_BUFFER], 0,  {nri::AccessBits::SHADER_RESOURCE, nri::StageBits::FRAGMENT_SHADER | nri::StageBits::COMPUTE_SHADER}},
             {scene->meshesCPU.data(), scene->meshesCPU.size() * sizeof(MeshData), m_Buffers[MESH_BUFFER], 0,  {nri::AccessBits::SHADER_RESOURCE, nri::StageBits::FRAGMENT_SHADER | nri::StageBits::COMPUTE_SHADER}},
             //{scene->materialsCPU.data(), scene->materialsCPU.size() * sizeof(MaterialData), m_Buffers[MATERIAL_BUFFER], 0,  {nri::AccessBits::SHADER_RESOURCE, nri::StageBits::FRAGMENT_SHADER | nri::StageBits::COMPUTE_SHADER}},
             {scene->verticesCPU.data(), helper::GetByteSizeOf(scene->verticesCPU), m_Buffers[VERTEX_BUFFER], 0, {nri::AccessBits::VERTEX_BUFFER}},
@@ -823,7 +823,7 @@ void Sample::RenderFrame(uint32_t frameIndex)
                 NRI.CmdSetVertexBuffers(commandBuffer, 0, 1, &m_Buffers[VERTEX_BUFFER], &offset);
 
                 if (m_UseGPUDrawGeneration) {
-                    NRI.CmdDrawIndexedIndirect(commandBuffer, *m_Buffers[INDIRECT_BUFFER], 0, MAX_INSTANCES, GetDrawIndexedCommandSize(), m_Buffers[INDIRECT_COUNT_BUFFER], 0);
+                    NRI.CmdDrawIndexedIndirect(commandBuffer, *m_Buffers[INDIRECT_BUFFER], 0, MAX_TRANSFORMS, GetDrawIndexedCommandSize(), m_Buffers[INDIRECT_COUNT_BUFFER], 0);
                 }
                 else {
                     exit(1);
@@ -881,83 +881,75 @@ void Sample::RenderFrame(uint32_t frameIndex)
 
 InstanceData dummy;
 
-void Sample::IterateChildren(entt::entity e, float4x4 pMat) {
-    if (!EntityManager::GetWorld().valid(e)) {
+void Sample::UpdateEntityTransform(entt::entity e, Transform& transform, Identity& identity) {
+   
+    
+    if (identity.instanceGPUID == INVALID_RENDER_ID) {
+        identity.instanceGPUID = GetFreeGPUInstance();
+    }
+    if (identity.instanceGPUID == INVALID_RENDER_ID) {
+        EntityManager::GetWorld().destroy(e);
         return;
     }
-    if (!EntityManager::GetWorld().view<Transform, Identity>().contains(e)) {
-        return;
-    }
-    auto& transform = EntityManager::GetWorld().get<Transform>(e);
 
+    // transform
     float4x4 transformMat, rotationMap, scaleMap;
 
     transformMat.SetupByTranslation(transform.localPos);
-    rotationMap.SetupByRotationYPR(transform.localRot.x, transform.localRot.y, transform.localRot.z);
+    float4x4 tempRot;
+    
+    rotationMap.SetupByRotationX(transform.localRot.x);
+    tempRot.SetupByRotationY(transform.localRot.y);
+    rotationMap = rotationMap * tempRot;
+    tempRot.SetupByRotationZ(transform.localRot.z);
+    rotationMap = rotationMap * tempRot;
+    
     scaleMap.SetupByScale(transform.localScale);
 
     transform.localMat = transformMat * rotationMap * scaleMap;
     //transform.localMat.Invert();
 
-    float4x4 localToWorld = pMat * transform.localMat;
-    bool dirty = localToWorld != transform.localToWorldMat;
-    transform.localToWorldMat = localToWorld;
-    if (!dirty) {
-        auto& identity = EntityManager::GetWorld().get<Identity>(e);
-        //Log::Message("Entites", "Iterate: " + identity.name);
-        for (entt::entity& child : identity.childs)
-        {
-            IterateChildren(child, localToWorld);
-        }
+    RenderScene* rS = SceneManager::GetRenderScene();
+    if (!rS) {
         return;
     }
 
 
+    dummy.transform = transform.localMat;
+
+    // mesh
     MeshInstance* mesh = EntityManager::GetWorld().try_get<MeshInstance>(e);
     if (mesh) {
-        if (mesh->instanceGPUID == INVALID_RENDER_ID) {
-            mesh->instanceGPUID = GetFreeGPUInstance();
-        }
-        if (mesh->instanceGPUID == INVALID_RENDER_ID) {
-            auto& identity = EntityManager::GetWorld().get<Identity>(e);
-            //Log::Message("Entites", "Iterate: " + identity.name);
-            for (entt::entity& child : identity.childs)
-            {
-                IterateChildren(child, localToWorld);
-            }
-            return;
-        }
-        RenderScene* rS = SceneManager::GetRenderScene();
-        if (!rS) {
-            auto& identity = EntityManager::GetWorld().get<Identity>(e);
-            //Log::Message("Entites", "Iterate: " + identity.name);
-            for (entt::entity& child : identity.childs)
-            {
-                IterateChildren(child, localToWorld);
-            }
-            return;
-        }
-
-        
-
         dummy.meshIndex = rS->renderIds[mesh->modelID];
-        dummy.materialIndex = 0;//rS->indicesCPU[mesh->modelID];
-        dummy.transform = localToWorld;
-
-        nri::BufferUploadDesc bufferData[] = 
-        {
-            {&dummy, sizeof(InstanceData), m_Buffers[INSTANCE_BUFFER], sizeof(InstanceData) * mesh->instanceGPUID,  {nri::AccessBits::SHADER_RESOURCE, nri::StageBits::FRAGMENT_SHADER | nri::StageBits::COMPUTE_SHADER}},
-        };
-
-        NRI_ABORT_ON_FAILURE(NRI.UploadData(*m_CommandQueue, nullptr, 0, bufferData, helper::GetCountOf(bufferData)));
+        dummy.materialIndex = 0;//rS->renderIds[mesh->materialID];
+    }
+    else {
+        dummy.meshIndex = INVALID_RENDER_ID;
+        dummy.materialIndex = INVALID_RENDER_ID;
     }
 
-    auto& identity = EntityManager::GetWorld().get<Identity>(e);
-    //Log::Message("Entites", "Iterate: " + identity.name);
-    for (entt::entity& child : identity.childs)
+    // parent
+    dummy.parent = INVALID_RENDER_ID;
+    if (EntityManager::GetWorld().valid(identity.parent)) {
+        Identity* pid = EntityManager::GetWorld().try_get<Identity>(identity.parent);
+        if (pid && pid->name != "Root") {
+            if (pid->instanceGPUID == INVALID_RENDER_ID) {
+                //pid->instanceGPUID = GetFreeGPUInstance();
+                return;
+            }
+            dummy.parent = pid->instanceGPUID;
+        }
+    }
+
+    // upload
+    nri::BufferUploadDesc bufferData[] =
     {
-        IterateChildren(child, localToWorld);
-    }
+        {&dummy, sizeof(InstanceData), m_Buffers[INSTANCE_BUFFER], sizeof(InstanceData) * identity.instanceGPUID,  {nri::AccessBits::SHADER_RESOURCE, nri::StageBits::FRAGMENT_SHADER | nri::StageBits::COMPUTE_SHADER}},
+    };
+
+    NRI.UploadData(*m_CommandQueue, nullptr, 0, bufferData, helper::GetCountOf(bufferData));
+
+    EntityManager::GetWorld().remove<Dirty>(e);
 }
 
 
@@ -968,17 +960,11 @@ bool CmpInstance(InstanceData& a, InstanceData& b) {
 uint32_t Sample::PrepareEntities()
 {
     float timeBef = glfwGetTime();
-    float4x4 fxf = float4x4::Identity();
-    float4x4 transformMat, rotationMap, scaleMap;
 
-    transformMat.SetupByTranslation({ 10.0,0.0, 0.0 });
-    rotationMap.SetupByRotationYPR(0, 0, 0);
-    scaleMap.SetupByScale({ 1.0, 1.0, 1.0 });
-
-    fxf = transformMat * rotationMap * scaleMap;
-    
-    //fxf.Invert();
-    IterateChildren(EntityManager::GetRoot(), fxf);
+    for (auto&& [e, t, id] : EntityManager::GetWorld().group<Transform, Identity, Dirty>().each())
+    {
+        UpdateEntityTransform(e, t, id);
+    }
 
     float dt = glfwGetTime() - timeBef;
 
@@ -986,7 +972,7 @@ uint32_t Sample::PrepareEntities()
 
     Log::Message("Renderer", "Preparing Took " + std::to_string(dt * 1000) + "ms");
 
-    return MAX_INSTANCES;
+    return MAX_TRANSFORMS;
 }
 
 void Sample::ProzessAddRrmRequests()
@@ -1173,7 +1159,7 @@ RenderID Sample::GetFreeGPUInstance()
     static RenderID last = -1;
 
     last++;
-    if (last >= MAX_INSTANCES) {
+    if (last >= MAX_TRANSFORMS) {
         last = INVALID_RENDER_ID;
         if (m_FreeInstances.size() > 0) {
             RenderID id = m_FreeInstances[m_FreeInstances.size()-1];

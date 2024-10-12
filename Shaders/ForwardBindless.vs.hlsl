@@ -26,6 +26,19 @@ struct Attributes
     nointerpolation uint DrawParameters : ATTRIBUTES;
 };
 
+float4 GetWorldPos(uint id, float4 pos) {
+    uint parent = Instances[id].parent;
+    float4 curPos = mul(Instances[id].transform, pos);
+
+    for (uint i = 0; i < MAX_TRANSFORMS && parent < MAX_TRANSFORMS; i++)
+    {
+        curPos = mul(Instances[parent].transform, curPos);
+        parent = Instances[parent].parent;
+    }
+
+    return curPos;
+}
+
 Attributes main( in Input input, NRI_DECLARE_DRAW_PARAMETERS )
 {
     Attributes output = (Attributes)0;
@@ -37,7 +50,7 @@ Attributes main( in Input input, NRI_DECLARE_DRAW_PARAMETERS )
 
     
 
-    output.Position =  mul(Instances[NRI_INSTANCE_ID_OFFSET].transform, float4(input.Position, 1));
+    output.Position = GetWorldPos(NRI_INSTANCE_ID_OFFSET, float4(input.Position, 1.0f));
     output.Position =  mul(gWorldToClip, output.Position);
     output.Normal = float4( N, input.TexCoord.x );
     output.View = float4( V, input.TexCoord.y );

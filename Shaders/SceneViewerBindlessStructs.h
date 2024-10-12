@@ -5,8 +5,7 @@
 #include "../External/NRIFramework/External/NRI/Include/NRICompatibility.hlsli"
 
 
-#define MAX_INSTANCES 1000000
-#define MAX_BATCH_DESCS 100000
+#define MAX_TRANSFORMS 50000
 
 struct CullingConstants
 {
@@ -41,8 +40,8 @@ struct InstanceData
     uint32_t meshIndex;
     uint32_t materialIndex;
 
+    uint32_t parent;
     uint32_t off0;
-    uint32_t off1;
     float4x4 transform;
 
 };

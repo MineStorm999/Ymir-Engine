@@ -20,13 +20,14 @@ struct Transform {
 struct MeshInstance {
 	AssetID materialID{ INVALID_ASSET_ID };
 	AssetID modelID{ INVALID_ASSET_ID };
-	RenderID instanceGPUID {INVALID_RENDER_ID};
 };
 
 struct Root{};
 
 struct Identity {
 	std::string name{"New Entity"};
+
+	RenderID instanceGPUID{ INVALID_RENDER_ID };
 
 	entt::entity parent{entt::null};
 	std::vector<entt::entity> childs{};
@@ -35,3 +36,5 @@ struct Identity {
 struct CameraComp {
 
 };
+
+struct Dirty{};

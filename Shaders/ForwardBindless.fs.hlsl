@@ -73,8 +73,8 @@ float4 main( in BindlessAttributes input ) : SV_Target
     float4 output = Shade(float4(albedo, diffuse.w), Rf0, roughness, emissive, N, L, V, Clight, FAKE_AMBIENT);
     output.xyz = Color::HdrToLinear( output.xyz * exposure);
 
-    output.xyzw = float(0);
-    output.x = rand_1_05(float2(float(instanceIndex) / float(0xffffffff), 0));
+    //output.xyzw = float(0);
+    //output.x = rand_1_05(float2(float(instanceIndex) / float(0xffffffff), 0));
     
     return output;
 }
@@ -86,5 +86,4 @@ float4 main( in BindlessAttributes input ) : SV_Target
     {
         return 0;
     }
-
 #endif

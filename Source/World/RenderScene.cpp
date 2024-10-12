@@ -93,7 +93,7 @@ void RenderScene::Load()
 
 void RenderScene::UnLoad()
 {
-	for (auto tex : texturesCPU)
+	for (auto& tex : texturesCPU)
 		delete tex;
 
 	texturesCPU.clear();
