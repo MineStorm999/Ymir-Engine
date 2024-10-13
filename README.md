@@ -13,6 +13,7 @@ Currently in work, nothing to see jet.
  - X Global Illumination
  - X PathTracing
  - X Skinned Mesh
+ - X 10k moving cubes (1k with ease)
 # Assets
  - ✓ Virtual File System
  - ✓ Asset Manager
@@ -28,4 +29,6 @@ Currently in work, nothing to see jet.
  - X Variables
  - ✓ Bool Ops
 
+# Compability
+- X Test on multiple devices
 
