@@ -23,7 +23,7 @@ Currently in work, nothing to see jet.
  - ✓ Inspector
  - ✓ Struct Editor
  - X Drag + Drop
- - X Entity Hirachie visualizer
+ - ✓ Entity Hirachie visualizer
 # Visual Scripting
  - ✓ Struct Editor 
  - ✓ Node Editor 
