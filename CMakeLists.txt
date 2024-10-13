@@ -22,7 +22,7 @@ set (CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set (CMAKE_C_STANDARD 99)
 
-
+include(FetchContent)
 
 
 if (MSVC)
@@ -166,6 +166,14 @@ FILE(GLOB_RECURSE TOGROUP
     ${CMAKE_SOURCE_DIR}/Source/*.cpp
 )
 
+FetchContent_Declare(
+        JoltPhysics
+        GIT_REPOSITORY "https://github.com/jrouwe/JoltPhysics"
+        GIT_TAG "0a7d2501b33e1251101392d2be403c551ce5f963"
+		SOURCE_SUBDIR "Build"
+)
+FetchContent_MakeAvailable(JoltPhysics)
+
 # Samples
 function (add_sample NAME EXT)
     add_executable (${NAME} ${TOGROUP})
@@ -186,7 +194,7 @@ function (add_sample NAME EXT)
     endif ()
 
     target_include_directories (${NAME} PRIVATE "External/NRIFramework/Include")
-
+    target_include_directories(${NAME} PUBLIC ${JoltPhysics_SOURCE_DIR}/..)
     target_include_directories (${NAME} PRIVATE "Source/")
     #target_include_directories (${NAME} PRIVATE "External/ImNodes/")
 
@@ -194,7 +202,7 @@ function (add_sample NAME EXT)
     target_include_directories (${NAME} PRIVATE "External/NRIFramework/External/NRI/Include")
     target_compile_definitions (${NAME} PRIVATE ${COMPILE_DEFINITIONS} PROJECT_NAME=${NAME})
     target_compile_options (${NAME} PRIVATE ${COMPILE_OPTIONS})
-    target_link_libraries (${NAME} PRIVATE NRIFramework NRI)
+    target_link_libraries (${NAME} PRIVATE NRIFramework NRI Jolt)
 
     set_property (TARGET ${NAME} PROPERTY FOLDER ${PROJECT_NAME})
     set_property (TARGET ${NAME} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")

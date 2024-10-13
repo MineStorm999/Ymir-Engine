@@ -10,6 +10,7 @@ entt::entity sEntity;
 
 
 
+
 void Inspector::Select(AssetID a)
 {
 	if (!AssetManager::IsValid(a)) {
