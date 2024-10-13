@@ -230,7 +230,7 @@ bool Sample::Initialize(nri::GraphicsAPI graphicsAPI)
         nri::RasterizationDesc rasterizationDesc = {};
         rasterizationDesc.viewportNum = 1;
         rasterizationDesc.fillMode = nri::FillMode::SOLID;
-        rasterizationDesc.cullMode = nri::CullMode::NONE;
+        rasterizationDesc.cullMode = nri::CullMode::BACK;
         rasterizationDesc.frontCounterClockwise = true;
 
         nri::MultisampleDesc multisampleDesc = {};
@@ -318,12 +318,15 @@ bool Sample::Initialize(nri::GraphicsAPI graphicsAPI)
         bufferDesc.size = constantBufferSize * BUFFERED_FRAME_MAX_NUM;
         bufferDesc.usageMask = nri::BufferUsageBits::CONSTANT_BUFFER;
         nri::Buffer* buffer;
+
+        std::cout << "Create Buffers1\n";
         NRI_ABORT_ON_FAILURE(NRI.CreateBuffer(*m_Device, bufferDesc, buffer));
         m_Buffers.push_back(buffer);
 
         // READBACK_BUFFER
         bufferDesc.size = sizeof(nri::PipelineStatisticsDesc) * BUFFERED_FRAME_MAX_NUM;
         bufferDesc.usageMask = nri::BufferUsageBits::NONE;
+        std::cout << "Create Buffers2\n";
         NRI_ABORT_ON_FAILURE(NRI.CreateBuffer(*m_Device, bufferDesc, buffer));
         m_Buffers.push_back(buffer);
 
@@ -331,12 +334,14 @@ bool Sample::Initialize(nri::GraphicsAPI graphicsAPI)
         // INDEX_BUFFER
         bufferDesc.size = helper::GetByteSizeOf(scene->indicesCPU);
         bufferDesc.usageMask = nri::BufferUsageBits::INDEX_BUFFER;
+        std::cout << "Create Buffers3\n";
         NRI_ABORT_ON_FAILURE(NRI.CreateBuffer(*m_Device, bufferDesc, buffer));
         m_Buffers.push_back(buffer);
 
         // VERTEX_BUFFER
         bufferDesc.size = helper::GetByteSizeOf(scene->verticesCPU);
         bufferDesc.usageMask = nri::BufferUsageBits::VERTEX_BUFFER;
+        std::cout << "Create Buffers4\n";
         NRI_ABORT_ON_FAILURE(NRI.CreateBuffer(*m_Device, bufferDesc, buffer));
         m_Buffers.push_back(buffer);
 
@@ -344,6 +349,7 @@ bool Sample::Initialize(nri::GraphicsAPI graphicsAPI)
         bufferDesc.size = max(sizeof(MaterialData), helper::GetByteSizeOf(scene->materialsCPU));
         bufferDesc.structureStride = sizeof(MaterialData);
         bufferDesc.usageMask = nri::BufferUsageBits::SHADER_RESOURCE;
+        std::cout << "Create Buffers5\n";
         NRI_ABORT_ON_FAILURE(NRI.CreateBuffer(*m_Device, bufferDesc, buffer));
         m_Buffers.push_back(buffer);
 
@@ -351,6 +357,7 @@ bool Sample::Initialize(nri::GraphicsAPI graphicsAPI)
         bufferDesc.size = helper::GetByteSizeOf(scene->meshesCPU);
         bufferDesc.structureStride = sizeof(MeshData);
         bufferDesc.usageMask = nri::BufferUsageBits::SHADER_RESOURCE;
+        std::cout << "Create Buffers5\n";
         NRI_ABORT_ON_FAILURE(NRI.CreateBuffer(*m_Device, bufferDesc, buffer));
         m_Buffers.push_back(buffer);
 
@@ -358,6 +365,7 @@ bool Sample::Initialize(nri::GraphicsAPI graphicsAPI)
         bufferDesc.size = MAX_TRANSFORMS * sizeof(InstanceData);
         bufferDesc.structureStride = sizeof(InstanceData);
         bufferDesc.usageMask = nri::BufferUsageBits::SHADER_RESOURCE;
+        std::cout << "Create Buffers7\n";
         NRI_ABORT_ON_FAILURE(NRI.CreateBuffer(*m_Device, bufferDesc, buffer));
         m_Buffers.push_back(buffer);
 
@@ -365,6 +373,7 @@ bool Sample::Initialize(nri::GraphicsAPI graphicsAPI)
         bufferDesc.size = MAX_TRANSFORMS * sizeof(float4x4);
         bufferDesc.structureStride = sizeof(float4x4);
         bufferDesc.usageMask = nri::BufferUsageBits::SHADER_RESOURCE;
+        std::cout << "Create Buffers8\n";
         NRI_ABORT_ON_FAILURE(NRI.CreateBuffer(*m_Device, bufferDesc, buffer));
         m_Buffers.push_back(buffer);
 
@@ -373,16 +382,19 @@ bool Sample::Initialize(nri::GraphicsAPI graphicsAPI)
         bufferDesc.size = MAX_TRANSFORMS * GetDrawIndexedCommandSize();
         bufferDesc.structureStride = 0;
         bufferDesc.usageMask = nri::BufferUsageBits::SHADER_RESOURCE_STORAGE | nri::BufferUsageBits::ARGUMENT_BUFFER;
+        std::cout << "Create Buffers9\n";
         NRI_ABORT_ON_FAILURE(NRI.CreateBuffer(*m_Device, bufferDesc, buffer));
         m_Buffers.push_back(buffer);
 
         // INDIRECT_COUNT_BUFFER
         bufferDesc.size = sizeof(uint32_t);
         bufferDesc.usageMask = nri::BufferUsageBits::SHADER_RESOURCE_STORAGE | nri::BufferUsageBits::ARGUMENT_BUFFER;
+        std::cout << "Create Buffers10\n";
         NRI_ABORT_ON_FAILURE(NRI.CreateBuffer(*m_Device, bufferDesc, buffer));
         m_Buffers.push_back(buffer);
     }
-
+    std::cout << "Buffers Created\n";
+    std::cout << "Allocate Memory\n";
     { // Memory
         nri::ResourceGroupDesc resourceGroupDesc = {};
         resourceGroupDesc.memoryLocation = nri::MemoryLocation::HOST_UPLOAD;
@@ -392,7 +404,7 @@ bool Sample::Initialize(nri::GraphicsAPI graphicsAPI)
         size_t baseAllocation = m_MemoryAllocations.size();
         m_MemoryAllocations.resize(baseAllocation + 1, nullptr);
         NRI_ABORT_ON_FAILURE(NRI.AllocateAndBindMemory(*m_Device, resourceGroupDesc, m_MemoryAllocations.data() + baseAllocation));
-
+        std::cout << "Allocated Memory1\n";
         resourceGroupDesc.memoryLocation = nri::MemoryLocation::HOST_READBACK;
         resourceGroupDesc.bufferNum = 1;
         resourceGroupDesc.buffers = &m_Buffers[READBACK_BUFFER];
@@ -400,17 +412,25 @@ bool Sample::Initialize(nri::GraphicsAPI graphicsAPI)
         baseAllocation = m_MemoryAllocations.size();
         m_MemoryAllocations.resize(baseAllocation + 1, nullptr);
         NRI_ABORT_ON_FAILURE(NRI.AllocateAndBindMemory(*m_Device, resourceGroupDesc, m_MemoryAllocations.data() + baseAllocation));
-
+        std::cout << "Allocated Memory2\n";
         resourceGroupDesc.memoryLocation = nri::MemoryLocation::DEVICE;
         resourceGroupDesc.bufferNum = (uint32_t)SceneBuffers::MAX_NUM - 2;
         resourceGroupDesc.buffers = &m_Buffers[INDEX_BUFFER];
         resourceGroupDesc.textureNum = (uint32_t)m_Textures.size();
         resourceGroupDesc.textures = m_Textures.data();
 
+        std::cout << "Allocated Texture num: " << m_Textures.size() << "\n";
+        //std::cout << "Allocated buffer num: " << m_Textures.size();
+
         baseAllocation = m_MemoryAllocations.size();
         uint32_t allocationNum = NRI.CalculateAllocationNumber(*m_Device, resourceGroupDesc);
         m_MemoryAllocations.resize(baseAllocation + allocationNum, nullptr);
+
+        
+
+        std::cout << "Allocating Memory3\n";
         NRI_ABORT_ON_FAILURE(NRI.AllocateAndBindMemory(*m_Device, resourceGroupDesc, m_MemoryAllocations.data() + baseAllocation));
+        std::cout << "Allocated Memory3\n";
     }
 
     // Create descriptors
@@ -609,7 +629,7 @@ bool Sample::Initialize(nri::GraphicsAPI graphicsAPI)
         if (!dummyInstances) {
             return false;
         }
-        memset(dummyInstances, (uint8_t)0xffffffff, MAX_TRANSFORMS * sizeof(InstanceData));
+        memset(dummyInstances, (uint8_t)0xff, MAX_TRANSFORMS * sizeof(InstanceData));
 
         nri::BufferUploadDesc bufferData[] =
         {
@@ -667,10 +687,11 @@ void Sample::PrepareFrame(uint32_t frameIndex)
     float dt = glfwGetTime() - lastTime;
     lastTime = glfwGetTime();
     float fps = 1 / dt;
+    //    exit(0);
+    //}
+    ProzessAddRrmRequests();
 
     WindowManager::Show();
-
-    ProzessAddRrmRequests();
 
     // TODO: delay is not implemented
     nri::PipelineStatisticsDesc* pipelineStats = (nri::PipelineStatisticsDesc*)NRI.MapBuffer(*m_Buffers[READBACK_BUFFER], 0, sizeof(nri::PipelineStatisticsDesc));
@@ -800,7 +821,7 @@ void Sample::RenderFrame(uint32_t frameIndex)
             {
                 nri::ClearDesc clearDescs[2] = {};
                 clearDescs[0].attachmentContentType = nri::AttachmentContentType::COLOR;
-                clearDescs[0].value.color32f = { 0.0f, 0.63f, 1.0f };
+                clearDescs[0].value.color32f = { .0f, .0f, .0f };
                 clearDescs[1].attachmentContentType = nri::AttachmentContentType::DEPTH;
                 clearDescs[1].value.depthStencil.depth = CLEAR_DEPTH;
 
@@ -879,9 +900,10 @@ void Sample::RenderFrame(uint32_t frameIndex)
     }
 }
 
-InstanceData dummy;
+std::vector<InstanceData> dummys;
+std::vector<nri::BufferUploadDesc> descs;
 
-void Sample::UpdateEntityTransform(entt::entity e, Transform& transform, Identity& identity) {
+void Sample::UpdateEntityTransform(entt::entity e, TransformComponent& transform, IdentityComponent& identity) {
    
     
     if (identity.instanceGPUID == INVALID_RENDER_ID) {
@@ -914,11 +936,11 @@ void Sample::UpdateEntityTransform(entt::entity e, Transform& transform, Identit
         return;
     }
 
-
+    InstanceData dummy;
     dummy.transform = transform.localMat;
 
     // mesh
-    MeshInstance* mesh = EntityManager::GetWorld().try_get<MeshInstance>(e);
+    MeshInstanceComponent* mesh = EntityManager::GetWorld().try_get<MeshInstanceComponent>(e);
     if (mesh) {
         dummy.meshIndex = rS->renderIds[mesh->modelID];
         dummy.materialIndex = 0;//rS->renderIds[mesh->materialID];
@@ -931,7 +953,7 @@ void Sample::UpdateEntityTransform(entt::entity e, Transform& transform, Identit
     // parent
     dummy.parent = INVALID_RENDER_ID;
     if (EntityManager::GetWorld().valid(identity.parent)) {
-        Identity* pid = EntityManager::GetWorld().try_get<Identity>(identity.parent);
+        IdentityComponent* pid = EntityManager::GetWorld().try_get<IdentityComponent>(identity.parent);
         if (pid && pid->name != "Root") {
             if (pid->instanceGPUID == INVALID_RENDER_ID) {
                 //pid->instanceGPUID = GetFreeGPUInstance();
@@ -940,14 +962,15 @@ void Sample::UpdateEntityTransform(entt::entity e, Transform& transform, Identit
             dummy.parent = pid->instanceGPUID;
         }
     }
-
     // upload
     nri::BufferUploadDesc bufferData[] =
     {
         {&dummy, sizeof(InstanceData), m_Buffers[INSTANCE_BUFFER], sizeof(InstanceData) * identity.instanceGPUID,  {nri::AccessBits::SHADER_RESOURCE, nri::StageBits::FRAGMENT_SHADER | nri::StageBits::COMPUTE_SHADER}},
     };
 
-    NRI.UploadData(*m_CommandQueue, nullptr, 0, bufferData, helper::GetCountOf(bufferData));
+    dummys.push_back(dummy);
+    descs.push_back({ dummys.data() + dummys.size() - 1, sizeof(InstanceData), m_Buffers[INSTANCE_BUFFER], sizeof(InstanceData) * identity.instanceGPUID,  {nri::AccessBits::SHADER_RESOURCE, nri::StageBits::FRAGMENT_SHADER | nri::StageBits::COMPUTE_SHADER}});
+    //NRI.UploadData(*m_CommandQueue, nullptr, 0, bufferData, helper::GetCountOf(bufferData));
 
     EntityManager::GetWorld().remove<Dirty>(e);
 }
@@ -961,17 +984,28 @@ uint32_t Sample::PrepareEntities()
 {
     float timeBef = glfwGetTime();
 
-    for (auto&& [e, t, id] : EntityManager::GetWorld().group<Transform, Identity, Dirty>().each())
+    descs.clear();
+    dummys.clear();
+    //float uploadTime = 0;
+
+    float iterTime = glfwGetTime();
+    for (auto&& [e, t, id] : EntityManager::GetWorld().group<TransformComponent, IdentityComponent, Dirty>().each())
     {
         UpdateEntityTransform(e, t, id);
     }
+    iterTime = glfwGetTime() - iterTime;
+    Log::Message("Renderer", "Iterating Took " + std::to_string(iterTime * 1000) + "ms");
+
+    if (descs.size() > 0) {
+        float uploadTime = glfwGetTime();
+        NRI.UploadData(*m_CommandQueue, nullptr, 0, descs.data(), helper::GetCountOf(descs));
+        uploadTime = glfwGetTime() - uploadTime;
+        Log::Message("Renderer", "Uploading Took " + std::to_string(uploadTime * 1000) + "ms");
+    }
 
     float dt = glfwGetTime() - timeBef;
-
-    uint32_t freeInst = GetFreeGPUInstance();
-
     Log::Message("Renderer", "Preparing Took " + std::to_string(dt * 1000) + "ms");
-
+    
     return MAX_TRANSFORMS;
 }
 

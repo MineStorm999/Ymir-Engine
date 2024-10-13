@@ -5,7 +5,7 @@
 #include "../External/NRIFramework/External/NRI/Include/NRICompatibility.hlsli"
 
 
-#define MAX_TRANSFORMS 500000
+#define MAX_TRANSFORMS 3000000
 
 struct CullingConstants
 {

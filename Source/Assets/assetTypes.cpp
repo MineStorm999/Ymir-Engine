@@ -14,7 +14,7 @@ bool AModel::Load(std::vector<uint32_t>& indexes, std::vector<utils::Vertex>& ve
 	if (actualPath.find_last_of(".") == std::string::npos) {
 		return false;
 	}
-	if (path.find_last_of('.' + ASSET_SHORT) == std::string::npos) {
+	if (path.find_last_of(std::string(".") + ASSET_SHORT) == std::string::npos) {
 		return false;
 	}
 
@@ -155,8 +155,8 @@ RenderID AModel::GetRenderID(float disFromCam, AssetID id)
 	}
 
 	RenderID ret = rScene->renderIds[id];
-
-	if (ret == INVALID_RENDER_ID) {
+	return ret;
+	/*if (ret == INVALID_RENDER_ID) {
 		return INVALID_RENDER_ID;
 	}
 
@@ -168,6 +168,7 @@ RenderID AModel::GetRenderID(float disFromCam, AssetID id)
 		}
 		ret++;
 	}
+	return rScene->renderIds[id];*/
 }
 
 AssetID AssetUtils::GetAssetIDFromImported(std::filesystem::path path)

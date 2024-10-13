@@ -43,7 +43,7 @@ LoadMap loadMap;
 AssetID lastID = 0;
 AssetID GetNext() {
     
-    while (map.find(lastID) != map.end() && lastID < 0xfffffffe)
+    while (map.find(lastID) != map.end() && lastID < INVALID_ASSET_ID)
     {
         lastID++;
     }
@@ -182,8 +182,10 @@ void AssetManager::Init()
         if (scene && rScene) {
             for (AssetID id : scene->usedMeshes)
             {
+#if false
                 entt::entity p = entt::null;
-                for (size_t j = 0; j < 1000; j++)
+                uint32_t x = 0, y = 0;
+                for (size_t j = 0; j < x; j++)
                 {
                     AssetBase* asset = GetAsset(id);
                     if (!asset) {
@@ -198,22 +200,23 @@ void AssetManager::Init()
                     t.localRot = { 0, 0, 0 };*/
                     //p = e;
 
-                    for (size_t i = 0; i < 1000; i++)
+                    for (size_t i = 0; i < y; i++)
                     {
                         AssetBase* asset = GetAsset(id);
                         if (!asset) {
                             rScene->Remove(id);
                             continue;
                         }
-                        entt::entity e = EntityManager::CreateEntity(asset->name + std::to_string(i), id, p);
+                        entt::entity e = EntityManager::CreateEntity(asset->name + std::to_string(i + (y * j)) + "/" + std::to_string(x * y), id, p);
                         Transform& t = EntityManager::GetWorld().get<Transform>(e);
-                        t.localPos = { 2 * (float)j, 2 * (float)i, 0 };
+                        t.localPos = { 4 * (float)j, 4 * (float)i, 0 };
                         t.localScale = float3(1);
                         t.localRot = { 0, 0, 0 };
                         //p = e;
                     }
                     p = EntityManager::GetRoot();
                 }
+#endif
             }
         }
     }
@@ -337,6 +340,18 @@ struct CachedDirEntry
 };
 
 std::unordered_map<std::string, CachedDirEntry> cache;
+
+std::vector<AssetID> AssetManager::GetFromType(AssetType type)
+{
+    std::vector<AssetID> ret;
+    for (auto& it : map)
+    {
+        if (it.second->type == type) {
+            ret.push_back(it.first);
+        }
+    }
+    return ret;
+}
 
 void AssetManager::AssetExplorer()
 {
@@ -618,7 +633,7 @@ AssetID AssetManager::CreateDefaultScene()
     settings.singleModel = true;
     
 
-    Importer::ImportModel(utils::GetFullPath("Cube/1.gltf", utils::DataFolder::SCENES), "AssetDirectory/_Default_/Assets", "YMIR_Mesh", settings, &defMesh);
+    Importer::ImportModel(utils::GetFullPath("DefaultSphere/untitled.gltf", utils::DataFolder::SCENES), "AssetDirectory/_Default_/Assets", "YMIR_Mesh", settings, &defMesh);
 
 
     if (!IsValid(defMesh)) {
@@ -627,6 +642,8 @@ AssetID AssetManager::CreateDefaultScene()
     }
     rScene->Add(defMesh);
     Save();
+
+    return INVALID_ASSET_ID;
 }
 
 AssetID AssetManager::RegisterAsset(AssetBase* asset)

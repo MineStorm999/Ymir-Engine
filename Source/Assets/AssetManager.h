@@ -33,7 +33,7 @@ public:
 
 	//static bool HasAsset(AssetID* id, std::string originalPath);
 
-
+	static std::vector<AssetID> GetFromType(AssetType type);
 private:
 
 	static void AssetExplorer();

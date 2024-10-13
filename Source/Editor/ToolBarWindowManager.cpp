@@ -11,7 +11,7 @@
 #endif
 
 #include "../Log/Log.h"
-
+#include "EntityHirachie.h"
 #include "Imgui/imgui.h"
 
 bool ShowInspector{true};
@@ -19,6 +19,9 @@ bool ShowAssetManager{ true };
 bool ShowLog{ true };
 bool ShowStructEditor{ true };
 bool ShowNodeGraph{ true };
+
+bool ShowHirachie{ true };
+
 
 void WindowManager::Show()
 {
@@ -37,11 +40,12 @@ void WindowManager::Show()
 		ImGui::EndMenu();
 	}
 
-	if (ImGui::BeginMenu("Windows")) {
+	if (ImGui::BeginMenu("Panels")) {
 
 		ImGui::MenuItem("AssetManager", "", &ShowAssetManager);
 		ImGui::MenuItem("Inspector", "", &ShowInspector);
 		ImGui::MenuItem("Log", "", &ShowLog);
+		ImGui::MenuItem("Hirachie", "", &ShowHirachie);
 
 #ifdef EXPERIMENTAL
 		ImGui::MenuItem("Component Editor", "", &ShowStructEditor);
@@ -63,6 +67,10 @@ void WindowManager::Show()
 	}
 	if (ShowLog) {
 		Log::Show();
+	}
+
+	if (ShowHirachie) {
+		EntityHirachie::Show();
 	}
 #ifdef EXPERIMENTAL
 	if (ShowStructEditor) {

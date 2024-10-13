@@ -13,7 +13,7 @@
 #define ASSET_SHORT "yasset"
 #define SAVE_SHORT "ysave"
 
-#define INVALID_ASSET_ID 0xffffffff
+#define INVALID_ASSET_ID UINT32_MAX
 
 //struct MeshletDesc;
 using AssetID = uint32_t;

@@ -13,7 +13,7 @@ entt::entity ECSUtil::CreateEntity(std::string name, entt::entity parent)
 entt::entity ECSUtil::CreateMeshInstance(std::string name, std::string assetName)
 {
     entt::entity e = EntityManager::CreateEntity(name);
-    EntityManager::GetWorld().emplace<MeshInstance>(e);
+    EntityManager::GetWorld().emplace<MeshInstanceComponent>(e);
     return e;
 }
 

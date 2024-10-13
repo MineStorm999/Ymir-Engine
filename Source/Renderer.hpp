@@ -77,7 +77,7 @@ public:
     void PrepareFrame(uint32_t frameIndex) override;
     void RenderFrame(uint32_t frameIndex) override;
 
-    void UpdateEntityTransform(entt::entity e, Transform& transform, Identity& idenetity);
+    void UpdateEntityTransform(entt::entity e, TransformComponent& transform, IdentityComponent& idenetity);
 
     // returns the batch count (draw call(GPU side))
     uint32_t PrepareEntities();

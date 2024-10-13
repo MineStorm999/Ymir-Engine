@@ -6,6 +6,8 @@
 #include <unordered_map>
 #include "World/SceneManager.h"
 #include "Log/Log.h"
+#include "MathLib/ml.h"
+
 ECSWorld* curWorld;
 entt::entity root;
 
@@ -47,29 +49,13 @@ nlohmann::json EntityManager::SerializeWorld(ECSWorld& w)
 {
     // temp
     entt::entity e = w.create();
-    w.emplace<Transform>(e);
+    w.emplace<TransformComponent>(e);
     //flecs::string val = w.to_json();
     return nlohmann::json();
 }
 
 void EntityManager::UpdateMatrizes()
-{
-
-    auto t = GetWorld().group<Transform>();
-    if(t.size() < 1){
-        return;
-    }
-    t.each([](Transform& t){
-        if (t.changed) {
-            t.localMat.SetupByRotationYPR(t.localRot.x, t.localRot.y, t.localRot.z);
-            
-            t.localMat.SetTranslation(t.localPos);
-            
-            t.localMat.AddScale(t.localScale);
-        }
-        t.changed = false;
-        });
-}
+{}
 
 
 void EntityManager::Init()
@@ -83,11 +69,12 @@ void EntityManager::Init()
 
 entt::entity EntityManager::CreateEntity(std::string name, entt::entity parent)
 {
-    Log::Message("EntityManager", "Create Entity: " + name);
+
+    //Log::Message("EntityManager", "Create Entity: " + name);
     entt::entity e = curWorld->create();
-    Identity& id = curWorld->emplace<Identity>(e);
+    IdentityComponent& id = curWorld->emplace<IdentityComponent>(e);
     id.name = name;
-    curWorld->emplace<Transform>(e);
+    curWorld->emplace<TransformComponent>(e);
 
     if (name == "Root") {
         return e;
@@ -95,13 +82,13 @@ entt::entity EntityManager::CreateEntity(std::string name, entt::entity parent)
     if (parent == entt::null) {
 
         id.parent = GetRoot();
-        Identity& id2 = GetWorld().get<Identity>(GetRoot());
+        IdentityComponent& id2 = GetWorld().get<IdentityComponent>(GetRoot());
         id2.childs.push_back(e);
         GetWorld().emplace<Dirty>(e);
         return e;
     }
     id.parent = parent;
-    Identity& id2 = GetWorld().get<Identity>(parent);
+    IdentityComponent& id2 = GetWorld().get<IdentityComponent>(parent);
     id2.childs.push_back(e);
     GetWorld().emplace<Dirty>(e);
     return e;
@@ -141,7 +128,7 @@ entt::entity EntityManager::CreateEntity(std::string name, AssetID assetOriginal
             return e;
         }
 
-        MeshInstance& mInst = GetWorld().emplace<MeshInstance>(e);
+        MeshInstanceComponent& mInst = GetWorld().emplace<MeshInstanceComponent>(e);
         mInst.modelID = assetOriginal;
         mInst.materialID = m->DefaultMaterialID;
         return e;
@@ -150,5 +137,29 @@ entt::entity EntityManager::CreateEntity(std::string name, AssetID assetOriginal
     return e;
 }
 
+void EntityManager::Transform::SetPosition(entt::entity e, float3 pos, TransformComponent& t)
+{
+    if (t.localPos.x == pos.x && t.localPos.y == pos.y && t.localPos.z == pos.z) {
+        return;
+    }
+    t.localPos = pos;
+    GetWorld().emplace_or_replace<Dirty>(e);
+}
 
+void EntityManager::Transform::SetRotation(entt::entity e, float3 rot, TransformComponent& t)
+{
+    if (t.localRot.x == rot.x && t.localRot.y == rot.y && t.localRot.z == rot.z) {
+        return;
+    }
+    t.localRot = rot;
+    GetWorld().emplace_or_replace<Dirty>(e);
+}
 
+void EntityManager::Transform::SetScale(entt::entity e, float3 scale, TransformComponent& t)
+{
+    if (t.localScale.x == scale.x && t.localScale.y == scale.y && t.localScale.z == scale.z) {
+        return;
+    }
+    t.localScale = scale;
+    GetWorld().emplace_or_replace<Dirty>(e);
+}

@@ -5,7 +5,7 @@
 
 #define EDITOR
 
-
+namespace {
 	bool m_useTerminal;
 	bool m_MakeTable; // todo
 
@@ -21,10 +21,10 @@
 	std::unordered_map<std::string, std::vector<std::pair<std::string, std::string>>> messages;
 	std::unordered_map<std::string, std::vector<std::pair<std::string, std::string>>> warnigns;
 	std::unordered_map<std::string, std::vector<std::pair<std::string, std::string>>> errors;
-	
+
 	std::unordered_map<std::string, bool> filter;
 
-
+}
 	Log::Log()
 	{
 	}

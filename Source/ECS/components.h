@@ -5,7 +5,7 @@
 
 #include "Assets/AssetManager.h"
 
-struct Transform {
+struct TransformComponent {
 	float4x4 localMat;
 	
 	float3 localPos{ 0,0,0 };
@@ -13,18 +13,16 @@ struct Transform {
 	float3 localRot{ 0,0,0 };
 
 	float4x4 localToWorldMat;
-
-	bool changed;
 };
 
-struct MeshInstance {
+struct MeshInstanceComponent {
 	AssetID materialID{ INVALID_ASSET_ID };
 	AssetID modelID{ INVALID_ASSET_ID };
 };
 
 struct Root{};
 
-struct Identity {
+struct IdentityComponent {
 	std::string name{"New Entity"};
 
 	RenderID instanceGPUID{ INVALID_RENDER_ID };
@@ -33,7 +31,7 @@ struct Identity {
 	std::vector<entt::entity> childs{};
 };
 
-struct CameraComp {
+struct CameraComponent {
 
 };
 

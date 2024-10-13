@@ -71,24 +71,24 @@
         },
         "7": {
             "DefaultMat": 0,
-            "IBuffLenght": 29,
+            "IBuffLenght": 977,
             "ID": 7,
-            "IndexCount": 36,
+            "IndexCount": 2880,
             "LODCount": 1,
-            "Lenght": 217,
+            "Lenght": 31298,
             "Lods": {
                 "0": {
                     "Distance": 10.0,
-                    "IndexCount": 36,
+                    "IndexCount": 2880,
                     "IndexOffset": 0
                 }
             },
             "Name": "YMIR_Mesh",
             "Offset": 7,
-            "OriginalPath": "_Data/Scenes/Cube/1.gltf",
+            "OriginalPath": "_Data/Scenes/DefaultSphere/untitled.gltf",
             "Path": "AssetDirectory/_Default_/Assets/YMIR_Mesh",
             "Type": "Model",
-            "VertexCount": 24
+            "VertexCount": 1984
         }
     },
     "Head": {

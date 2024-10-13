@@ -2,7 +2,7 @@
 #include "../ECS/ECSManager.h"
 #include "Imgui/imgui.h"
 #include "Assets/AssetManager.h"
-
+#include "ECS/components.h"
 SelectedType sType;
 
 AssetID sAsset;
@@ -54,7 +54,9 @@ void Inspector::Show()
 
 void Inspector::ShowAsset()
 {
-	ImGui::Begin("Inspector");
+	if(!ImGui::Begin("Inspector")) {
+		return;
+	}
 	if (!AssetManager::IsValid(sAsset)) {
 		DeSelect();
 		return;
@@ -142,16 +144,154 @@ void Inspector::ShowAsset()
 
 void Inspector::ShowEntity()
 {
-	ImGui::Begin("Inspector");
+	if (!ImGui::Begin("Inspector")) {
+		return;
+	}
+
+	ECSWorld& w = EntityManager::GetWorld();
+
+	if (!w.valid(sEntity)) {
+		ImGui::End();
+		return;
+	}
 
 
+	bool transform = false, mesh = false, identity = false;
+
+	static char name[1024] = "";
+	
+	if (IdentityComponent* id = w.try_get<IdentityComponent>(sEntity)) {
+		identity = true;
+		std::strcpy(name, id->name.c_str());
+		ImGui::InputText("Name", name, 1024);
+		id->name = name;
+		ImGui::Text("GPU ID: %u", (int)id->instanceGPUID);
+	}
+
+	if (TransformComponent* t = w.try_get<TransformComponent>(sEntity)) {
+		transform = true;
+		if (ImGui::TreeNode("Transform")) {
+			float3 b = t->localPos;
+			ImGui::DragFloat3("Postion", (float*)&t->localPos);
+			if (b.x != t->localPos.x || b.y != t->localPos.y || b.z != t->localPos.z) {
+				w.emplace_or_replace<Dirty>(sEntity);
+			}
+
+			b = t->localRot;
+			ImGui::DragFloat3("Rotation", (float*)&t->localRot);
+			if (b.x != t->localRot.x || b.y != t->localRot.y || b.z != t->localRot.z) {
+				w.emplace_or_replace<Dirty>(sEntity);
+			}
+
+			b = t->localScale;
+			ImGui::DragFloat3("Scale", (float*)&t->localScale);
+			if (b.x != t->localScale.x || b.y != t->localScale.y || b.z != t->localScale.z) {
+				w.emplace_or_replace<Dirty>(sEntity);
+			}
+
+			ImGui::TreePop();
+		}
+	}
+
+	if (MeshInstanceComponent* m = w.try_get<MeshInstanceComponent>(sEntity)) {
+		mesh = true;
+		if (ImGui::TreeNode("Mesh Instance")) {
+			std::string prev = AssetManager::IsValid(m->modelID) ? AssetManager::GetAsset(m->modelID)->name : "Nothing";
+			if (ImGui::BeginCombo("Mesh", prev.c_str())) {
+				std::vector<AssetID> meshes = AssetManager::GetFromType(AssetType::Model);
+
+				ImGui::PushID(INVALID_ASSET_ID);
+				bool selected = INVALID_ASSET_ID == m->modelID;
+				if (ImGui::Selectable("Nothing", selected)) {
+					m->modelID = INVALID_ASSET_ID;
+					w.emplace_or_replace<Dirty>(sEntity);
+				}
+				if (selected) {
+					ImGui::SetItemDefaultFocus();
+				}
+				ImGui::PopID();
+				for (AssetID id : meshes)
+				{
+					ImGui::PushID(id);
+					bool selected = id == m->modelID;
+					if (ImGui::Selectable(AssetManager::GetAsset(id)->name.c_str(), selected)) {
+						m->modelID = id;
+						w.emplace_or_replace<Dirty>(sEntity);
+					}
+					if (selected) {
+						ImGui::SetItemDefaultFocus();
+					}
+
+					ImGui::PopID();
+				}
+
+				ImGui::EndCombo();
+			}
+
+			prev = AssetManager::IsValid(m->materialID) ? AssetManager::GetAsset(m->materialID)->name : "Nothing";
+			if (ImGui::BeginCombo("Material", prev.c_str())) {
+				std::vector<AssetID> materials = AssetManager::GetFromType(AssetType::Material);
+
+				ImGui::PushID(INVALID_ASSET_ID);
+				bool selected = INVALID_ASSET_ID == m->modelID;
+				if (ImGui::Selectable("Nothing", selected)) {
+					m->materialID = INVALID_ASSET_ID;
+					w.emplace_or_replace<Dirty>(sEntity);
+				}
+				ImGui::PopID();
+				for (AssetID id : materials)
+				{
+					ImGui::PushID(id);
+					bool selected = id == m->materialID;
+					if (ImGui::Selectable(AssetManager::GetAsset(id)->name.c_str(), selected)) {
+						m->materialID = id;
+						w.emplace_or_replace<Dirty>(sEntity);
+					}
+					if (selected) {
+						ImGui::SetItemDefaultFocus();
+					}
+
+					ImGui::PopID();
+				}
+
+				ImGui::EndCombo();
+			}
+
+			ImGui::TreePop();
+		}
+	}
+
+	if (ImGui::BeginCombo("Add Component", "")) {
+		if (ImGui::Selectable("Cancel", true)) {
+			
+		}
+
+		if (!transform) {
+			if (ImGui::Selectable("Transform", false)) {
+				w.emplace<TransformComponent>(sEntity);
+			}
+		}
+		if (!mesh) {
+			if (ImGui::Selectable("Mesh", false)) {
+				w.emplace<MeshInstanceComponent>(sEntity);
+			}
+		}
+		if (!identity) {
+			if (ImGui::Selectable("Identity", false)) {
+				w.emplace<IdentityComponent>(sEntity);
+			}
+		}
+		ImGui::EndCombo();
+	}
 
 	ImGui::End();
 }
 
 void Inspector::ShowDefault()
 {
-	ImGui::Begin("Inspector");
+	if (!ImGui::Begin("Inspector")) {
+		return;
+	}
 	ImGui::Text("Nothing Selected...");
 
 
