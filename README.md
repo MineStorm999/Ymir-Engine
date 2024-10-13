@@ -22,13 +22,21 @@ Currently in work, nothing to see jet.
  - ✓ Asset Browser
  - ✓ Inspector
  - ✓ Struct Editor
+ - X Drag + Drop
+ - X Entity Hirachie visualizer
 # Visual Scripting
  - ✓ Struct Editor 
  - ✓ Node Editor 
  - ✓ Base Node
  - X Variables
  - ✓ Bool Ops
+# ECS
+- X Macros for Transform
+- X Macros for RigidBody
 
+# Phyisics
+- X Impl of Jolt
+  
 # Compability
 - X Test on multiple devices (1/4)
 
