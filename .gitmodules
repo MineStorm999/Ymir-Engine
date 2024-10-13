@@ -12,3 +12,6 @@
 [submodule "Source/MeshOptimizer"]
 	path = Source/MeshOptimizer
 	url = https://github.com/zeux/meshoptimizer.git
+[submodule "External/Jolt"]
+	path = External/Jolt
+	url = https://github.com/jrouwe/JoltPhysics.git
