@@ -30,5 +30,5 @@ Currently in work, nothing to see jet.
  - ✓ Bool Ops
 
 # Compability
-- X Test on multiple devices
+- X Test on multiple devices (1/4)
 
