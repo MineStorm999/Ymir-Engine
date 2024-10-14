@@ -22,7 +22,7 @@ bool Render(uint id) {
         return false;
     }
 
-    if (Instances[id].meshIndex != 0) {
+    if (Instances[id].meshIndex >= Constants.MeshCount) {
         return false;
     }
 

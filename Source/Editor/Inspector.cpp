@@ -3,6 +3,8 @@
 #include "Imgui/imgui.h"
 #include "Assets/AssetManager.h"
 #include "ECS/components.h"
+#include "World/SceneManager.h"
+
 SelectedType sType;
 
 AssetID sAsset;
@@ -195,6 +197,7 @@ void Inspector::ShowEntity()
 	}
 
 	if (MeshInstanceComponent* m = w.try_get<MeshInstanceComponent>(sEntity)) {
+		RenderScene* rs = SceneManager::GetRenderScene();
 		mesh = true;
 		if (ImGui::TreeNode("Mesh Instance")) {
 			std::string prev = AssetManager::IsValid(m->modelID) ? AssetManager::GetAsset(m->modelID)->name : "Nothing";
@@ -217,6 +220,9 @@ void Inspector::ShowEntity()
 					bool selected = id == m->modelID;
 					if (ImGui::Selectable(AssetManager::GetAsset(id)->name.c_str(), selected)) {
 						m->modelID = id;
+						if (rs) {
+							rs->Add(id);
+						}
 						w.emplace_or_replace<Dirty>(sEntity);
 					}
 					if (selected) {
@@ -246,6 +252,9 @@ void Inspector::ShowEntity()
 					bool selected = id == m->materialID;
 					if (ImGui::Selectable(AssetManager::GetAsset(id)->name.c_str(), selected)) {
 						m->materialID = id;
+						if (rs) {
+							rs->Add(id);
+						}
 						w.emplace_or_replace<Dirty>(sEntity);
 					}
 					if (selected) {

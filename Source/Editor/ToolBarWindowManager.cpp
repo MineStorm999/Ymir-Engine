@@ -30,6 +30,7 @@ void WindowManager::Show()
 	if(ImGui::BeginMenu("File")){
 		if (ImGui::MenuItem("Save")) {
 			//Log::Error("Window Manager", "Not Supported");
+			AssetManager::Save();
 #ifdef EXPERIMENTAL
 			StructEditor::Save();
 #endif

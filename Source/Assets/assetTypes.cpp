@@ -45,10 +45,10 @@ bool AModel::Load(std::vector<uint32_t>& indexes, std::vector<utils::Vertex>& ve
 	
 
 	uint32_t offI = indexes.size();
-	indexes.resize(indexCount);
+	indexes.resize(indexCount + indexes.size());
 
 	uint32_t offV = vertices.size();
-	vertices.resize(vertCount);
+	vertices.resize(vertCount + vertices.size());
 
 	
 	if (flags == 0) {
@@ -85,7 +85,7 @@ bool AModel::Load(std::vector<uint32_t>& indexes, std::vector<utils::Vertex>& ve
 	idxRaw = (unsigned char*)malloc(iBuffLenght);
 	vertRaw = (unsigned char*)malloc(lenght - iBuffLenght);
 	fseek(f, off, SEEK_SET);
-	if (1 != fread(idxRaw, iBuffLenght, 1, f)) {
+	if (iBuffLenght != fread(idxRaw, 1, iBuffLenght, f)) {
 		for (size_t i = 0; i < indexCount; i++)
 		{
 			indexes.pop_back();
@@ -100,7 +100,7 @@ bool AModel::Load(std::vector<uint32_t>& indexes, std::vector<utils::Vertex>& ve
 		return false;
 	}
 
-	if (1 != fread(vertRaw, lenght - iBuffLenght, 1, f)) {
+	if (lenght - iBuffLenght != fread(vertRaw, 1, lenght - iBuffLenght, f)) {
 		for (size_t i = 0; i < indexCount; i++)
 		{
 			indexes.pop_back();
@@ -116,10 +116,12 @@ bool AModel::Load(std::vector<uint32_t>& indexes, std::vector<utils::Vertex>& ve
 	}
 
 	int resib = meshopt_decodeIndexBuffer(&indexes[offI], indexCount, idxRaw, iBuffLenght);
-	int resvb = meshopt_decodeVertexBuffer(&vertices[offV], vertCount, sizeof(utils::Vertex), vertRaw, lenght - iBuffLenght);
-
 	free(idxRaw);
+	idxRaw = nullptr;
+	int resvb = meshopt_decodeVertexBuffer(&vertices[offV], vertCount, sizeof(utils::Vertex), vertRaw, lenght - iBuffLenght);
 	free(vertRaw);
+	vertRaw = nullptr;
+
 	fclose(f);
 	return true;
 }
@@ -178,7 +180,7 @@ AssetID AssetUtils::GetAssetIDFromImported(std::filesystem::path path)
 		//Log::Message("AssetManager", "Cur Asset is invalid, continuing..." + std::to_string(curAsset));
 		return ret;
 	}
-	if (path.string().find_last_of('.' + ASSET_SHORT) == std::string::npos) {
+	if (path.string().find_last_of(std::string(".") + ASSET_SHORT) == std::string::npos) {
 		return ret;
 	}
 	

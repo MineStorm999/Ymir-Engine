@@ -803,6 +803,11 @@ void Sample::RenderFrame(uint32_t frameIndex)
             // Culling
             CullingConstants cullingConstants = {};
             cullingConstants.DrawCount = batchCount;
+
+            if (RenderScene* rs = SceneManager::GetRenderScene()) {
+                cullingConstants.MeshCount = rs->modelCount;
+            }
+
             NRI.CmdSetConstants(commandBuffer, 0, &cullingConstants, sizeof(cullingConstants));
 
             NRI.CmdSetPipeline(commandBuffer, *m_ComputePipeline);
@@ -821,7 +826,7 @@ void Sample::RenderFrame(uint32_t frameIndex)
             {
                 nri::ClearDesc clearDescs[2] = {};
                 clearDescs[0].attachmentContentType = nri::AttachmentContentType::COLOR;
-                clearDescs[0].value.color32f = { .0f, .0f, .0f };
+                clearDescs[0].value.color32f = { .0f, .0f, .5f };
                 clearDescs[1].attachmentContentType = nri::AttachmentContentType::DEPTH;
                 clearDescs[1].value.depthStencil.depth = CLEAR_DEPTH;
 
@@ -920,12 +925,13 @@ void Sample::UpdateEntityTransform(entt::entity e, TransformComponent& transform
     transformMat.SetupByTranslation(transform.localPos);
     float4x4 tempRot;
     
-    rotationMap.SetupByRotationX(transform.localRot.x);
-    tempRot.SetupByRotationY(transform.localRot.y);
+    float3 radRot = radians(transform.localRot);
+    rotationMap.SetupByRotationYPR(radRot.x, radRot.y, radRot.z);
+    /*tempRot.SetupByRotationY(transform.localRot.y);
     rotationMap = rotationMap * tempRot;
     tempRot.SetupByRotationZ(transform.localRot.z);
     rotationMap = rotationMap * tempRot;
-    
+    */
     scaleMap.SetupByScale(transform.localScale);
 
     transform.localMat = transformMat * rotationMap * scaleMap;
@@ -994,17 +1000,17 @@ uint32_t Sample::PrepareEntities()
         UpdateEntityTransform(e, t, id);
     }
     iterTime = glfwGetTime() - iterTime;
-    Log::Message("Renderer", "Iterating Took " + std::to_string(iterTime * 1000) + "ms");
+    //Log::Message("Renderer", "Iterating Took " + std::to_string(iterTime * 1000) + "ms");
 
     if (descs.size() > 0) {
         float uploadTime = glfwGetTime();
         NRI.UploadData(*m_CommandQueue, nullptr, 0, descs.data(), helper::GetCountOf(descs));
         uploadTime = glfwGetTime() - uploadTime;
-        Log::Message("Renderer", "Uploading Took " + std::to_string(uploadTime * 1000) + "ms");
+        //Log::Message("Renderer", "Uploading Took " + std::to_string(uploadTime * 1000) + "ms");
     }
 
     float dt = glfwGetTime() - timeBef;
-    Log::Message("Renderer", "Preparing Took " + std::to_string(dt * 1000) + "ms");
+    //Log::Message("Renderer", "Preparing Took " + std::to_string(dt * 1000) + "ms");
     
     return MAX_TRANSFORMS;
 }
@@ -1079,6 +1085,7 @@ void Sample::ReloadMaterialsReq()
 
 void Sample::Reload()
 {
+    return;
     RenderScene* rScene = SceneManager::GetRenderScene();
     if (!rScene) {
         return;
@@ -1090,6 +1097,7 @@ void Sample::Reload()
 
 void Sample::ReloadMeshes()
 {
+    return;
     RenderScene* rScene = SceneManager::GetRenderScene();
     if (!rScene) {
         return;

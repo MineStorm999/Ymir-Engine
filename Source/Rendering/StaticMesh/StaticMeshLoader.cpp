@@ -361,14 +361,13 @@ std::vector<unsigned int> Importer::CreateLOD(float siplificationAmmount, const 
 AssetID Importer::ImportTexture(std::string path, std::string savePath, std::string name)
 {
     uint32_t off = path.find_last_of(".");
-    if (off == INVALID_RENDER_ID) {
-        if (!std::filesystem::copy_file(path, (savePath + name + ".jpg"))) {
-            return INVALID_ASSET_ID;
-        }
+    if (off == std::string::npos) {
+        return INVALID_ASSET_ID;
     }
     else {
         std::string fileE = path.substr(off, path.size() - off);
-        if (!std::filesystem::copy_file(path, (savePath + name + fileE))) {
+        std::string save = savePath + name + fileE;
+        if (!std::filesystem::copy_file(path, save)) {
             return INVALID_ASSET_ID;
         }
     }

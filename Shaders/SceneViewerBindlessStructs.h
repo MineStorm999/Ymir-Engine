@@ -11,7 +11,7 @@ struct CullingConstants
 {
 	float4 Frustum;
 	uint32_t DrawCount;
-	uint32_t BatchCount;
+	uint32_t MeshCount;
 	uint32_t EnableCulling;
 	uint32_t ScreenWidth;
 	uint32_t ScreenHeight;

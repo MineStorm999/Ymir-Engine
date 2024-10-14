@@ -156,6 +156,7 @@ void RenderScene::LoadMeshes()
 
 		Log::Message("RenderScene", "Load Meshes " + std::to_string((i++ + 1)) + "/" + std::to_string(sceneAsset->usedMeshes.size()));
 	}
+	modelCount = meshesCPU.size();
 }
 
 void RenderScene::LoadTextures()

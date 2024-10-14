@@ -25,6 +25,7 @@ public:
 	bool relTextures;
 	bool relMaterials;
 
+	uint32_t modelCount;
 public:
 	std::vector<unsigned int> indicesCPU;		// done
 	std::vector<utils::Vertex> verticesCPU;		// done
@@ -32,6 +33,7 @@ public:
 	std::vector<MeshData> meshesCPU;			// done
 	std::vector<utils::Texture*> texturesCPU;
 	std::vector<MaterialData> materialsCPU;
+
 	void LoadMeshes();
 	void LoadTextures();
 	void LoadMaterials();
