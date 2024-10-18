@@ -3,6 +3,7 @@
 #include "ECS/components.h"
 #include "Inspector.h"
 
+uint32_t iter = 0;
 void IterChilds(entt::entity e) {
 	if (!EntityManager::GetWorld().valid(e)) {
 		return;
@@ -12,16 +13,19 @@ void IterChilds(entt::entity e) {
 		return;
 	}
 
-	ImGui::PushID(id->instanceGPUID);
+	ImGui::PushID(iter++);
 	if (ImGui::TreeNode(id->name.c_str())) {
 		if ((ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0))) {
 			Inspector::Select(e);
 		}
 
-		ImGui::PushID(id->instanceGPUID + 5000000);
+		ImGui::PushID(iter++);
 		if (ImGui::BeginPopupContextItem("Create Child", 1)) {
 			if (ImGui::MenuItem("Create Child")) {
 				EntityManager::CreateEntity(id->name + " Child", e);
+			}
+			if (ImGui::MenuItem("Delete")) {
+				EntityManager::DeleteEntity(e);
 			}
 			ImGui::EndPopup();
 		}
@@ -37,10 +41,13 @@ void IterChilds(entt::entity e) {
 			Inspector::Select(e);
 		}
 
-		ImGui::PushID(id->instanceGPUID + 5000000);
+		ImGui::PushID(iter++);
 		if (ImGui::BeginPopupContextItem("Create Child", 1)) {
 			if (ImGui::MenuItem("Create Child")) {
 				EntityManager::CreateEntity(id->name + " Child", e);
+			}
+			if (ImGui::MenuItem("Delete")) {
+				EntityManager::DeleteEntity(e);
 			}
 			ImGui::EndPopup();
 		}
@@ -53,7 +60,7 @@ void IterChilds(entt::entity e) {
 void EntityHirachie::Show()
 {
 	if (ImGui::Begin("Hirachie")) {
-
+		iter = 0;
 		if (ImGui::BeginPopupContextItem("Create", 1)) {
 			if (ImGui::MenuItem("Create Entity")) {
 				EntityManager::CreateEntity("New Entity");

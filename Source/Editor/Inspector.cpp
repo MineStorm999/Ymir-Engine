@@ -170,26 +170,29 @@ void Inspector::ShowEntity()
 		id->name = name;
 		ImGui::Text("GPU ID: %u", (int)id->instanceGPUID);
 	}
-
+	static bool lock = false;
 	if (TransformComponent* t = w.try_get<TransformComponent>(sEntity)) {
 		transform = true;
 		if (ImGui::TreeNode("Transform")) {
 			float3 b = t->localPos;
-			ImGui::DragFloat3("Postion", (float*)&t->localPos);
+			
+			ImGui::DragFloat3("Postion", (float*)&t->localPos, 0.1f);
 			if (b.x != t->localPos.x || b.y != t->localPos.y || b.z != t->localPos.z) {
-				w.emplace_or_replace<Dirty>(sEntity);
+				w.emplace<Dirty>(sEntity);
 			}
 
 			b = t->localRot;
+			
 			ImGui::DragFloat3("Rotation", (float*)&t->localRot);
 			if (b.x != t->localRot.x || b.y != t->localRot.y || b.z != t->localRot.z) {
-				w.emplace_or_replace<Dirty>(sEntity);
+				w.emplace<Dirty>(sEntity);
 			}
 
+			//ImGui::Checkbox("Lock", &lock);
 			b = t->localScale;
-			ImGui::DragFloat3("Scale", (float*)&t->localScale);
+			ImGui::DragFloat3("Scale", (float*)&t->localScale, 0.2f);
 			if (b.x != t->localScale.x || b.y != t->localScale.y || b.z != t->localScale.z) {
-				w.emplace_or_replace<Dirty>(sEntity);
+				w.emplace<Dirty>(sEntity);
 			}
 
 			ImGui::TreePop();
@@ -208,7 +211,7 @@ void Inspector::ShowEntity()
 				bool selected = INVALID_ASSET_ID == m->modelID;
 				if (ImGui::Selectable("Nothing", selected)) {
 					m->modelID = INVALID_ASSET_ID;
-					w.emplace_or_replace<Dirty>(sEntity);
+					w.emplace<Dirty>(sEntity);
 				}
 				if (selected) {
 					ImGui::SetItemDefaultFocus();
@@ -223,7 +226,7 @@ void Inspector::ShowEntity()
 						if (rs) {
 							rs->Add(id);
 						}
-						w.emplace_or_replace<Dirty>(sEntity);
+						w.emplace<Dirty>(sEntity);
 					}
 					if (selected) {
 						ImGui::SetItemDefaultFocus();
@@ -243,7 +246,7 @@ void Inspector::ShowEntity()
 				bool selected = INVALID_ASSET_ID == m->modelID;
 				if (ImGui::Selectable("Nothing", selected)) {
 					m->materialID = INVALID_ASSET_ID;
-					w.emplace_or_replace<Dirty>(sEntity);
+					w.emplace<Dirty>(sEntity);
 				}
 				ImGui::PopID();
 				for (AssetID id : materials)
@@ -255,7 +258,7 @@ void Inspector::ShowEntity()
 						if (rs) {
 							rs->Add(id);
 						}
-						w.emplace_or_replace<Dirty>(sEntity);
+						w.emplace<Dirty>(sEntity);
 					}
 					if (selected) {
 						ImGui::SetItemDefaultFocus();

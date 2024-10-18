@@ -32,6 +32,7 @@ void EntityManager::SetWorld(ECSWorld* w)
     else {
         root = w->group<Root>()[0];
     }
+
     Init();
 }
 
@@ -60,11 +61,15 @@ void EntityManager::UpdateMatrizes()
 
 void EntityManager::Init()
 {
-
     if (!curWorld) {
         ECSWorld* world = new ECSWorld();
         SetWorld(world);
     }
+}
+
+void EntityManager::DeleteEntity(entt::entity e)
+{
+    Log::Message("Entity Manager", "Deleting Entities is not Supported!!!");
 }
 
 entt::entity EntityManager::CreateEntity(std::string name, entt::entity parent)
@@ -75,20 +80,20 @@ entt::entity EntityManager::CreateEntity(std::string name, entt::entity parent)
     IdentityComponent& id = curWorld->emplace<IdentityComponent>(e);
     id.name = name;
     curWorld->emplace<TransformComponent>(e);
-
+    //curWorld->emplace<Dirty>(e);
     if (name == "Root") {
+//        GetWorld().emplace<Dirty>(e);
         return e;
     }
     if (parent == entt::null) {
-
         id.parent = GetRoot();
-        IdentityComponent& id2 = GetWorld().get<IdentityComponent>(GetRoot());
+        IdentityComponent& id2 = curWorld->get<IdentityComponent>(GetRoot());
         id2.childs.push_back(e);
         GetWorld().emplace<Dirty>(e);
         return e;
     }
     id.parent = parent;
-    IdentityComponent& id2 = GetWorld().get<IdentityComponent>(parent);
+    IdentityComponent& id2 = curWorld->get<IdentityComponent>(parent);
     id2.childs.push_back(e);
     GetWorld().emplace<Dirty>(e);
     return e;
@@ -143,7 +148,7 @@ void EntityManager::Transform::SetPosition(entt::entity e, float3 pos, Transform
         return;
     }
     t.localPos = pos;
-    GetWorld().emplace_or_replace<Dirty>(e);
+    GetWorld().emplace<Dirty>(e);
 }
 
 void EntityManager::Transform::SetRotation(entt::entity e, float3 rot, TransformComponent& t)
@@ -152,7 +157,7 @@ void EntityManager::Transform::SetRotation(entt::entity e, float3 rot, Transform
         return;
     }
     t.localRot = rot;
-    GetWorld().emplace_or_replace<Dirty>(e);
+    GetWorld().emplace<Dirty>(e);
 }
 
 void EntityManager::Transform::SetScale(entt::entity e, float3 scale, TransformComponent& t)
@@ -161,5 +166,5 @@ void EntityManager::Transform::SetScale(entt::entity e, float3 scale, TransformC
         return;
     }
     t.localScale = scale;
-    GetWorld().emplace_or_replace<Dirty>(e);
+    GetWorld().emplace<Dirty>(e);
 }

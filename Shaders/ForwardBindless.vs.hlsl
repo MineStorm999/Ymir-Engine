@@ -27,7 +27,7 @@ struct Attributes
 };
 
 float4 GetWorldPos(uint id, float4 pos) {
-    uint parent = Instances[id].parent;
+    /*uint parent = Instances[id].parent;
     float4 curPos = mul(Instances[id].transform, pos);
 
     for (uint i = 0; i < MAX_TRANSFORMS && parent < MAX_TRANSFORMS; i++)
@@ -35,8 +35,10 @@ float4 GetWorldPos(uint id, float4 pos) {
         curPos = mul(Instances[parent].transform, curPos);
         parent = Instances[parent].parent;
     }
+    
+    return curPos;*/
 
-    return curPos;
+    return mul(Instances[id].transform, pos);
 }
 
 Attributes main( in Input input, NRI_DECLARE_DRAW_PARAMETERS )

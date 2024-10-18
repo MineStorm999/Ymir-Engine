@@ -1,47 +1,26 @@
-#include "PhyisicsWorld.h"
+#include "PhysicsWorld.h"
 
-#ifdef PHYSICS
+#ifdef JOLT_PHYSICS
+
 #include <thread>
+using namespace JPH;
 
-#define MAX_BODIES 0xffff
-#define MAX_BODY_PAIRS 0xffff
-#define MAX_CONTACT_CONSTRAINTS 10240
-#define MAX_BODY_MUTEXES 0
+// If you want your code to compile using single or double precision write 0.0_r to get a Real value that compiles to double or float depending if JPH_DOUBLE_PRECISION is set or not.
+using namespace JPH::literals;
 
-// threads
-// has to be more than 1
-#define MAX_PHYYSICS_THREADS 4
-#define MAX_PHYSICS_JOBS cMaxPhysicsJobs
-#define MAX_PHYSICS_BARRIERS cMaxPhysicsBarriers
-
-namespace {
-	// threads
-	JobSystemThreadPool job_system(MAX_PHYSICS_JOBS, MAX_PHYSICS_BARRIERS, MAX_PHYYSICS_THREADS - 1);
-	std::thread* t{nullptr};
-
-	TempAllocatorImpl temp_allocator(10 * 1024 * 1024);
-	PhysicsSystem physics_system;
-
-	// interfaces
-	BPLayerInterfaceImpl broad_phase_layer_interface;
-	ObjectVsBroadPhaseLayerFilterImpl object_vs_broadphase_layer_filter;
-	ObjectLayerPairFilterImpl object_vs_object_layer_filter;
-
-	// listener
-	MyBodyActivationListener body_activation_listener;
-	MyContactListener contact_listener;
-	BodyInterface* body_interface{nullptr};
-}
-
+// We're also using STL classes in this example
+using namespace std;
 void PhyisicsWorld::Init()
 {
 	// Register allocation hook. In this example we'll just let Jolt use malloc / free but you can override these if you want (see Memory.h).
 	// This needs to be done before any other Jolt function is called.
 	RegisterDefaultAllocator();
 
+	temp_allocator = new TempAllocatorImpl(10 * 1024 * 1024);
+
 	// Install trace and assert callbacks
 	Trace = TraceImpl;
-	JPH_IF_ENABLE_ASSERTS(AssertFailed = AssertFailedImpl;)
+	JPH_IF_ENABLE_ASSERTS(AssertFailed = AssertFailedImpl);
 
 	// Create a factory, this class is responsible for creating instances of classes based on their name or hash and is mainly used for deserialization of saved data.
 	// It is not directly used in this example but still required.
@@ -52,6 +31,7 @@ void PhyisicsWorld::Init()
 	// If you implement your own default material (PhysicsMaterial::sDefault) make sure to initialize it before this function or else this function will create one for you.
 	RegisterTypes();
 
+	job_system = new JobSystemThreadPool(MAX_PHYSICS_JOBS, MAX_PHYSICS_BARRIERS, (MAX_PHYYSICS_THREADS - 1));
 
 	// Now we can create the actual physics system.
 	physics_system.Init(MAX_BODIES, MAX_BODY_MUTEXES, MAX_BODY_PAIRS, MAX_CONTACT_CONSTRAINTS, broad_phase_layer_interface, object_vs_broadphase_layer_filter, object_vs_object_layer_filter);
@@ -89,30 +69,57 @@ void PhyisicsWorld::Init()
 	// (note that if we had used CreateBody then we could have set the velocity straight on the body before adding it to the physics system)
 	body_interface->SetLinearVelocity(sphere_id, Vec3(0.0f, -5.0f, 0.0f));
 
-	// We simulate the physics world in discrete time steps. 60 Hz is a good rate to update the physics system.
-	const float cDeltaTime = 1.0f / 60.0f;
-
 	// Optional step: Before starting the physics simulation you can optimize the broad phase. This improves collision detection performance (it's pointless here because we only have 2 bodies).
 	// You should definitely not call this every frame or when e.g. streaming in a new level section as it is an expensive operation.
 	// Instead insert all new objects in batches instead of 1 at a time to keep the broad phase efficient.
 	physics_system.OptimizeBroadPhase();
 }
 
-void StepImpl(float dt) {
-	// 1 step per 0.016 // step = dt / 0.016
-	physics_system.Update(dt, std::ceil(dt / (float)(1.0f / 60)), &temp_allocator, &job_system);
+struct Load {
+	PhysicsSystem* sys;
+	TempAllocatorImpl* tmpAlloc;
+	JobSystemThreadPool* jobSys;
+	//float dt;
+
+	Load(PhysicsSystem* s, TempAllocatorImpl* t, JobSystemThreadPool* j) { 
+		sys = s;
+		tmpAlloc = t;
+		jobSys = j;
+		//dt = d;
+	}
+};
+bool step = false;
+bool prozessing = false;
+float deltaT = 0.0f;
+static void StepImpl(Load l) {
+	while (!step)
+	{
+		std::this_thread::sleep_for(std::chrono::duration<double>(.1ms));
+	}
+	prozessing = true;
+	step = false;
+	l.sys->Update(deltaT, (int)deltaT / (1.0f / 60.f), l.tmpAlloc, l.jobSys);
+	prozessing = false;
 }
 
 void PhyisicsWorld::Step(float dt)
 {
-	delete t;
-	t = new thread(StepImpl, dt);
+	if (!job_system) {
+		return;
+	}
+	if (!t) {
+		t = new thread(StepImpl, Load(&physics_system, temp_allocator, job_system));
+	}
+	Sync();
+	deltaT = dt;
+	step = true;
 }
 
 void PhyisicsWorld::Sync()
 {
-	if (t) {
-		t->join();
+	while (!prozessing)
+	{
+		std::this_thread::sleep_for(std::chrono::duration<double>(.1ms));
 	}
 }
-#endif //PHYSICS
+#endif //JOLT_PHYSICS

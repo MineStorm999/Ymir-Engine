@@ -909,13 +909,8 @@ std::vector<InstanceData> dummys;
 std::vector<nri::BufferUploadDesc> descs;
 
 void Sample::UpdateEntityTransform(entt::entity e, TransformComponent& transform, IdentityComponent& identity) {
-   
-    
-    if (identity.instanceGPUID == INVALID_RENDER_ID) {
-        identity.instanceGPUID = GetFreeGPUInstance();
-    }
-    if (identity.instanceGPUID == INVALID_RENDER_ID) {
-        EntityManager::GetWorld().destroy(e);
+    RenderScene* rS = SceneManager::GetRenderScene();
+    if (!rS) {
         return;
     }
 
@@ -923,61 +918,60 @@ void Sample::UpdateEntityTransform(entt::entity e, TransformComponent& transform
     float4x4 transformMat, rotationMap, scaleMap;
 
     transformMat.SetupByTranslation(transform.localPos);
-    float4x4 tempRot;
+    //float4x4 tempRot;
     
     float3 radRot = radians(transform.localRot);
     rotationMap.SetupByRotationYPR(radRot.x, radRot.y, radRot.z);
-    /*tempRot.SetupByRotationY(transform.localRot.y);
-    rotationMap = rotationMap * tempRot;
-    tempRot.SetupByRotationZ(transform.localRot.z);
-    rotationMap = rotationMap * tempRot;
-    */
+
     scaleMap.SetupByScale(transform.localScale);
 
     transform.localMat = transformMat * rotationMap * scaleMap;
-    //transform.localMat.Invert();
-
-    RenderScene* rS = SceneManager::GetRenderScene();
-    if (!rS) {
-        return;
+    if (EntityManager::GetWorld().valid(identity.parent)) {
+        transform.localToWorldMat = EntityManager::GetWorld().get<TransformComponent>(identity.parent).localToWorldMat * transform.localMat;
     }
-
-    InstanceData dummy;
-    dummy.transform = transform.localMat;
+    else
+    {
+        transform.localToWorldMat = transform.localMat;
+    }
+    //transform.localMat.Invert();
 
     // mesh
     MeshInstanceComponent* mesh = EntityManager::GetWorld().try_get<MeshInstanceComponent>(e);
     if (mesh) {
+        dummys.resize(dummys.size() + 1);
+        InstanceData& dummy = dummys.back();
+
+        dummy.transform = transform.localToWorldMat;
+
+        if (identity.instanceGPUID == INVALID_RENDER_ID) {
+            identity.instanceGPUID = GetFreeGPUInstance();
+        }
+        if (identity.instanceGPUID == INVALID_RENDER_ID) {
+            //EntityManager::GetWorld().destroy(e);
+            EntityManager::GetWorld().remove<Dirty>(e);
+            return;
+        }
+        
         dummy.meshIndex = rS->renderIds[mesh->modelID];
         dummy.materialIndex = 0;//rS->renderIds[mesh->materialID];
-    }
-    else {
-        dummy.meshIndex = INVALID_RENDER_ID;
-        dummy.materialIndex = INVALID_RENDER_ID;
+
+
+        // parent
+        dummy.parent = INVALID_RENDER_ID;
+        // upload
+        nri::BufferUploadDesc bufferData[] =
+        {
+            {&dummy, sizeof(InstanceData), m_Buffers[INSTANCE_BUFFER], sizeof(InstanceData) * identity.instanceGPUID,  {nri::AccessBits::SHADER_RESOURCE, nri::StageBits::FRAGMENT_SHADER | nri::StageBits::COMPUTE_SHADER}},
+        };
+
+        descs.push_back({ dummys.data() + dummys.size() - 1, sizeof(InstanceData), m_Buffers[INSTANCE_BUFFER], sizeof(InstanceData) * identity.instanceGPUID,  {nri::AccessBits::SHADER_RESOURCE, nri::StageBits::FRAGMENT_SHADER | nri::StageBits::COMPUTE_SHADER} });
+        //NRI.UploadData(*m_CommandQueue, nullptr, 0, bufferData, helper::GetCountOf(bufferData));
     }
 
-    // parent
-    dummy.parent = INVALID_RENDER_ID;
-    if (EntityManager::GetWorld().valid(identity.parent)) {
-        IdentityComponent* pid = EntityManager::GetWorld().try_get<IdentityComponent>(identity.parent);
-        if (pid && pid->name != "Root") {
-            if (pid->instanceGPUID == INVALID_RENDER_ID) {
-                //pid->instanceGPUID = GetFreeGPUInstance();
-                return;
-            }
-            dummy.parent = pid->instanceGPUID;
-        }
-    }
-    // upload
-    nri::BufferUploadDesc bufferData[] =
+    for (auto& child : identity.childs)
     {
-        {&dummy, sizeof(InstanceData), m_Buffers[INSTANCE_BUFFER], sizeof(InstanceData) * identity.instanceGPUID,  {nri::AccessBits::SHADER_RESOURCE, nri::StageBits::FRAGMENT_SHADER | nri::StageBits::COMPUTE_SHADER}},
-    };
-
-    dummys.push_back(dummy);
-    descs.push_back({ dummys.data() + dummys.size() - 1, sizeof(InstanceData), m_Buffers[INSTANCE_BUFFER], sizeof(InstanceData) * identity.instanceGPUID,  {nri::AccessBits::SHADER_RESOURCE, nri::StageBits::FRAGMENT_SHADER | nri::StageBits::COMPUTE_SHADER}});
-    //NRI.UploadData(*m_CommandQueue, nullptr, 0, bufferData, helper::GetCountOf(bufferData));
-
+        UpdateEntityTransform(child, EntityManager::GetWorld().get<TransformComponent>(child), EntityManager::GetWorld().get<IdentityComponent>(child));
+    }
     EntityManager::GetWorld().remove<Dirty>(e);
 }
 

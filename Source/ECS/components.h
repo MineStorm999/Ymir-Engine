@@ -6,13 +6,13 @@
 #include "Assets/AssetManager.h"
 
 struct TransformComponent {
-	float4x4 localMat;
+	float4x4 localMat{ float4x4::Identity() };
 	
 	float3 localPos{ 0,0,0 };
 	float3 localScale{ 1,1,1 };
 	float3 localRot{ 0,0,0 };
 
-	float4x4 localToWorldMat;
+	float4x4 localToWorldMat{float4x4::Identity()};
 };
 
 struct MeshInstanceComponent {
@@ -36,3 +36,7 @@ struct CameraComponent {
 };
 
 struct Dirty{};
+
+struct RigidBody {
+
+};
