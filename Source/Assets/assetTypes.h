@@ -5,6 +5,7 @@
 #include "NRIFramework.h"
 #include "JSON/json.hpp"
 #include "Rendering/RenderTypes.h"
+#include "../Shaders/SceneViewerBindlessStructs.h"
 //#include "../Rendering/VirtualGeometry/MeshletStructs.h"
 //#include "../ECS/components.h"
 
@@ -33,7 +34,8 @@ enum class AssetType : uint8_t
 	Texture,
 	Material,
 	Audio,
-	Scene
+	Scene,
+	MeshCollider
 };
 
 enum class AssetLoadFlags : uint8_t
@@ -46,39 +48,6 @@ class AssetUtils {
 public:
 	static AssetID GetAssetIDFromImported(std::filesystem::path path);
 };
-
-/*
-struct Node
-{
-	Node(std::string n, Node* p) {
-		parent = p;
-		realName = 0xffffffff;
-		if (parent) {
-			parent->childs.push_back(this);
-		}
-		type = AssetType::None;
-	};
-	Node(std::string n, Node* p, AssetID rN, AssetType t) {
-		parent = p;
-		vName = n;
-
-		realName = rN;
-
-		if (parent) {
-			parent->childs.push_back(this);
-		}
-
-		type = t;
-	};
-
-	Node* parent;
-	std::vector<Node*> childs;
-
-	std::string vName;
-	AssetType type;
-
-	AssetID realName;
-};*/
 
 namespace std {
 
@@ -95,6 +64,8 @@ namespace std {
 			return "Audio";
 		case AssetType::Scene:
 			return "Scene";
+		case AssetType::MeshCollider:
+			return "MeshCollider";
 		default:
 			return "None";
 		}
@@ -118,6 +89,9 @@ inline AssetType to_type(std::string str) {
 	}
 	if (str.compare("Scene") == 0) {
 		return AssetType::Scene;
+	}
+	if (str.compare("MeshCollider") == 0) {
+		return AssetType::MeshCollider;
 	}
 	return AssetType::None;
 }
@@ -172,6 +146,23 @@ public:
 
 	// !!!TODO!!!
 	nlohmann::json Save() override;
+};
+
+
+class AMeshCollider : public AssetBase{
+public:
+	AMeshCollider() { type = AssetType::MeshCollider; };
+
+	AssetID Asset;
+	float simplificationAmmount;
+
+	uint32_t indexCount;
+	uint32_t vertCount;
+
+	uint32_t ClusterCount;
+
+	nlohmann::json Save() override;
+	bool Load(std::vector<uint8_t>& indexes, std::vector<float3>& vertices, std::vector<OdCollider>& colls, std::vector<OdCluster>& cluster);
 };
 
 struct LOD {

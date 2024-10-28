@@ -287,3 +287,13 @@ nlohmann::json AMaterial::Save()
 
 	return j;
 }
+
+nlohmann::json AMeshCollider::Save()
+{
+	return nlohmann::json();
+}
+
+bool AMeshCollider::Load(std::vector<uint8_t>& indexes, std::vector<float3>& vertices, std::vector<OdCollider>& colls, std::vector<OdCluster>& cluster)
+{
+	return false;
+}

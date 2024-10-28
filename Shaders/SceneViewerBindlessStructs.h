@@ -4,8 +4,8 @@
 #define THIS
 #include "../External/NRIFramework/External/NRI/Include/NRICompatibility.hlsli"
 
-
 #define MAX_TRANSFORMS 3000000
+#define INVALID 0xffffffff
 
 struct CullingConstants
 {
@@ -57,4 +57,34 @@ NRI_RESOURCE(cbuffer, GlobalConstants, b, 0, 0 )
     float3 gCameraPos;
     uint32_t batchCount;
 };
+
+
+// Od Physics
+#define CUBE_COLLIDER INVALID - 1
+#define SPHERE_COLLIDER INVALID - 2
+
+struct OdCollider {
+    float4 boundingSphere;
+
+    uint32_t clusterOffset;
+    uint32_t clusterCount;
+};
+
+struct OdCluster {
+    float4 boundingSphere;
+
+    uint32_t indexOffset;
+    uint32_t indexCount;
+
+    uint32_t vertexOffset;
+    uint32_t vertexCount;
+};
+
+struct OdRigidBody {
+    float3 velocity;
+    float3 angularVelocity;
+};
+
+
+// END      END             END                 END
 #endif // !THIS
