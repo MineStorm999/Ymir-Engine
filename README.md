@@ -13,7 +13,9 @@ Currently in work, nothing to see jet.
  - X Global Illumination
  - X PathTracing
  - X Skinned Mesh
- - X 10k moving cubes (1k with ease)
+ - ✓ 10k moving cubes
+ - X GPU Culling
+ - X HZB Culling
 # Assets
  - ✓ Virtual File System
  - ✓ Asset Manager
