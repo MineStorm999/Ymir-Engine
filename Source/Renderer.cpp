@@ -939,19 +939,20 @@ void Sample::UpdateEntityTransform(entt::entity e, TransformComponent& transform
     MeshInstanceComponent* mesh = EntityManager::GetWorld().try_get<MeshInstanceComponent>(e);
     if (mesh) {
         dummys.resize(dummys.size() + 1);
+        
         InstanceData& dummy = dummys.back();
-
-        dummy.transform = transform.localToWorldMat;
-
         if (identity.instanceGPUID == INVALID_RENDER_ID) {
             identity.instanceGPUID = GetFreeGPUInstance();
         }
         if (identity.instanceGPUID == INVALID_RENDER_ID) {
             //EntityManager::GetWorld().destroy(e);
             EntityManager::GetWorld().remove<Dirty>(e);
+            dummys.pop_back();
             return;
         }
-        
+
+        dummy.transform = transform.localToWorldMat;
+        dummy.entityID = (uint32_t)e;
         dummy.meshIndex = rS->renderIds[mesh->modelID];
         dummy.materialIndex = 0;//rS->renderIds[mesh->materialID];
 
@@ -968,11 +969,11 @@ void Sample::UpdateEntityTransform(entt::entity e, TransformComponent& transform
         //NRI.UploadData(*m_CommandQueue, nullptr, 0, bufferData, helper::GetCountOf(bufferData));
     }
 
+    EntityManager::GetWorld().remove<Dirty>(e);
     for (auto& child : identity.childs)
     {
         UpdateEntityTransform(child, EntityManager::GetWorld().get<TransformComponent>(child), EntityManager::GetWorld().get<IdentityComponent>(child));
     }
-    EntityManager::GetWorld().remove<Dirty>(e);
 }
 
 

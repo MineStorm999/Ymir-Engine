@@ -41,7 +41,7 @@ struct InstanceData
     uint32_t materialIndex;
 
     uint32_t parent;
-    uint32_t off0;
+    uint32_t entityID;
     float4x4 transform;
 
 };
@@ -63,6 +63,9 @@ NRI_RESOURCE(cbuffer, GlobalConstants, b, 0, 0 )
 #define CUBE_COLLIDER INVALID - 1
 #define SPHERE_COLLIDER INVALID - 2
 
+#define MAX_RIGID_BODIES MAX_TRANSFORMS
+#define MAX_READBACKS 50000
+
 struct OdCollider {
     float4 boundingSphere;
 
@@ -81,10 +84,36 @@ struct OdCluster {
 };
 
 struct OdRigidBody {
-    float3 velocity;
-    float3 angularVelocity;
+    float4 velocity;
+    float4 angularVelocity;
 };
 
+struct PositionRB {
+    uint32_t id;
+    uint32_t off0;
+    uint32_t off1;
+    uint32_t off2;
+    float4 position;
+    float4 rotation;
+};
+
+struct RigidBodyRB {
+    uint32_t id;
+    uint32_t off0;
+    uint32_t off1;
+    uint32_t off2;
+    float4 velocity;
+    float4 rotVelocity;
+};
+
+struct CollisionEvent {
+    uint32_t first;
+    uint32_t second;
+    uint32_t off0;
+    uint32_t off1;
+    float4 velocity_Magnitude;
+    float4 worldPosition;
+};
 
 // END      END             END                 END
 #endif // !THIS

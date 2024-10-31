@@ -34,15 +34,64 @@ OdPhysics::OdPhysics(NRIInterface& NRI, nri::Device* device)
 
     // buffer
     {
-        // 
+        // index buffer
         nri::BufferDesc bufferDesc = {};
-        bufferDesc.size = helper::GetByteSizeOf(scene->indicesCPU);
+        bufferDesc.size = helper::GetByteSizeOf(indexes);
         bufferDesc.usageMask = nri::BufferUsageBits::SHADER_RESOURCE;
+        bufferDesc.structureStride = sizeof(uint32_t);
         nri::Buffer* buffer;
-
+        NRI_ABORT_ON_FAILURE(NRI.CreateBuffer(*device, bufferDesc, buffer));
+        m_buffer.push_back(buffer);
         std::cout << "Create Buffers1\n";
-        NRI_ABORT_ON_FAILURE(NRI.CreateBuffer(*m_Device, bufferDesc, buffer));
-        m_Buffers.push_back(buffer);
+
+        // vertex buffer
+        nri::BufferDesc bufferDesc = {};
+        bufferDesc.size = helper::GetByteSizeOf(vertices);
+        bufferDesc.usageMask = nri::BufferUsageBits::SHADER_RESOURCE;
+        bufferDesc.structureStride = sizeof(float3);
+        NRI_ABORT_ON_FAILURE(NRI.CreateBuffer(*device, bufferDesc, buffer));
+        m_buffer.push_back(buffer);
+
+        // Od Collider buffer
+        nri::BufferDesc bufferDesc = {};
+        bufferDesc.size = helper::GetByteSizeOf(colls);
+        bufferDesc.usageMask = nri::BufferUsageBits::SHADER_RESOURCE;
+        bufferDesc.structureStride = sizeof(OdCollider);
+        NRI_ABORT_ON_FAILURE(NRI.CreateBuffer(*device, bufferDesc, buffer));
+        m_buffer.push_back(buffer);
+
+        // Od Cluster buffer
+        nri::BufferDesc bufferDesc = {};
+        bufferDesc.size = helper::GetByteSizeOf(cluster);
+        bufferDesc.usageMask = nri::BufferUsageBits::SHADER_RESOURCE;
+        bufferDesc.structureStride = sizeof(OdCluster);
+        NRI_ABORT_ON_FAILURE(NRI.CreateBuffer(*device, bufferDesc, buffer));
+        m_buffer.push_back(buffer);
+
+        // Od Cluster buffer
+        nri::BufferDesc bufferDesc = {};
+        bufferDesc.size = sizeof(OdRigidBody) * MAX_RIGID_BODIES;
+        bufferDesc.usageMask = nri::BufferUsageBits::SHADER_RESOURCE;
+        bufferDesc.structureStride = sizeof(OdRigidBody);
+        NRI_ABORT_ON_FAILURE(NRI.CreateBuffer(*device, bufferDesc, buffer));
+        m_buffer.push_back(buffer);
+
+
+        // Return Positions
+        nri::BufferDesc bufferDesc = {};
+        bufferDesc.size = sizeof(PositionRB) * MAX_READBACKS;
+        bufferDesc.usageMask = nri::BufferUsageBits::SHADER_RESOURCE_STORAGE;
+        bufferDesc.structureStride = sizeof(PositionRB);
+        NRI_ABORT_ON_FAILURE(NRI.CreateBuffer(*device, bufferDesc, buffer));
+        m_buffer.push_back(buffer);
+
+        // Return Rigidbodies
+        nri::BufferDesc bufferDesc = {};
+        bufferDesc.size = sizeof(RigidBodyRB) * MAX_READBACKS;
+        bufferDesc.usageMask = nri::BufferUsageBits::SHADER_RESOURCE_STORAGE;
+        bufferDesc.structureStride = sizeof(RigidBodyRB);
+        NRI_ABORT_ON_FAILURE(NRI.CreateBuffer(*device, bufferDesc, buffer));
+        m_buffer.push_back(buffer);
     }
 }
 

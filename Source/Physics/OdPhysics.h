@@ -11,10 +11,11 @@ struct NRIInterface
 
 enum class OdBufferOrder : uint8_t {
 	// structured buffer
-	COLLIDER_DATA,
-	COLLIDER_DESCS,
-	COLLIDER_CLUSTER_DESCS,
-	RIGID_BODIES,
+	COLLIDER_DATA_INDEX,
+	COLLIDER_DATA_VERTEX,
+	OD_COLLIDERS,
+	OD_CLUSTERS,
+	OD_RIGID_BODIES,
 
 	// Read Write
 	RETURN_POSITIONS,
@@ -44,4 +45,13 @@ private:
 	std::vector<nri::Buffer*> m_buffer;
 	std::vector<nri::Descriptor*> m_Descriptors;
 	nri::Memory* m_memory;
+
+	// loading
+private:
+	std::vector<uint8_t> indexes{};
+	std::vector<float3> vertices{};
+	std::vector<OdCollider> colls{};
+	std::vector<OdCluster> cluster{};
+
+	void Load() {};
 };
