@@ -11,7 +11,7 @@ Currently in work, nothing to see jet.
  3. Install Vulkan SDK
  4. run deploy.bat
  5. your solution file should be in _Build
-
+ 6. build+run with your IDE or run build.bat and run the .exe in _Bin/Debug or _Bin/Realese 
 # Compability
 - ✓ Tested devices (passing) 3 
 - ✓ Windows 2
