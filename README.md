@@ -7,11 +7,11 @@ Currently in work, nothing to see jet.
 # Installation:
 - Windows
 
- 1.clone recursively
- 2.install Windows SDK (at least v.10.0.20348.0)
- 3.Install Vulkan SDK
- 4.run deploy.bat
- 5.your solution file should be in _Build
+ 1. clone recursively
+ 2. install Windows SDK (at least v.10.0.20348.0)
+ 3. Install Vulkan SDK
+ 4. run deploy.bat
+ 5. your solution file should be in _Build
 
 
 # Roadmap:
