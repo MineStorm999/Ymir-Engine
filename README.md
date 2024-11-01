@@ -14,7 +14,7 @@ Currently in work, nothing to see jet.
  - X Global Illumination
  - X PathTracing
  - X Skinned Mesh
- - X 10k moving cubes (1k with ease)
+ - ✓ 10k moving cubes
 # Assets
  - ✓ Virtual File System
  - ✓ Asset Manager
@@ -37,6 +37,12 @@ Currently in work, nothing to see jet.
 
 # Phyisics
 - X Impl of Jolt
+- X custom engine 
+ - X collider creation 
+ - X ECS components
+ - X broad phase
+ - X narrow phase
+ - X springs
   
 # Compability
 - X Test on multiple devices (1/4)
