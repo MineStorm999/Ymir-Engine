@@ -459,7 +459,7 @@ bool Sample::Initialize(nri::GraphicsAPI graphicsAPI)
         bufferViewDesc.viewType = nri::BufferViewType::SHADER_RESOURCE;
         bufferViewDesc.offset = 0;
 
-        // Material buffer 
+        // Material buffer
         bufferViewDesc.buffer = m_Buffers[MATERIAL_BUFFER];
         bufferViewDesc.size = max(sizeof(MaterialData), helper::GetByteSizeOf(scene->materialsCPU));
         NRI_ABORT_ON_FAILURE(NRI.CreateBufferView(bufferViewDesc, m_recourceDescs[0]));

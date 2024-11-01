@@ -2,6 +2,9 @@
 
 #include "NRIFramework.h"
 
+#include "NRICompatibility.hlsli"
+#include "../../Shaders/SceneViewerBindlessStructs.h"
+
 struct NRIInterface
 	: public nri::CoreInterface
 	, public nri::HelperInterface
@@ -9,7 +12,7 @@ struct NRIInterface
 	, public nri::SwapChainInterface
 {};
 
-enum class OdBufferOrder : uint8_t {
+enum OdBufferOrder {
 	// structured buffer
 	COLLIDER_DATA_INDEX,
 	COLLIDER_DATA_VERTEX,
@@ -44,7 +47,10 @@ private:
 	std::vector<nri::DescriptorSet*> m_DescriptorSets;
 	std::vector<nri::Buffer*> m_buffer;
 	std::vector<nri::Descriptor*> m_Descriptors;
-	nri::Memory* m_memory;
+	std::vector<nri::Memory*> m_memory;
+
+	nri::Descriptor* m_rescourceDescs[5];
+	nri::Descriptor* m_storageDescs[3];
 
 	// loading
 private:
