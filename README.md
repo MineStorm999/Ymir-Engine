@@ -12,6 +12,17 @@ Currently in work, nothing to see jet.
  4. run deploy.bat
  5. your solution file should be in _Build
 
+# Compability
+- ✓ Tested devices (passing) 3 
+- ✓ Windows 2
+- ✓X Linux  1
+- X MacOS(will never happen)
+
+
+# Bug To Fix
+- 
+
+
 
 # Roadmap:
 - Rendering
@@ -56,13 +67,3 @@ Currently in work, nothing to see jet.
     - X narrow phase
     - X springs
   
-# Compability
-- ✓ Tested devices (passing) 3 
-- ✓ Windows 2
-- ✓X Linux  1
-- X MacOS(will never happen)
-
-
-# Bug To Fix
-- 
-
