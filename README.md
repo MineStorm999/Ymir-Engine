@@ -21,40 +21,40 @@ Currently in work, nothing to see jet.
   - X Point Lights
   - ✓ Dir Light
   - X Shadows
- - X Global Illumination
- - X PathTracing
- - X Skinned Mesh
- - ✓ 10k moving cubes
- - X HZB culling
- - X GPU frustum culling
-# Assets
- - ✓ Virtual File System
- - ✓ Asset Manager
-# Editor UI
- - ✓ Log
- - ✓ Asset Browser
- - ✓ Inspector
- - ✓ Struct Editor
- - X Drag + Drop
- - ✓ Entity Hirachie visualizer
-# Visual Scripting
- - ✓ Struct Editor 
- - ✓ Node Editor 
- - ✓ Base Node
- - X Variables
- - ✓ Bool Ops
-# ECS
-- ✓ Macros for Transform
-- X Macros for RigidBody
+  - X Global Illumination
+  - X PathTracing
+  - X Skinned Mesh
+  - ✓ 10k moving cubes
+  - X HZB culling
+  - X GPU frustum culling
+- Assets
+  - ✓ Virtual File System
+  - ✓ Asset Manager
+- Editor UI
+  - ✓ Log
+  - ✓ Asset Browser
+  - ✓ Inspector
+  - ✓ Struct Editor
+  - X Drag + Drop
+  - ✓ Entity Hirachie visualizer
+- Visual Scripting
+  - ✓ Struct Editor 
+  - ✓ Node Editor 
+  - ✓ Base Node
+  - X Variables
+  - ✓ Bool Ops
+- ECS
+  - ✓ Macros for Transform
+  - X Macros for RigidBody
 
-# Phyisics
-- X Impl of Jolt
-- X Custom engine
-  - X collider creation 
-  - X ECS components
-  - X broad phase
-  - X narrow phase
-  - X springs
+- Phyisics
+  - X Impl of Jolt
+  - X Custom engine
+     - X collider creation 
+    - X ECS components
+    - X broad phase
+    - X narrow phase
+    - X springs
   
 # Compability
 - ✓ Tested devices (passing) 3 
