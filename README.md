@@ -3,6 +3,16 @@
 Currently in work, nothing to see jet.
 (have a look at the "Dev" Branches)
 
+
+# Installation:
+- Windows
+ 1.clone recursively
+ 2.install Windows SDK (at least v.10.0.20348.0)
+ 3.Install Vulkan SDK
+ 4.run deploy.bat
+ 5.your solution file should be in _Build
+
+
 # Roadmap:
 # Rendering
  - ✓ Bindless
@@ -50,10 +60,3 @@ Currently in work, nothing to see jet.
 - ✓X Linux  1dev
 - X MacOS(will never happen)
 
-
-# Installation:
-- Windows
- 1.clone recursively
- 2.install Windows SDK (at least v.10.0.20348.0)
- 3.Install Vulkan SDK 
- 4.run deploy.bat
