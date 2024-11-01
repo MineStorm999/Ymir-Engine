@@ -14,13 +14,13 @@ Currently in work, nothing to see jet.
 
 
 # Roadmap:
-# Rendering
- - ✓ Bindless
- - X Deferred 
- - X Runtime 3d model add/rmf
- - X Point Lights
- - ✓ Dir Light
- - X Shadows
+- Rendering
+  - ✓ Bindless
+  - X Deferred 
+  - X Runtime 3d model add/rmf
+  - X Point Lights
+  - ✓ Dir Light
+  - X Shadows
  - X Global Illumination
  - X PathTracing
  - X Skinned Mesh
@@ -57,8 +57,12 @@ Currently in work, nothing to see jet.
   - X springs
   
 # Compability
-- ✓ Test on multiple devices 3 
-- ✓ Windows 2dev.
-- ✓X Linux  1dev
+- ✓ Tested devices (passing) 3 
+- ✓ Windows 2
+- ✓X Linux  1
 - X MacOS(will never happen)
+
+
+# Bug To Fix
+- 
 
