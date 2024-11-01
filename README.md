@@ -52,6 +52,6 @@ Currently in work, nothing to see jet.
 
 
 # Installation:
--Windows
+- Windows
  1 clone recursively
  2
