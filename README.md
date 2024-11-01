@@ -45,5 +45,8 @@ Currently in work, nothing to see jet.
   - X springs
   
 # Compability
-- X Test on multiple devices (1/4)
+- ✓ Test on multiple devices 3 
+- ✓ Windows 2dev.
+- ✓X Linux  1dev
+- X MacOS(will never happen)
 
