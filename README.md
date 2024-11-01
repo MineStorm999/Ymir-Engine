@@ -50,3 +50,8 @@ Currently in work, nothing to see jet.
 - ✓X Linux  1dev
 - X MacOS(will never happen)
 
+
+# Installation:
+-Windows
+ 1 clone recursively
+ 2
