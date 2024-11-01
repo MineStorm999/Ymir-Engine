@@ -1,2 +1,2 @@
 # Virtual geometry 
- NOT in work don't if it will be
+ NOT in work don't know if it will be
