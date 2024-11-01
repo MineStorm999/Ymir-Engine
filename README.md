@@ -20,7 +20,8 @@ Currently in work, nothing to see jet.
 
 
 # Bug To Fix
-- 
+- Crash when Going back too often in Asset Manager
+
 
 
 
