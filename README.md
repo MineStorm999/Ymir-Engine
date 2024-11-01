@@ -53,5 +53,5 @@ Currently in work, nothing to see jet.
 
 # Installation:
 - Windows
- 1 clone recursively
- 2
+ 1. clone recursively
+ 2.
