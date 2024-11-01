@@ -6,7 +6,7 @@ Currently in work, nothing to see jet.
 
 # Installation:
 - Windows
- 1. clone recursively
+ 1. clone recursively ```git clone --recursive ```
  2. install Windows SDK (at least v.10.0.20348.0)
  3. Install Vulkan SDK
  4. run deploy.bat
