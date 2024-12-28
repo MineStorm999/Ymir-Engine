@@ -178,21 +178,21 @@ void Inspector::ShowEntity()
 			
 			ImGui::DragFloat3("Postion", (float*)&t->localPos, 0.1f);
 			if (b.x != t->localPos.x || b.y != t->localPos.y || b.z != t->localPos.z) {
-				w.emplace<Dirty>(sEntity);
+				w.emplace<FDirty>(sEntity);
 			}
 
 			b = t->localRot;
 			
 			ImGui::DragFloat3("Rotation", (float*)&t->localRot);
 			if (b.x != t->localRot.x || b.y != t->localRot.y || b.z != t->localRot.z) {
-				w.emplace<Dirty>(sEntity);
+				w.emplace<FDirty>(sEntity);
 			}
 
 			//ImGui::Checkbox("Lock", &lock);
 			b = t->localScale;
 			ImGui::DragFloat3("Scale", (float*)&t->localScale, 0.2f);
 			if (b.x != t->localScale.x || b.y != t->localScale.y || b.z != t->localScale.z) {
-				w.emplace<Dirty>(sEntity);
+				w.emplace<FDirty>(sEntity);
 			}
 
 			ImGui::TreePop();
@@ -211,7 +211,7 @@ void Inspector::ShowEntity()
 				bool selected = INVALID_ASSET_ID == m->modelID;
 				if (ImGui::Selectable("Nothing", selected)) {
 					m->modelID = INVALID_ASSET_ID;
-					w.emplace<Dirty>(sEntity);
+					w.emplace<FDirty>(sEntity);
 				}
 				if (selected) {
 					ImGui::SetItemDefaultFocus();
@@ -226,7 +226,7 @@ void Inspector::ShowEntity()
 						if (rs) {
 							rs->Add(id);
 						}
-						w.emplace<Dirty>(sEntity);
+						w.emplace<FDirty>(sEntity);
 					}
 					if (selected) {
 						ImGui::SetItemDefaultFocus();
@@ -246,7 +246,7 @@ void Inspector::ShowEntity()
 				bool selected = INVALID_ASSET_ID == m->modelID;
 				if (ImGui::Selectable("Nothing", selected)) {
 					m->materialID = INVALID_ASSET_ID;
-					w.emplace<Dirty>(sEntity);
+					w.emplace<FDirty>(sEntity);
 				}
 				ImGui::PopID();
 				for (AssetID id : materials)
@@ -258,7 +258,7 @@ void Inspector::ShowEntity()
 						if (rs) {
 							rs->Add(id);
 						}
-						w.emplace<Dirty>(sEntity);
+						w.emplace<FDirty>(sEntity);
 					}
 					if (selected) {
 						ImGui::SetItemDefaultFocus();

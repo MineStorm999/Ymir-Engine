@@ -34,11 +34,12 @@ public:
 	static entt::entity CreateEntity(std::string name, entt::entity parent = entt::null);
 	static entt::entity CreateEntity(std::string name, AssetID assetOriginal, entt::entity parent = entt::null);
 
+
 	class Transform {
 	public:
 
-		static void SetPosition(entt::entity e, float3 pos, TransformComponent& t);
-		static void SetRotation(entt::entity e, float3 rot, TransformComponent& t);
-		static void SetScale(entt::entity e, float3 scale, TransformComponent& t);
+		static void SetPosition(entt::entity e, const float3& pos, TransformComponent& t);
+		static void SetRotation(entt::entity e, const float3& rot, TransformComponent& t);
+		static void SetScale(entt::entity e, const float3& scale, TransformComponent& t);
 	};
 };

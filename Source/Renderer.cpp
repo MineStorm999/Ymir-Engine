@@ -680,6 +680,8 @@ bool Sample::Initialize(nri::GraphicsAPI graphicsAPI)
 }
 
 float lastTime = 0;
+bool useStreamer = false;
+uint32_t entityCount;
 
 void Sample::PrepareFrame(uint32_t frameIndex)
 {
@@ -692,7 +694,14 @@ void Sample::PrepareFrame(uint32_t frameIndex)
     ProzessAddRrmRequests();
 
     WindowManager::Show();
-
+    for (size_t i = 0; i < 1 && entityCount < 10000; i++)
+    {
+        entt::entity e = EntityManager::CreateEntity("Created at: " + std::to_string(lastTime), 16);
+        
+        EntityManager::Transform::SetPosition(e, { (rand() % 1000) - 500.f, (rand() % 1000) - 500.f , (rand() % 1000) - 500.f }, EntityManager::GetWorld().get<TransformComponent>(e));
+        entityCount++;
+    }
+    
     // TODO: delay is not implemented
     nri::PipelineStatisticsDesc* pipelineStats = (nri::PipelineStatisticsDesc*)NRI.MapBuffer(*m_Buffers[READBACK_BUFFER], 0, sizeof(nri::PipelineStatisticsDesc));
     {
@@ -707,7 +716,10 @@ void Sample::PrepareFrame(uint32_t frameIndex)
             ImGui::Text("Rasterizer input primitives  : %llu", pipelineStats->rasterizerInPrimitiveNum);
             ImGui::Text("Rasterizer output primitives : %llu", pipelineStats->rasterizerOutPrimitiveNum);
             ImGui::Text("Fragment shader invocations  : %llu", pipelineStats->fragmentShaderInvocationNum);
+            ImGui::Text("Entity Count  : %llu", entityCount);
+
             ImGui::Checkbox("GPU draw call generation", &m_UseGPUDrawGeneration);
+            ImGui::Checkbox("Use Streamer for updating", &useStreamer);
         }
         ImGui::End();
     }
@@ -727,6 +739,11 @@ void Sample::PrepareFrame(uint32_t frameIndex)
 
     m_Camera.Update(desc, frameIndex);
 
+    // update (game logic)
+
+    // update end
+    m_batchCount = PrepareEntities();
+    NRI.CopyStreamerUpdateRequests(*m_Streamer);
 }
 
 void Sample::RenderFrame(uint32_t frameIndex)
@@ -746,7 +763,7 @@ void Sample::RenderFrame(uint32_t frameIndex)
     BackBuffer& currentBackBuffer = m_SwapChainBuffers[currentTextureIndex];
 
 
-    uint32_t batchCount = PrepareEntities();
+    
 
     // Update constants
     const uint64_t rangeOffset = m_Frames[bufferedFrameIndex].globalConstantBufferViewOffsets;
@@ -755,7 +772,7 @@ void Sample::RenderFrame(uint32_t frameIndex)
     {
         constants->gWorldToClip = m_Camera.state.mWorldToClip * m_Scene.mSceneToWorld;
         constants->gCameraPos = m_Camera.state.position;
-        constants->batchCount = batchCount;
+        constants->batchCount = m_batchCount;
         NRI.UnmapBuffer(*m_Buffers[CONSTANT_BUFFER]);
     }
 
@@ -802,7 +819,7 @@ void Sample::RenderFrame(uint32_t frameIndex)
 
             // Culling
             CullingConstants cullingConstants = {};
-            cullingConstants.DrawCount = batchCount;
+            cullingConstants.DrawCount = m_batchCount;
 
             if (RenderScene* rs = SceneManager::GetRenderScene()) {
                 cullingConstants.MeshCount = rs->modelCount;
@@ -848,17 +865,7 @@ void Sample::RenderFrame(uint32_t frameIndex)
                 constexpr uint64_t offset = 0;
                 NRI.CmdSetVertexBuffers(commandBuffer, 0, 1, &m_Buffers[VERTEX_BUFFER], &offset);
 
-                if (m_UseGPUDrawGeneration) {
-                    NRI.CmdDrawIndexedIndirect(commandBuffer, *m_Buffers[INDIRECT_BUFFER], 0, MAX_TRANSFORMS, GetDrawIndexedCommandSize(), m_Buffers[INDIRECT_COUNT_BUFFER], 0);
-                }
-                else {
-                    exit(1);
-                    /*for (uint32_t i = 0; i < m_Scene.instances.size(); i++) {
-                        const utils::Instance& instance = m_Scene.instances[i];
-                        const utils::Mesh& mesh = m_Scene.meshes[instance.meshInstanceIndex];
-                        NRI.CmdDrawIndexed(commandBuffer, { mesh.indexNum, 1, mesh.indexOffset, (int32_t)mesh.vertexOffset, i });
-                    }*/
-                }
+                NRI.CmdDrawIndexedIndirect(commandBuffer, *m_Buffers[INDIRECT_BUFFER], 0, MAX_TRANSFORMS, GetDrawIndexedCommandSize(), m_Buffers[INDIRECT_COUNT_BUFFER], 0);
             }
             NRI.CmdEndRendering(commandBuffer);
         }
@@ -948,7 +955,7 @@ void Sample::UpdateEntityTransform(entt::entity e, TransformComponent& transform
         }
         if (identity.instanceGPUID == INVALID_RENDER_ID) {
             //EntityManager::GetWorld().destroy(e);
-            EntityManager::GetWorld().remove<Dirty>(e);
+            EntityManager::GetWorld().remove<FDirty>(e);
             return;
         }
         
@@ -964,15 +971,26 @@ void Sample::UpdateEntityTransform(entt::entity e, TransformComponent& transform
             {&dummy, sizeof(InstanceData), m_Buffers[INSTANCE_BUFFER], sizeof(InstanceData) * identity.instanceGPUID,  {nri::AccessBits::SHADER_RESOURCE, nri::StageBits::FRAGMENT_SHADER | nri::StageBits::COMPUTE_SHADER}},
         };
 
-        descs.push_back({ dummys.data() + dummys.size() - 1, sizeof(InstanceData), m_Buffers[INSTANCE_BUFFER], sizeof(InstanceData) * identity.instanceGPUID,  {nri::AccessBits::SHADER_RESOURCE, nri::StageBits::FRAGMENT_SHADER | nri::StageBits::COMPUTE_SHADER} });
-        //NRI.UploadData(*m_CommandQueue, nullptr, 0, bufferData, helper::GetCountOf(bufferData));
+        if (useStreamer) {
+            nri::BufferUpdateRequestDesc desc;
+            desc.data = &dummys[dummys.size() - 1];
+            desc.dataSize = sizeof(InstanceData);
+            desc.dstBuffer = m_Buffers[INSTANCE_BUFFER];
+            desc.dstBufferOffset = sizeof(InstanceData) * identity.instanceGPUID;
+            NRI.AddStreamerBufferUpdateRequest(*m_Streamer, desc);
+        }
+        else {
+            descs.push_back({ dummys.data() + dummys.size() - 1, sizeof(InstanceData), m_Buffers[INSTANCE_BUFFER], sizeof(InstanceData) * identity.instanceGPUID,  {nri::AccessBits::SHADER_RESOURCE, nri::StageBits::FRAGMENT_SHADER | nri::StageBits::COMPUTE_SHADER} });
+            //NRI.UploadData(*m_CommandQueue, nullptr, 0, bufferData, helper::GetCountOf(bufferData));
+        }
     }
 
+    
     for (auto& child : identity.childs)
     {
         UpdateEntityTransform(child, EntityManager::GetWorld().get<TransformComponent>(child), EntityManager::GetWorld().get<IdentityComponent>(child));
     }
-    EntityManager::GetWorld().remove<Dirty>(e);
+    EntityManager::GetWorld().remove<FDirty>(e);
 }
 
 
@@ -989,14 +1007,14 @@ uint32_t Sample::PrepareEntities()
     //float uploadTime = 0;
 
     float iterTime = glfwGetTime();
-    for (auto&& [e, t, id] : EntityManager::GetWorld().group<TransformComponent, IdentityComponent, Dirty>().each())
+    for (auto&& [e, t, id] : EntityManager::GetWorld().group<TransformComponent, IdentityComponent, FDirty>().each())
     {
         UpdateEntityTransform(e, t, id);
     }
     iterTime = glfwGetTime() - iterTime;
     //Log::Message("Renderer", "Iterating Took " + std::to_string(iterTime * 1000) + "ms");
 
-    if (descs.size() > 0) {
+    if (descs.size() > 0 && !useStreamer) {
         float uploadTime = glfwGetTime();
         NRI.UploadData(*m_CommandQueue, nullptr, 0, descs.data(), helper::GetCountOf(descs));
         uploadTime = glfwGetTime() - uploadTime;

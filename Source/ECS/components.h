@@ -5,6 +5,9 @@
 
 #include "Assets/AssetManager.h"
 
+struct FActive {};
+struct FInActive {};
+
 struct TransformComponent {
 	float4x4 localMat{ float4x4::Identity() };
 	
@@ -20,7 +23,7 @@ struct MeshInstanceComponent {
 	AssetID modelID{ INVALID_ASSET_ID };
 };
 
-struct Root{};
+struct FRoot{};
 
 struct IdentityComponent {
 	std::string name{"New Entity"};
@@ -35,8 +38,9 @@ struct CameraComponent {
 
 };
 
-struct Dirty{};
+struct FDirty{};
 
 struct RigidBody {
 
 };
+

@@ -25,12 +25,12 @@ entt::entity EntityManager::GetRoot()
 void EntityManager::SetWorld(ECSWorld* w)
 {
     curWorld = w;
-    if (w->group<Root>().size() <= 0) {
+    if (w->group<FRoot>().size() <= 0) {
         root = CreateEntity("Root");
-        w->emplace<Root>(root);
+        w->emplace<FRoot>(root);
     }
     else {
-        root = w->group<Root>()[0];
+        root = w->group<FRoot>()[0];
     }
 
     Init();
@@ -89,13 +89,13 @@ entt::entity EntityManager::CreateEntity(std::string name, entt::entity parent)
         id.parent = GetRoot();
         IdentityComponent& id2 = curWorld->get<IdentityComponent>(GetRoot());
         id2.childs.push_back(e);
-        GetWorld().emplace<Dirty>(e);
+        GetWorld().emplace<FDirty>(e);
         return e;
     }
     id.parent = parent;
     IdentityComponent& id2 = curWorld->get<IdentityComponent>(parent);
     id2.childs.push_back(e);
-    GetWorld().emplace<Dirty>(e);
+    GetWorld().emplace<FDirty>(e);
     return e;
 }
 
@@ -142,29 +142,29 @@ entt::entity EntityManager::CreateEntity(std::string name, AssetID assetOriginal
     return e;
 }
 
-void EntityManager::Transform::SetPosition(entt::entity e, float3 pos, TransformComponent& t)
+void EntityManager::Transform::SetPosition(entt::entity e, const float3& pos, TransformComponent& t)
 {
     if (t.localPos.x == pos.x && t.localPos.y == pos.y && t.localPos.z == pos.z) {
         return;
     }
     t.localPos = pos;
-    GetWorld().emplace<Dirty>(e);
+    GetWorld().emplace<FDirty>(e);
 }
 
-void EntityManager::Transform::SetRotation(entt::entity e, float3 rot, TransformComponent& t)
+void EntityManager::Transform::SetRotation(entt::entity e, const float3& rot, TransformComponent& t)
 {
     if (t.localRot.x == rot.x && t.localRot.y == rot.y && t.localRot.z == rot.z) {
         return;
     }
     t.localRot = rot;
-    GetWorld().emplace<Dirty>(e);
+    GetWorld().emplace<FDirty>(e);
 }
 
-void EntityManager::Transform::SetScale(entt::entity e, float3 scale, TransformComponent& t)
+void EntityManager::Transform::SetScale(entt::entity e, const float3& scale, TransformComponent& t)
 {
     if (t.localScale.x == scale.x && t.localScale.y == scale.y && t.localScale.z == scale.z) {
         return;
     }
     t.localScale = scale;
-    GetWorld().emplace<Dirty>(e);
+    GetWorld().emplace<FDirty>(e);
 }

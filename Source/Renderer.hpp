@@ -132,6 +132,8 @@ private:
     std::vector<RenderID> m_FreeInstances;
     RenderID GetFreeGPUInstance();
 
+    uint32_t m_batchCount{ 0 };
+
     // todo
     void RemoveGPUInstance() {};
 };
