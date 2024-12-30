@@ -680,25 +680,28 @@ bool Sample::Initialize(nri::GraphicsAPI graphicsAPI)
 }
 
 float lastTime = 0;
-bool useStreamer = false;
+float dt;
 uint32_t entityCount;
 
 void Sample::PrepareFrame(uint32_t frameIndex)
 {
     BeginUI();
-    float dt = glfwGetTime() - lastTime;
+    dt = glfwGetTime() - lastTime;
     lastTime = glfwGetTime();
     float fps = 1 / dt;
     //    exit(0);
     //}
     ProzessAddRrmRequests();
 
+    //Entity e("test");
+    //e.AddComponent<RigidBodyComponent>();
+
     WindowManager::Show();
-    for (size_t i = 0; i < 1 && entityCount < 10000; i++)
+    for (size_t i = 0; i < 0 && entityCount < 50000; i++)
     {
-        entt::entity e = EntityManager::CreateEntity("Created at: " + std::to_string(lastTime), 16);
+        entt::entity e = EntityManager::CreateEntity("Created at: " + std::to_string(lastTime), 7);
         
-        EntityManager::Transform::SetPosition(e, { (rand() % 1000) - 500.f, (rand() % 1000) - 500.f , (rand() % 1000) - 500.f }, EntityManager::GetWorld().get<TransformComponent>(e));
+        Components::Transform::SetPosition(e, { (rand() % 1000) - 500.f, (rand() % 1000) - 500.f , (rand() % 1000) - 500.f }, EntityManager::GetComponent<TransformComponent>(e));
         entityCount++;
     }
     
@@ -719,7 +722,6 @@ void Sample::PrepareFrame(uint32_t frameIndex)
             ImGui::Text("Entity Count  : %llu", entityCount);
 
             ImGui::Checkbox("GPU draw call generation", &m_UseGPUDrawGeneration);
-            ImGui::Checkbox("Use Streamer for updating", &useStreamer);
         }
         ImGui::End();
     }
@@ -736,18 +738,26 @@ void Sample::PrepareFrame(uint32_t frameIndex)
     GetCameraDescFromInputDevices(desc);
 
 
+    
 
     m_Camera.Update(desc, frameIndex);
+    SceneManager::GetPhysicsWorld()->Sync();
 
     // update (game logic)
 
     // update end
-    m_batchCount = PrepareEntities();
     NRI.CopyStreamerUpdateRequests(*m_Streamer);
 }
 
 void Sample::RenderFrame(uint32_t frameIndex)
 {
+
+    m_batchCount = PrepareEntities();
+
+    if (SceneManager::GetPhysicsWorld()) {
+        SceneManager::GetPhysicsWorld()->Step(dt);
+    }
+
     const uint32_t bufferedFrameIndex = frameIndex % BUFFERED_FRAME_MAX_NUM;
     const Frame1& frame = m_Frames[bufferedFrameIndex];
     const uint32_t windowWidth = GetWindowResolution().x;
@@ -812,6 +822,7 @@ void Sample::RenderFrame(uint32_t frameIndex)
         }
 
         NRI.CmdBarrier(commandBuffer, barrierGroupDesc);
+        NRI.CmdUploadStreamerUpdateRequests(commandBuffer , *m_Streamer);
 
         if (m_UseGPUDrawGeneration) {
             NRI.CmdSetPipelineLayout(commandBuffer, *m_ComputePipelineLayout);
@@ -915,63 +926,81 @@ void Sample::RenderFrame(uint32_t frameIndex)
 std::vector<InstanceData> dummys;
 std::vector<nri::BufferUploadDesc> descs;
 
-void Sample::UpdateEntityTransform(entt::entity e, TransformComponent& transform, IdentityComponent& identity) {
+void Sample::UpdateEntityTransform(entt::entity e, TransformComponent& transform, IdentityComponent& identity, FDirty& flags, bool onlyUpdateHirachie) {
+    if (!EntityManager::HasComponent<FDirty>(e)) {
+        return;
+    }
     RenderScene* rS = SceneManager::GetRenderScene();
     if (!rS) {
         return;
     }
 
-    // transform
-    float4x4 transformMat, rotationMap, scaleMap;
+    if (((uint8_t)flags.flags & (uint8_t)DirtyFlags::Transform) == (uint8_t)DirtyFlags::Transform) {
+        // transform
+        float4x4 transformMat, rotationMap, scaleMap;
 
-    transformMat.SetupByTranslation(transform.localPos);
-    //float4x4 tempRot;
-    
-    float3 radRot = radians(transform.localRot);
-    rotationMap.SetupByRotationYPR(radRot.x, radRot.y, radRot.z);
+        transformMat.SetupByTranslation(transform.localPos);
+        //float4x4 tempRot;
 
-    scaleMap.SetupByScale(transform.localScale);
+        if (!onlyUpdateHirachie) {
+            float3 radRot = radians(transform.localRot);
+            rotationMap.SetupByRotationYPR(radRot.x, radRot.y, radRot.z);
 
-    transform.localMat = transformMat * rotationMap * scaleMap;
-    if (EntityManager::GetWorld().valid(identity.parent)) {
-        transform.localToWorldMat = EntityManager::GetWorld().get<TransformComponent>(identity.parent).localToWorldMat * transform.localMat;
-    }
-    else
-    {
-        transform.localToWorldMat = transform.localMat;
-    }
-    //transform.localMat.Invert();
+            scaleMap.SetupByScale(transform.localScale);
 
-    // mesh
-    MeshInstanceComponent* mesh = EntityManager::GetWorld().try_get<MeshInstanceComponent>(e);
-    if (mesh) {
-        dummys.resize(dummys.size() + 1);
-        InstanceData& dummy = dummys.back();
-
-        dummy.transform = transform.localToWorldMat;
-
-        if (identity.instanceGPUID == INVALID_RENDER_ID) {
-            identity.instanceGPUID = GetFreeGPUInstance();
+            transform.localMat = transformMat * rotationMap * scaleMap;
         }
-        if (identity.instanceGPUID == INVALID_RENDER_ID) {
-            //EntityManager::GetWorld().destroy(e);
-            EntityManager::GetWorld().remove<FDirty>(e);
-            return;
+
+        if (EntityManager::IsValid(identity.parent)) {
+            transform.localToWorldMat = EntityManager::GetComponent<TransformComponent>(identity.parent).localToWorldMat * transform.localMat;
         }
-        
-        dummy.meshIndex = rS->renderIds[mesh->modelID];
-        dummy.materialIndex = 0;//rS->renderIds[mesh->materialID];
-
-
-        // parent
-        dummy.parent = INVALID_RENDER_ID;
-        // upload
-        nri::BufferUploadDesc bufferData[] =
+        else
         {
-            {&dummy, sizeof(InstanceData), m_Buffers[INSTANCE_BUFFER], sizeof(InstanceData) * identity.instanceGPUID,  {nri::AccessBits::SHADER_RESOURCE, nri::StageBits::FRAGMENT_SHADER | nri::StageBits::COMPUTE_SHADER}},
-        };
+            transform.localToWorldMat = transform.localMat;
+        }
 
-        if (useStreamer) {
+        for (entt::entity child : identity.childs)
+        {
+            if (EntityManager::HasComponent<FDirty>(child)) {
+                UpdateEntityTransform(child, EntityManager::GetComponent<TransformComponent>(child), EntityManager::GetComponent<IdentityComponent>(child), EntityManager::GetComponent<FDirty>(child));
+            }
+            else {
+                EntityManager::SetDirty(child);
+                UpdateEntityTransform(child, EntityManager::GetComponent<TransformComponent>(child), EntityManager::GetComponent<IdentityComponent>(child), true);
+            }
+        }
+        //transform.localMat.Invert();
+
+        // mesh
+
+        if (EntityManager::HasComponent<MeshInstanceComponent>(e)) {
+            MeshInstanceComponent& mesh = EntityManager::GetComponent<MeshInstanceComponent>(e);
+            dummys.resize(dummys.size() + 1);
+            InstanceData& dummy = dummys.back();
+
+            dummy.transform = transform.localToWorldMat;
+
+            if (identity.instanceGPUID == INVALID_RENDER_ID) {
+                identity.instanceGPUID = GetFreeGPUInstance();
+            }
+            if (identity.instanceGPUID == INVALID_RENDER_ID) {
+                // destroy
+                EntityManager::RemoveComponent<FDirty>(e);
+                return;
+            }
+
+            dummy.meshIndex = rS->renderIds[mesh.modelID];
+            dummy.materialIndex = 0;//rS->renderIds[mesh->materialID];
+
+
+            // parent
+            dummy.parent = INVALID_RENDER_ID;
+            // upload
+            nri::BufferUploadDesc bufferData[] =
+            {
+                {&dummy, sizeof(InstanceData), m_Buffers[INSTANCE_BUFFER], sizeof(InstanceData) * identity.instanceGPUID,  {nri::AccessBits::SHADER_RESOURCE, nri::StageBits::FRAGMENT_SHADER | nri::StageBits::COMPUTE_SHADER}},
+            };
+
             nri::BufferUpdateRequestDesc desc;
             desc.data = &dummys[dummys.size() - 1];
             desc.dataSize = sizeof(InstanceData);
@@ -979,23 +1008,24 @@ void Sample::UpdateEntityTransform(entt::entity e, TransformComponent& transform
             desc.dstBufferOffset = sizeof(InstanceData) * identity.instanceGPUID;
             NRI.AddStreamerBufferUpdateRequest(*m_Streamer, desc);
         }
-        else {
-            descs.push_back({ dummys.data() + dummys.size() - 1, sizeof(InstanceData), m_Buffers[INSTANCE_BUFFER], sizeof(InstanceData) * identity.instanceGPUID,  {nri::AccessBits::SHADER_RESOURCE, nri::StageBits::FRAGMENT_SHADER | nri::StageBits::COMPUTE_SHADER} });
-            //NRI.UploadData(*m_CommandQueue, nullptr, 0, bufferData, helper::GetCountOf(bufferData));
-        }
     }
-
     
-    for (auto& child : identity.childs)
-    {
-        UpdateEntityTransform(child, EntityManager::GetWorld().get<TransformComponent>(child), EntityManager::GetWorld().get<IdentityComponent>(child));
-    }
-    EntityManager::GetWorld().remove<FDirty>(e);
+
+    EntityManager::RemoveComponent<FDirty>(e);
+}
+
+void Sample::UpdateRigidBodies()
+{
+    Log::Warning("Renderer", "Need to do Rigidbody update");
 }
 
 
 bool CmpInstance(InstanceData& a, InstanceData& b) {
     return (a.materialIndex < b.materialIndex);
+}
+
+void IterateEntities(entt::entity e, float4x4 mat) {
+
 }
 
 uint32_t Sample::PrepareEntities()
@@ -1007,19 +1037,19 @@ uint32_t Sample::PrepareEntities()
     //float uploadTime = 0;
 
     float iterTime = glfwGetTime();
-    for (auto&& [e, t, id] : EntityManager::GetWorld().group<TransformComponent, IdentityComponent, FDirty>().each())
+    for (auto&& [e, t, id, dirty] : EntityManager::GetWorld().group<TransformComponent>(entt::get<IdentityComponent, FDirty>).each())
     {
         UpdateEntityTransform(e, t, id);
     }
     iterTime = glfwGetTime() - iterTime;
-    //Log::Message("Renderer", "Iterating Took " + std::to_string(iterTime * 1000) + "ms");
-
+    Log::Message("Renderer", "Iterating Took " + std::to_string(iterTime * 1000) + "ms");
+    /*
     if (descs.size() > 0 && !useStreamer) {
         float uploadTime = glfwGetTime();
         NRI.UploadData(*m_CommandQueue, nullptr, 0, descs.data(), helper::GetCountOf(descs));
         uploadTime = glfwGetTime() - uploadTime;
         //Log::Message("Renderer", "Uploading Took " + std::to_string(uploadTime * 1000) + "ms");
-    }
+    }*/
 
     float dt = glfwGetTime() - timeBef;
     //Log::Message("Renderer", "Preparing Took " + std::to_string(dt * 1000) + "ms");

@@ -24,7 +24,7 @@ void Inspector::Select(AssetID a)
 
 void Inspector::Select(entt::entity e)
 {
-	if (!EntityManager::GetWorld().valid(e)) {
+	if (!EntityManager::IsValid(e)) {
 		return;
 	}
 	sType = SelectedType::Entity;
@@ -151,9 +151,7 @@ void Inspector::ShowEntity()
 		return;
 	}
 
-	ECSWorld& w = EntityManager::GetWorld();
-
-	if (!w.valid(sEntity)) {
+	if (!EntityManager::IsValid(sEntity)) {
 		ImGui::End();
 		return;
 	}
@@ -163,55 +161,58 @@ void Inspector::ShowEntity()
 
 	static char name[1024] = "";
 	
-	if (IdentityComponent* id = w.try_get<IdentityComponent>(sEntity)) {
+	if (EntityManager::HasComponent<IdentityComponent>(sEntity)) {
+		IdentityComponent& id = EntityManager::GetComponent<IdentityComponent>(sEntity);
 		identity = true;
-		std::strcpy(name, id->name.c_str());
+		std::strcpy(name, id.name.c_str());
 		ImGui::InputText("Name", name, 1024);
-		id->name = name;
-		ImGui::Text("GPU ID: %u", (int)id->instanceGPUID);
+		id.name = name;
+		ImGui::Text("GPU ID: %u", (int)id.instanceGPUID);
 	}
 	static bool lock = false;
-	if (TransformComponent* t = w.try_get<TransformComponent>(sEntity)) {
+	if (EntityManager::HasComponent<TransformComponent>(sEntity)) {
+		TransformComponent& t = EntityManager::GetComponent<TransformComponent>(sEntity);
 		transform = true;
 		if (ImGui::TreeNode("Transform")) {
-			float3 b = t->localPos;
+			float3 b = t.localPos;
 			
-			ImGui::DragFloat3("Postion", (float*)&t->localPos, 0.1f);
-			if (b.x != t->localPos.x || b.y != t->localPos.y || b.z != t->localPos.z) {
-				w.emplace<FDirty>(sEntity);
+			ImGui::DragFloat3("Postion", (float*)&t.localPos, 0.1f);
+			if (b.x != t.localPos.x || b.y != t.localPos.y || b.z != t.localPos.z) {
+				EntityManager::SetDirty(sEntity);
 			}
 
-			b = t->localRot;
+			b = t.localRot;
 			
-			ImGui::DragFloat3("Rotation", (float*)&t->localRot);
-			if (b.x != t->localRot.x || b.y != t->localRot.y || b.z != t->localRot.z) {
-				w.emplace<FDirty>(sEntity);
+			ImGui::DragFloat3("Rotation", (float*)&t.localRot);
+			if (b.x != t.localRot.x || b.y != t.localRot.y || b.z != t.localRot.z) {
+				EntityManager::SetDirty(sEntity);
 			}
 
 			//ImGui::Checkbox("Lock", &lock);
-			b = t->localScale;
-			ImGui::DragFloat3("Scale", (float*)&t->localScale, 0.2f);
-			if (b.x != t->localScale.x || b.y != t->localScale.y || b.z != t->localScale.z) {
-				w.emplace<FDirty>(sEntity);
+			b = t.localScale;
+			ImGui::DragFloat3("Scale", (float*)&t.localScale, 0.2f);
+			if (b.x != t.localScale.x || b.y != t.localScale.y || b.z != t.localScale.z) {
+				EntityManager::SetDirty(sEntity);
 			}
 
 			ImGui::TreePop();
 		}
 	}
 
-	if (MeshInstanceComponent* m = w.try_get<MeshInstanceComponent>(sEntity)) {
+	if (EntityManager::HasComponent<MeshInstanceComponent>(sEntity)) {
+		MeshInstanceComponent& m = EntityManager::GetComponent<MeshInstanceComponent>(sEntity);
 		RenderScene* rs = SceneManager::GetRenderScene();
 		mesh = true;
 		if (ImGui::TreeNode("Mesh Instance")) {
-			std::string prev = AssetManager::IsValid(m->modelID) ? AssetManager::GetAsset(m->modelID)->name : "Nothing";
+			std::string prev = AssetManager::IsValid(m.modelID) ? AssetManager::GetAsset(m.modelID)->name : "Nothing";
 			if (ImGui::BeginCombo("Mesh", prev.c_str())) {
 				std::vector<AssetID> meshes = AssetManager::GetFromType(AssetType::Model);
 
 				ImGui::PushID(INVALID_ASSET_ID);
-				bool selected = INVALID_ASSET_ID == m->modelID;
+				bool selected = INVALID_ASSET_ID == m.modelID;
 				if (ImGui::Selectable("Nothing", selected)) {
-					m->modelID = INVALID_ASSET_ID;
-					w.emplace<FDirty>(sEntity);
+					m.modelID = INVALID_ASSET_ID;
+					EntityManager::SetDirty(sEntity);
 				}
 				if (selected) {
 					ImGui::SetItemDefaultFocus();
@@ -220,13 +221,13 @@ void Inspector::ShowEntity()
 				for (AssetID id : meshes)
 				{
 					ImGui::PushID(id);
-					bool selected = id == m->modelID;
+					bool selected = id == m.modelID;
 					if (ImGui::Selectable(AssetManager::GetAsset(id)->name.c_str(), selected)) {
-						m->modelID = id;
+						m.modelID = id;
 						if (rs) {
 							rs->Add(id);
 						}
-						w.emplace<FDirty>(sEntity);
+						EntityManager::SetDirty(sEntity);
 					}
 					if (selected) {
 						ImGui::SetItemDefaultFocus();
@@ -238,27 +239,27 @@ void Inspector::ShowEntity()
 				ImGui::EndCombo();
 			}
 
-			prev = AssetManager::IsValid(m->materialID) ? AssetManager::GetAsset(m->materialID)->name : "Nothing";
+			prev = AssetManager::IsValid(m.materialID) ? AssetManager::GetAsset(m.materialID)->name : "Nothing";
 			if (ImGui::BeginCombo("Material", prev.c_str())) {
 				std::vector<AssetID> materials = AssetManager::GetFromType(AssetType::Material);
 
 				ImGui::PushID(INVALID_ASSET_ID);
-				bool selected = INVALID_ASSET_ID == m->modelID;
+				bool selected = INVALID_ASSET_ID == m.modelID;
 				if (ImGui::Selectable("Nothing", selected)) {
-					m->materialID = INVALID_ASSET_ID;
-					w.emplace<FDirty>(sEntity);
+					m.materialID = INVALID_ASSET_ID;
+					EntityManager::SetDirty(sEntity);
 				}
 				ImGui::PopID();
 				for (AssetID id : materials)
 				{
 					ImGui::PushID(id);
-					bool selected = id == m->materialID;
+					bool selected = id == m.materialID;
 					if (ImGui::Selectable(AssetManager::GetAsset(id)->name.c_str(), selected)) {
-						m->materialID = id;
+						m.materialID = id;
 						if (rs) {
 							rs->Add(id);
 						}
-						w.emplace<FDirty>(sEntity);
+						EntityManager::SetDirty(sEntity);
 					}
 					if (selected) {
 						ImGui::SetItemDefaultFocus();
@@ -274,6 +275,7 @@ void Inspector::ShowEntity()
 		}
 	}
 
+
 	if (ImGui::BeginCombo("Add Component", "")) {
 		if (ImGui::Selectable("Cancel", true)) {
 			
@@ -281,17 +283,17 @@ void Inspector::ShowEntity()
 
 		if (!transform) {
 			if (ImGui::Selectable("Transform", false)) {
-				w.emplace<TransformComponent>(sEntity);
+				EntityManager::AddComponent<TransformComponent>(sEntity);
 			}
 		}
 		if (!mesh) {
 			if (ImGui::Selectable("Mesh", false)) {
-				w.emplace<MeshInstanceComponent>(sEntity);
+				EntityManager::AddComponent<MeshInstanceComponent>(sEntity);
 			}
 		}
 		if (!identity) {
 			if (ImGui::Selectable("Identity", false)) {
-				w.emplace<IdentityComponent>(sEntity);
+				EntityManager::AddComponent<IdentityComponent>(sEntity);
 			}
 		}
 		ImGui::EndCombo();

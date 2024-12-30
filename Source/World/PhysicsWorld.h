@@ -27,6 +27,8 @@
 #include <cstdarg>
 #include <thread>
 
+#include "Assets/AssetManager.h"
+
 // Disable common warnings triggered by Jolt, you can use JPH_SUPPRESS_WARNING_PUSH / JPH_SUPPRESS_WARNING_POP to store and restore the warning state
 JPH_SUPPRESS_WARNINGS
 
@@ -218,11 +220,13 @@ public:
 
 class PhyisicsWorld {
 public:
-	PhyisicsWorld() { Init(); };
-	void Init();
+	PhyisicsWorld(AssetID id) { Init(id); };
+	void Init(AssetID id);
 	void Step(float dt);
 	
 	void Sync();
+
+	JPH::PhysicsSystem& GetPhysicsSystem() { return physics_system; };
 private:
 	// threads
 	JPH::JobSystemThreadPool* job_system{ nullptr };

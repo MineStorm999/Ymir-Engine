@@ -5,16 +5,17 @@
 
 uint32_t iter = 0;
 void IterChilds(entt::entity e) {
-	if (!EntityManager::GetWorld().valid(e)) {
-		return;
-	}
-	IdentityComponent* id = EntityManager::GetWorld().try_get<IdentityComponent>(e);
-	if (!id) {
+	if (!EntityManager::IsValid(e)) {
 		return;
 	}
 
+	if (!EntityManager::HasComponent<IdentityComponent>(e)) {
+		return;
+	}
+	IdentityComponent& id = EntityManager::GetComponent<IdentityComponent>(e);
+
 	ImGui::PushID(iter++);
-	if (ImGui::TreeNode(id->name.c_str())) {
+	if (ImGui::TreeNode(id.name.c_str())) {
 		if ((ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0))) {
 			Inspector::Select(e);
 		}
@@ -22,7 +23,7 @@ void IterChilds(entt::entity e) {
 		ImGui::PushID(iter++);
 		if (ImGui::BeginPopupContextItem("Create Child", 1)) {
 			if (ImGui::MenuItem("Create Child")) {
-				EntityManager::CreateEntity(id->name + " Child", e);
+				EntityManager::CreateEntity(id.name + " Child", e);
 			}
 			if (ImGui::MenuItem("Delete")) {
 				EntityManager::DeleteEntity(e);
@@ -31,7 +32,7 @@ void IterChilds(entt::entity e) {
 		}
 		ImGui::PopID();
 
-		for (entt::entity child : id->childs) {
+		for (entt::entity child : id.childs) {
 			IterChilds(child);
 		}
 		ImGui::TreePop();
@@ -44,7 +45,7 @@ void IterChilds(entt::entity e) {
 		ImGui::PushID(iter++);
 		if (ImGui::BeginPopupContextItem("Create Child", 1)) {
 			if (ImGui::MenuItem("Create Child")) {
-				EntityManager::CreateEntity(id->name + " Child", e);
+				EntityManager::CreateEntity(id.name + " Child", e);
 			}
 			if (ImGui::MenuItem("Delete")) {
 				EntityManager::DeleteEntity(e);
@@ -68,8 +69,9 @@ void EntityHirachie::Show()
 			ImGui::EndPopup();
 		}
 
-		if (IdentityComponent* id = EntityManager::GetWorld().try_get<IdentityComponent>(EntityManager::GetRoot())){
-			for (entt::entity child : id->childs)
+		if (EntityManager::HasComponent<IdentityComponent>(EntityManager::GetRoot())){
+			IdentityComponent& id = EntityManager::GetComponent<IdentityComponent>(EntityManager::GetRoot());
+			for (entt::entity child : id.childs)
 			{
 				IterChilds(child);
 			}

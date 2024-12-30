@@ -6,6 +6,8 @@ AssetID curSceneAssetID{INVALID_ASSET_ID};
 
 RenderScene* renderScene{nullptr};
 
+PhyisicsWorld* physicsWorld{ nullptr };
+
 AScene* SceneManager::GetSceneAsset()
 {
 	if (curSceneAssetID == INVALID_ASSET_ID) {
@@ -48,4 +50,11 @@ void SceneManager::UseScene(AssetID id)
 	delete renderScene;
 
 	renderScene = new RenderScene(id);
+
+	physicsWorld = new PhyisicsWorld(id);
+}
+
+PhyisicsWorld* SceneManager::GetPhysicsWorld()
+{
+	return physicsWorld;
 }

@@ -10,7 +10,7 @@ using namespace JPH::literals;
 
 // We're also using STL classes in this example
 using namespace std;
-void PhyisicsWorld::Init()
+void PhyisicsWorld::Init(AssetID id)
 {
 	// Register allocation hook. In this example we'll just let Jolt use malloc / free but you can override these if you want (see Memory.h).
 	// This needs to be done before any other Jolt function is called.
@@ -88,16 +88,16 @@ struct Load {
 		//dt = d;
 	}
 };
-bool step = false;
+bool isSteping = false;
 bool prozessing = false;
 float deltaT = 0.0f;
 static void StepImpl(Load l) {
-	while (!step)
+	while (!isSteping)
 	{
 		std::this_thread::sleep_for(std::chrono::duration<double>(.1ms));
 	}
 	prozessing = true;
-	step = false;
+	isSteping = false;
 	l.sys->Update(deltaT, (int)deltaT / (1.0f / 60.f), l.tmpAlloc, l.jobSys);
 	prozessing = false;
 }
@@ -112,12 +112,12 @@ void PhyisicsWorld::Step(float dt)
 	}
 	Sync();
 	deltaT = dt;
-	step = true;
+	isSteping = true;
 }
 
 void PhyisicsWorld::Sync()
 {
-	while (!prozessing)
+	while (prozessing)
 	{
 		std::this_thread::sleep_for(std::chrono::duration<double>(.1ms));
 	}

@@ -8,12 +8,13 @@
 #include "Log/Log.h"
 #include "MathLib/ml.h"
 
+#include "Jolt/Physics/Body/Body.h"
+
 ECSWorld* curWorld;
 entt::entity root;
 
 ECSWorld& EntityManager::GetWorld()
 {
-
     return *curWorld;
 }
 
@@ -142,29 +143,179 @@ entt::entity EntityManager::CreateEntity(std::string name, AssetID assetOriginal
     return e;
 }
 
-void EntityManager::Transform::SetPosition(entt::entity e, const float3& pos, TransformComponent& t)
+void EntityManager::SetDirty(entt::entity e, DirtyFlags flags)
+{
+    GetWorld().emplace_or_replace<FDirty>(e);
+}
+
+void EntityManager::DestroyEntity(entt::entity e)
+{
+    GetWorld().destroy(e);
+}
+
+void EntityManager::AddChild(entt::entity parent, entt::entity child)
+{
+    IdentityComponent& parentId = GetComponent<IdentityComponent>(parent);
+    IdentityComponent& childId = GetComponent<IdentityComponent>(child);
+    
+    if (IsValid(childId.parent)) {
+        if (childId.parent == parent) {
+            return;
+        }
+        IdentityComponent& oldParentId = GetComponent<IdentityComponent>(childId.parent);
+    }
+
+    parentId.childs.push_back(child);
+    childId.parent = parent;
+}
+
+void Components::Transform::SetPosition(entt::entity e, const float3& pos, TransformComponent& t)
 {
     if (t.localPos.x == pos.x && t.localPos.y == pos.y && t.localPos.z == pos.z) {
         return;
     }
     t.localPos = pos;
-    GetWorld().emplace<FDirty>(e);
+    EntityManager::SetDirty(e);
 }
 
-void EntityManager::Transform::SetRotation(entt::entity e, const float3& rot, TransformComponent& t)
+void Components::Transform::SetRotation(entt::entity e, const float3& rot, TransformComponent& t)
 {
     if (t.localRot.x == rot.x && t.localRot.y == rot.y && t.localRot.z == rot.z) {
         return;
     }
     t.localRot = rot;
-    GetWorld().emplace<FDirty>(e);
+    EntityManager::SetDirty(e);
 }
 
-void EntityManager::Transform::SetScale(entt::entity e, const float3& scale, TransformComponent& t)
+void Components::Transform::SetScale(entt::entity e, const float3& scale, TransformComponent& t)
 {
     if (t.localScale.x == scale.x && t.localScale.y == scale.y && t.localScale.z == scale.z) {
         return;
     }
     t.localScale = scale;
-    GetWorld().emplace<FDirty>(e);
+    EntityManager::SetDirty(e);
 }
+
+float3 Components::RigidBody::GetVelocity(entt::entity e, RigidBodyComponent& rb)
+{
+    PhyisicsWorld* pW = SceneManager::GetPhysicsWorld();
+    if (!pW) {
+        return float3(INVALID_ASSET_ID);
+    }
+    
+    JPH::BodyLockRead lock(pW->GetPhysicsSystem().GetBodyLockInterface(), rb.id);
+    if (!lock.Succeeded()) // body_id may no longer be valid
+    {
+        return float3(INVALID_ASSET_ID);
+    }
+    
+    const JPH::Body& body = lock.GetBody();
+    const JPH::Vec3 ret = body.GetLinearVelocity();
+    return { ret.GetX(), ret.GetY() , ret.GetZ() };
+}
+
+float3 Components::RigidBody::GetAngularVelocity(entt::entity e, RigidBodyComponent& rb)
+{
+    PhyisicsWorld* pW = SceneManager::GetPhysicsWorld();
+    if (!pW) {
+        return float3(INVALID_ASSET_ID);
+    }
+
+    JPH::BodyLockRead lock(pW->GetPhysicsSystem().GetBodyLockInterface(), rb.id);
+    if (!lock.Succeeded()) // body_id may no longer be valid
+    {
+        return float3(INVALID_ASSET_ID);
+    }
+
+    const JPH::Body& body = lock.GetBody();
+    const JPH::Vec3 ret = body.GetAngularVelocity();
+    return { ret.GetX(), ret.GetY() , ret.GetZ() };
+}
+
+float3 Components::RigidBody::GetCenterOfMass(entt::entity e, RigidBodyComponent& rb)
+{
+    PhyisicsWorld* pW = SceneManager::GetPhysicsWorld();
+    if (!pW) {
+        return float3(INVALID_ASSET_ID);
+    }
+
+    JPH::BodyLockRead lock(pW->GetPhysicsSystem().GetBodyLockInterface(), rb.id);
+    if (!lock.Succeeded()) // body_id may no longer be valid
+    {
+        return float3(INVALID_ASSET_ID);
+    }
+
+    const JPH::Body& body = lock.GetBody();
+    const JPH::Vec3 ret = body.GetCenterOfMassPosition();
+    return { ret.GetX(), ret.GetY() , ret.GetZ() };
+}
+
+float Components::RigidBody::GetMass(entt::entity e, RigidBodyComponent& rb)
+{
+    PhyisicsWorld* pW = SceneManager::GetPhysicsWorld();
+    if (!pW) {
+        return INVALID_ASSET_ID;
+    }
+
+    JPH::BodyLockRead lock(pW->GetPhysicsSystem().GetBodyLockInterface(), rb.id);
+    if (!lock.Succeeded()) // body_id may no longer be valid
+    {
+        return INVALID_ASSET_ID;
+    }
+
+    const JPH::Body& body = lock.GetBody();
+    return body.GetBodyCreationSettings().GetMassProperties().mMass;
+}
+
+void Components::RigidBody::SetVelocity(entt::entity e, RigidBodyComponent& rb, const float3& velocity)
+{
+    PhyisicsWorld* pW = SceneManager::GetPhysicsWorld();
+    if (!pW) {
+        pW->GetPhysicsSystem().GetBodyInterface().SetLinearVelocity(rb.id, *(JPH::Vec3Arg*)&velocity);
+    }
+}
+
+void Components::RigidBody::SetAngularVelocity(entt::entity e, RigidBodyComponent& rb, const float3& angularVelocity)
+{
+    PhyisicsWorld* pW = SceneManager::GetPhysicsWorld();
+    if (!pW) {
+        pW->GetPhysicsSystem().GetBodyInterface().SetAngularVelocity(rb.id, *(JPH::Vec3Arg*)&angularVelocity);
+    }
+}
+
+void Components::RigidBody::AddForce(entt::entity e, RigidBodyComponent& rb, const float3& force)
+{
+    PhyisicsWorld* pW = SceneManager::GetPhysicsWorld();
+    if (pW) {
+        pW->GetPhysicsSystem().GetBodyInterface().AddTorque(rb.id, *(JPH::Vec3Arg*)&force);
+    }
+}
+
+void Components::RigidBody::AddTorque(entt::entity e, RigidBodyComponent& rb, const float3& torque)
+{
+    PhyisicsWorld* pW = SceneManager::GetPhysicsWorld();
+    if (pW) {
+        pW->GetPhysicsSystem().GetBodyInterface().AddTorque(rb.id, *(JPH::Vec3Arg*)&torque);
+    }
+}
+/*
+Entity::Entity(std::string name)
+{
+    mID = EntityManager::CreateEntity(name);
+}
+
+Entity::Entity(std::string name, Entity& parent)
+{
+    mID = EntityManager::CreateEntity(name, parent.GetID());
+}
+
+Entity::Entity(std::string name, AssetID asset)
+{
+    mID = EntityManager::CreateEntity(name, asset);
+}
+
+Entity::Entity(std::string name, AssetID asset, Entity& parent)
+{
+    mID = EntityManager::CreateEntity(name, asset, parent.GetID());
+}
+*/

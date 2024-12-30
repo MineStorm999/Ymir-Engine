@@ -2,7 +2,7 @@
 
 #include "NRIFramework.h"
 #include "entt/entt.hpp"
-
+#include "..//World/PhysicsWorld.h"
 #include "Assets/AssetManager.h"
 
 struct FActive {};
@@ -34,13 +34,25 @@ struct IdentityComponent {
 	std::vector<entt::entity> childs{};
 };
 
+
+struct RigidBodyComponent {
+	JPH::BodyID id;
+};
+
 struct CameraComponent {
 
 };
 
-struct FDirty{};
+enum class DirtyFlags : uint8_t {
+	None = 0,
+	Transform = 1,
+	RigidBody = 1 << 1,
+	Collider = 1 << 2,
 
-struct RigidBody {
+	All = 0xff
+};
 
+struct FDirty{
+	DirtyFlags flags{DirtyFlags::None};
 };
 

@@ -1,3 +1,4 @@
+/*
 #include "ECSUtil.h"
 #include "components.h"
 entt::entity ECSUtil::CreateEntity(std::string name)
@@ -13,7 +14,7 @@ entt::entity ECSUtil::CreateEntity(std::string name, entt::entity parent)
 entt::entity ECSUtil::CreateMeshInstance(std::string name, std::string assetName)
 {
     entt::entity e = EntityManager::CreateEntity(name);
-    EntityManager::GetWorld().emplace<MeshInstanceComponent>(e);
+    //EntityManager::GetWorld().emplace<MeshInstanceComponent>(e);
     return e;
 }
 
@@ -21,3 +22,4 @@ entt::entity ECSUtil::CreateMeshInstance(std::string name, std::string assetName
 {
     return entt::entity();
 }
+*/

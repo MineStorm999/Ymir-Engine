@@ -1,5 +1,5 @@
 #pragma once
-
+/*
 #include <string>
 #include "ECSManager.h"
 class ECSUtil {
@@ -9,4 +9,4 @@ public:
 
 	entt::entity CreateMeshInstance(std::string name, std::string assetName);
 	entt::entity CreateMeshInstance(std::string name, std::string assetName, entt::entity parent);
-};
+};*/

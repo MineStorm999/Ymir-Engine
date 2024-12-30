@@ -29,6 +29,8 @@ struct MaterialData
 
 struct MeshData
 {
+    //float4 culling;
+
     uint32_t vtxOffset;
     uint32_t vtxCount;
     uint32_t idxOffset;
@@ -43,7 +45,6 @@ struct InstanceData
     uint32_t parent;
     uint32_t off0;
     float4x4 transform;
-
 };
 
 struct BatchDesc {
