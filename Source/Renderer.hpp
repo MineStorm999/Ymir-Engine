@@ -79,7 +79,7 @@ public:
 
     void UpdateEntityTransform(entt::entity e, TransformComponent& transform, IdentityComponent& idenetity, FDirty& flags, bool onlyUpdateHirachie = false);
     void UpdateRigidBodies();
-    // returns the batch count (draw call(GPU side))
+
     uint32_t PrepareEntities();
 
     void ProzessAddRrmRequests();

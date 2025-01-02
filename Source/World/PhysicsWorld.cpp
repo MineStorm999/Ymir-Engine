@@ -91,6 +91,7 @@ struct Load {
 bool isSteping = false;
 bool prozessing = false;
 float deltaT = 0.0f;
+
 static void StepImpl(Load l) {
 	while (!isSteping)
 	{
@@ -110,6 +111,9 @@ void PhyisicsWorld::Step(float dt)
 	if (!t) {
 		t = new thread(StepImpl, Load(&physics_system, temp_allocator, job_system));
 	}
+
+	HandleRequests();
+
 	Sync();
 	deltaT = dt;
 	isSteping = true;
@@ -120,6 +124,31 @@ void PhyisicsWorld::Sync()
 	while (prozessing)
 	{
 		std::this_thread::sleep_for(std::chrono::duration<double>(.1ms));
+	}
+}
+
+void PhyisicsWorld::AddBody(JPH::BodyID body)
+{
+	addRequests.push_back(body);
+}
+void PhyisicsWorld::DestroyBody(JPH::BodyID body)
+{
+	removeRequests.push_back(body);
+}
+
+void PhyisicsWorld::HandleRequests()
+{
+	if (addRequests.size() > 0) {
+		
+		physics_system.GetBodyInterface().AddBodiesFinalize(addRequests.data(), addRequests.size(), physics_system.GetBodyInterface().AddBodiesPrepare(addRequests.data(), addRequests.size()), JPH::EActivation::Activate);
+
+		addRequests.clear();
+	}
+
+	if (removeRequests.size() > 0) {
+		physics_system.GetBodyInterface().RemoveBodies(removeRequests.data(), removeRequests.size());
+
+		removeRequests.clear();
 	}
 }
 #endif //JOLT_PHYSICS

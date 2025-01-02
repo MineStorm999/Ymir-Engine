@@ -227,6 +227,9 @@ public:
 	void Sync();
 
 	JPH::PhysicsSystem& GetPhysicsSystem() { return physics_system; };
+
+	void AddBody(JPH::BodyID body);
+	void DestroyBody(JPH::BodyID body);
 private:
 	// threads
 	JPH::JobSystemThreadPool* job_system{ nullptr };
@@ -244,5 +247,12 @@ private:
 	MyBodyActivationListener body_activation_listener;
 	MyContactListener contact_listener;
 	JPH::BodyInterface* body_interface{ nullptr };
+
+
+	// adding removing
+	void HandleRequests();
+	std::vector<JPH::BodyID> addRequests;
+
+	std::vector<JPH::BodyID> removeRequests;
 };
 #endif // JOLT_PHYSICS

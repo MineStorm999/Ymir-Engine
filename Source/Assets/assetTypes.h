@@ -5,6 +5,9 @@
 #include "NRIFramework.h"
 #include "JSON/json.hpp"
 #include "Rendering/RenderTypes.h"
+#include <Jolt/Jolt.h>
+#include <Jolt/RegisterTypes.h>
+
 //#include "../Rendering/VirtualGeometry/MeshletStructs.h"
 //#include "../ECS/components.h"
 
@@ -33,7 +36,8 @@ enum class AssetType : uint8_t
 	Texture,
 	Material,
 	Audio,
-	Scene
+	Scene,
+	ConvexCollider
 };
 
 enum class AssetLoadFlags : uint8_t
@@ -95,6 +99,8 @@ namespace std {
 			return "Audio";
 		case AssetType::Scene:
 			return "Scene";
+		case AssetType::ConvexCollider:
+			return "ConvexCollider";
 		default:
 			return "None";
 		}
@@ -118,6 +124,9 @@ inline AssetType to_type(std::string str) {
 	}
 	if (str.compare("Scene") == 0) {
 		return AssetType::Scene;
+	}
+	if (str.compare("ConvexCollider") == 0) {
+		return AssetType::ConvexCollider;
 	}
 	return AssetType::None;
 }
@@ -202,6 +211,19 @@ public:
 	RenderID GetRenderID(float disFromCam, AssetID id);
 };
 
+class AConvexCollider : public AssetBase {
+public:
+	AConvexCollider() { type = AssetType::ConvexCollider; };
+
+	bool Load(std::vector<JPH::Ref<JPH::Shape>>& shapes);
+
+	nlohmann::json Save() override;
+
+
+private:
+	uint32_t bufferLenght;
+};
+
 class AScene : public AssetBase{
 public:
 	AScene() { type = AssetType::Scene; };
@@ -209,6 +231,7 @@ public:
 	std::vector<AssetID> usedMeshes;
 	std::vector<AssetID> usedTextures;
 	std::vector<AssetID> usedMaterials;
+	std::vector<AssetID> usedConvexCollider;
 
 	// TODO
 	nlohmann::json Save() override;

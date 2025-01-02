@@ -6,6 +6,7 @@
 #include "../JSON/json.hpp"
 #include "Assets/assetTypes.h"
 #include "components.h"
+#include "../World/SceneManager.h"
 
 using ECSWorld = entt::registry;
 
@@ -68,6 +69,23 @@ public:
 	static void RemoveComponent(entt::entity e) {
 		SetDirty(e);
 		GetWorld().remove<C>(e);
+	};
+
+	template<>
+	static void RemoveComponent<RigidBodyComponent>(entt::entity e) {
+		if (SceneManager::GetPhysicsWorld() != nullptr) {
+			GetWorld().remove<RigidBodyComponent>(e);
+			return;
+		}
+		
+		if (HasComponent<ColliderComponent>(e)) {
+			SceneManager::GetPhysicsWorld()->GetPhysicsSystem().GetBodyInterface().DeactivateBody(GetComponent<RigidBodyComponent>(e).id);
+		}
+		else {
+			SceneManager::GetPhysicsWorld()->DestroyBody(GetComponent<RigidBodyComponent>(e).id);
+		}
+
+		GetWorld().remove<RigidBodyComponent>(e);
 	};
 };
 

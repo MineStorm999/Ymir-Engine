@@ -34,6 +34,10 @@ struct IdentityComponent {
 	std::vector<entt::entity> childs{};
 };
 
+struct ColliderComponent {
+	entt::entity connectedRigidBody;
+	JPH::Ref<JPH::Shape> shape;
+};
 
 struct RigidBodyComponent {
 	JPH::BodyID id;

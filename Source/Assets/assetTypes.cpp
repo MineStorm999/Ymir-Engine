@@ -287,3 +287,60 @@ nlohmann::json AMaterial::Save()
 
 	return j;
 }
+
+bool AConvexCollider::Load(std::vector<JPH::Ref<JPH::Shape>>& shapes)
+{
+	std::string actualPath = GetActualPath();
+
+	if (actualPath.find_last_of(".") == std::string::npos) {
+		return false;
+	}
+	if (path.find_last_of(std::string(".") + ASSET_SHORT) == std::string::npos) {
+		return false;
+	}
+
+	FILE* f = fopen(actualPath.c_str(), "rb");
+	if (!f) {
+		return false;
+	}
+
+	fseek(f, 0, SEEK_SET);
+	uint8_t head[2];
+
+	if (fread(head, 2, 1, f) != 1) {
+		return false;
+	}
+	if (head[0] != A_DISC_VERI0) {
+		return false;
+	}
+	if (head[1] != A_DISC_VERI1) {
+		return false;
+	}
+
+
+	std::stringstream data;
+	/*
+	JPH::StreamIn stream_in(data);
+
+	JPH::Shape::IDToShapeMap id_to_shape;
+	JPH::Shape::IDToMaterialMap id_to_material;
+	JPH::Shape::ShapeResult result = JPH::Shape::sRestoreWithChildren(stream_in, id_to_shape, id_to_material);
+
+	JPH::Ref<Shape> restored_shape;
+	if (result.IsValid())
+		restored_shape = result.Get();*/
+
+
+	fseek(f, off, SEEK_SET);
+
+
+
+	uint32_t offset = shapes.size();
+	shapes.resize(1 + offset);
+	return true;
+}
+
+nlohmann::json AConvexCollider::Save()
+{
+	return nlohmann::json();
+}
