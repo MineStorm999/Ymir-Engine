@@ -12,3 +12,6 @@
 [submodule "Source/MeshOptimizer"]
 	path = Source/MeshOptimizer
 	url = https://github.com/zeux/meshoptimizer.git
+[submodule "External/PhysX_5"]
+	path = External/PhysX_5
+	url = https://github.com/NVIDIA-Omniverse/PhysX.git
