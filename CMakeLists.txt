@@ -217,11 +217,12 @@ function (add_sample NAME EXT)
     target_compile_options (${NAME} PRIVATE ${COMPILE_OPTIONS})
     target_link_libraries (${NAME} PRIVATE NRIFramework
         NRI
-        PhysXExtensions_static_64
+        #PhysXExtensions_static_64
         PhysX_64
         PhysXPvdSDK_static_64
         PhysXCommon_64
-        PhysXFoundation_64)
+        PhysXFoundation_64
+    )
 
 
 

@@ -34,8 +34,8 @@ void PhyisicsWorld::Init(/*AssetID id*/)
 	if (!m_Physics)
 		Log::Error("PxCreatePhysics failed!");
 
-	if (!PxInitExtensions(*m_Physics, nullptr))
-		Log::Error("PxInitExtensions failed!");
+	/*if (!PxInitExtensions(*m_Physics, nullptr))
+		Log::Error("PxInitExtensions failed!");*/
 
 	m_Scene = m_Physics->createScene(PxSceneDesc(PxTolerancesScale()));
 	if (!m_Scene) {
