@@ -5,10 +5,8 @@
 #include "components.h"
 #include <unordered_map>
 #include "World/SceneManager.h"
-#include "Log/Log.h"
-#include "MathLib/ml.h"
 
-#include "Jolt/Physics/Body/Body.h"
+#include "MathLib/ml.h"
 
 ECSWorld* curWorld;
 entt::entity root;
@@ -195,109 +193,79 @@ void Components::Transform::SetScale(entt::entity e, const float3& scale, Transf
     t.localScale = scale;
     EntityManager::SetDirty(e);
 }
-
+/*
 float3 Components::RigidBody::GetVelocity(entt::entity e, RigidBodyComponent& rb)
 {
-    PhyisicsWorld* pW = SceneManager::GetPhysicsWorld();
-    if (!pW) {
-        return float3(INVALID_ASSET_ID);
+    physx::PxRigidBody* rigidBody = dynamic_cast<physx::PxRigidBody*>(rb.body);
+    if (!rigidBody) {
+        return float3((float)INVALID_ASSET_ID);
     }
-    
-    JPH::BodyLockRead lock(pW->GetPhysicsSystem().GetBodyLockInterface(), rb.id);
-    if (!lock.Succeeded()) // body_id may no longer be valid
-    {
-        return float3(INVALID_ASSET_ID);
-    }
-    
-    const JPH::Body& body = lock.GetBody();
-    const JPH::Vec3 ret = body.GetLinearVelocity();
-    return { ret.GetX(), ret.GetY() , ret.GetZ() };
+    physx::PxVec3 ret = rigidBody->getLinearVelocity();
+    return { ret.x, ret.y, ret.z };
 }
 
 float3 Components::RigidBody::GetAngularVelocity(entt::entity e, RigidBodyComponent& rb)
 {
-    PhyisicsWorld* pW = SceneManager::GetPhysicsWorld();
-    if (!pW) {
-        return float3(INVALID_ASSET_ID);
+    physx::PxRigidBody* rigidBody = dynamic_cast<physx::PxRigidBody*>(rb.body);
+    if (!rigidBody) {
+        return float3((float)INVALID_ASSET_ID);
     }
-
-    JPH::BodyLockRead lock(pW->GetPhysicsSystem().GetBodyLockInterface(), rb.id);
-    if (!lock.Succeeded()) // body_id may no longer be valid
-    {
-        return float3(INVALID_ASSET_ID);
-    }
-
-    const JPH::Body& body = lock.GetBody();
-    const JPH::Vec3 ret = body.GetAngularVelocity();
-    return { ret.GetX(), ret.GetY() , ret.GetZ() };
+    physx::PxVec3 ret = rigidBody->getAngularVelocity();
+    return { ret.x, ret.y, ret.z };
 }
 
 float3 Components::RigidBody::GetCenterOfMass(entt::entity e, RigidBodyComponent& rb)
 {
-    PhyisicsWorld* pW = SceneManager::GetPhysicsWorld();
-    if (!pW) {
-        return float3(INVALID_ASSET_ID);
-    }
-
-    JPH::BodyLockRead lock(pW->GetPhysicsSystem().GetBodyLockInterface(), rb.id);
-    if (!lock.Succeeded()) // body_id may no longer be valid
-    {
-        return float3(INVALID_ASSET_ID);
-    }
-
-    const JPH::Body& body = lock.GetBody();
-    const JPH::Vec3 ret = body.GetCenterOfMassPosition();
-    return { ret.GetX(), ret.GetY() , ret.GetZ() };
+        
+    return float3((float)INVALID_ASSET_ID);
 }
 
 float Components::RigidBody::GetMass(entt::entity e, RigidBodyComponent& rb)
 {
-    PhyisicsWorld* pW = SceneManager::GetPhysicsWorld();
-    if (!pW) {
-        return INVALID_ASSET_ID;
+    physx::PxRigidBody* rigidBody = dynamic_cast<physx::PxRigidBody*>(rb.body);
+    if (!rigidBody) {
+        return (float)INVALID_ASSET_ID;
     }
-
-    JPH::BodyLockRead lock(pW->GetPhysicsSystem().GetBodyLockInterface(), rb.id);
-    if (!lock.Succeeded()) // body_id may no longer be valid
-    {
-        return INVALID_ASSET_ID;
-    }
-
-    const JPH::Body& body = lock.GetBody();
-    return body.GetBodyCreationSettings().GetMassProperties().mMass;
+    return rigidBody->getMass();
 }
 
 void Components::RigidBody::SetVelocity(entt::entity e, RigidBodyComponent& rb, const float3& velocity)
 {
-    PhyisicsWorld* pW = SceneManager::GetPhysicsWorld();
-    if (!pW) {
-        pW->GetPhysicsSystem().GetBodyInterface().SetLinearVelocity(rb.id, *(JPH::Vec3Arg*)&velocity);
+    physx::PxRigidDynamic* rigidBody = dynamic_cast<physx::PxRigidDynamic*>(rb.body);
+    if (!rigidBody) {
+        return;
     }
+    rigidBody->setLinearVelocity(*(physx::PxVec3*)&velocity);
 }
 
 void Components::RigidBody::SetAngularVelocity(entt::entity e, RigidBodyComponent& rb, const float3& angularVelocity)
 {
-    PhyisicsWorld* pW = SceneManager::GetPhysicsWorld();
-    if (!pW) {
-        pW->GetPhysicsSystem().GetBodyInterface().SetAngularVelocity(rb.id, *(JPH::Vec3Arg*)&angularVelocity);
+    physx::PxRigidDynamic* rigidBody = dynamic_cast<physx::PxRigidDynamic*>(rb.body);
+    if (!rigidBody) {
+        return;
     }
+    rigidBody->setAngularVelocity(*(physx::PxVec3*)&angularVelocity);
 }
 
-void Components::RigidBody::AddForce(entt::entity e, RigidBodyComponent& rb, const float3& force)
+void Components::RigidBody::AddForce(entt::entity e, RigidBodyComponent& rb, const float3& force, physx::PxForceMode::Enum forceMode)
 {
-    PhyisicsWorld* pW = SceneManager::GetPhysicsWorld();
-    if (pW) {
-        pW->GetPhysicsSystem().GetBodyInterface().AddTorque(rb.id, *(JPH::Vec3Arg*)&force);
+    physx::PxRigidDynamic* rigidBody = dynamic_cast<physx::PxRigidDynamic*>(rb.body);
+    if (!rigidBody) {
+        return;
     }
+    rigidBody->addForce(*(physx::PxVec3*)&force, forceMode);
 }
 
-void Components::RigidBody::AddTorque(entt::entity e, RigidBodyComponent& rb, const float3& torque)
+void Components::RigidBody::AddTorque(entt::entity e, RigidBodyComponent& rb, const float3& torque, physx::PxForceMode::Enum forceMode)
 {
-    PhyisicsWorld* pW = SceneManager::GetPhysicsWorld();
-    if (pW) {
-        pW->GetPhysicsSystem().GetBodyInterface().AddTorque(rb.id, *(JPH::Vec3Arg*)&torque);
+    physx::PxRigidDynamic* rigidBody = dynamic_cast<physx::PxRigidDynamic*>(rb.body);
+    if (!rigidBody) {
+        return;
     }
-}
+    rigidBody->addTorque(*(physx::PxVec3*)&torque, forceMode);
+}*/
+
+
 /*
 Entity::Entity(std::string name)
 {

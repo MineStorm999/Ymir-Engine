@@ -44,10 +44,10 @@ bool AModel::Load(std::vector<uint32_t>& indexes, std::vector<utils::Vertex>& ve
 	
 	
 
-	uint32_t offI = indexes.size();
+	size_t offI = indexes.size();
 	indexes.resize(indexCount + indexes.size());
 
-	uint32_t offV = vertices.size();
+	size_t offV = vertices.size();
 	vertices.resize(vertCount + vertices.size());
 
 	
@@ -287,7 +287,7 @@ nlohmann::json AMaterial::Save()
 
 	return j;
 }
-
+/*
 bool AConvexCollider::Load(std::vector<JPH::Ref<JPH::Shape>>& shapes)
 {
 	std::string actualPath = GetActualPath();
@@ -319,7 +319,7 @@ bool AConvexCollider::Load(std::vector<JPH::Ref<JPH::Shape>>& shapes)
 
 
 	std::stringstream data;
-	/*
+	
 	JPH::StreamIn stream_in(data);
 
 	JPH::Shape::IDToShapeMap id_to_shape;
@@ -328,7 +328,7 @@ bool AConvexCollider::Load(std::vector<JPH::Ref<JPH::Shape>>& shapes)
 
 	JPH::Ref<Shape> restored_shape;
 	if (result.IsValid())
-		restored_shape = result.Get();*/
+		restored_shape = result.Get();
 
 
 	fseek(f, off, SEEK_SET);
@@ -338,7 +338,7 @@ bool AConvexCollider::Load(std::vector<JPH::Ref<JPH::Shape>>& shapes)
 	uint32_t offset = shapes.size();
 	shapes.resize(1 + offset);
 	return true;
-}
+}*/
 
 nlohmann::json AConvexCollider::Save()
 {

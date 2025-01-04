@@ -23,7 +23,23 @@ set (CMAKE_CXX_STANDARD_REQUIRED ON)
 set (CMAKE_C_STANDARD 99)
 
 
-include(FetchContent)
+# add physx
+set(PHYSX_BUILD_TYPE "debug")
+
+include_directories(External/PhysX_5/physx/include)
+
+if(PHYSX_BUILD_TYPE AND PHYSX_BUILD_TYPE STREQUAL "debug")
+    message("Building snippet in debug configuration")
+    #add_compile_definitions(_DEBUG)
+
+    message("External/PhysX_5/physx/bin/win.x86_64.vc143.mt/debug")
+    link_directories("External/PhysX_5/physx/bin/win.x86_64.vc143.mt/debug") # This is the path where PhysX libraries are installed
+else()
+    message("Building snippet in release configuration with PhysX ${PHYSX_BUILD_TYPE} configuration")
+    #add_compile_definitions(NDEBUG)
+    link_directories("External/PhysX_5/physx/bin/win.x86_64.vc143.mt/${PHYSX_BUILD_TYPE}") # This is the path where PhysX libraries are installed
+endif()
+
 
 
 if (MSVC)
@@ -167,16 +183,10 @@ FILE(GLOB_RECURSE TOGROUP
     ${CMAKE_SOURCE_DIR}/Source/*.cpp
 )
 
-FetchContent_Declare(
-        JoltPhysics
-        GIT_REPOSITORY "https://github.com/jrouwe/JoltPhysics"
-        GIT_TAG "0a7d2501b33e1251101392d2be403c551ce5f963"
-		SOURCE_SUBDIR "Build"
-)
-FetchContent_MakeAvailable(JoltPhysics)
 
 # Samples
 function (add_sample NAME EXT)
+
     add_executable (${NAME} ${TOGROUP})
 
     source_group (TREE ${CMAKE_SOURCE_DIR} FILES ${TOGROUP})
@@ -195,15 +205,25 @@ function (add_sample NAME EXT)
     endif ()
 
     target_include_directories (${NAME} PRIVATE "External/NRIFramework/Include")
-    target_include_directories(${NAME} PUBLIC ${JoltPhysics_SOURCE_DIR}/..)
+
     target_include_directories (${NAME} PRIVATE "Source/")
     #target_include_directories (${NAME} PRIVATE "External/ImNodes/")
+
+
 
     target_include_directories (${NAME} PRIVATE "External/NRIFramework/External")
     target_include_directories (${NAME} PRIVATE "External/NRIFramework/External/NRI/Include")
     target_compile_definitions (${NAME} PRIVATE ${COMPILE_DEFINITIONS} PROJECT_NAME=${NAME})
     target_compile_options (${NAME} PRIVATE ${COMPILE_OPTIONS})
-    target_link_libraries (${NAME} PRIVATE NRIFramework NRI Jolt)
+    target_link_libraries (${NAME} PRIVATE NRIFramework
+        NRI
+        PhysXExtensions_static_64
+        PhysX_64
+        PhysXPvdSDK_static_64
+        PhysXCommon_64
+        PhysXFoundation_64)
+
+
 
     set_property (TARGET ${NAME} PROPERTY FOLDER ${PROJECT_NAME})
     set_property (TARGET ${NAME} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")

@@ -679,8 +679,8 @@ bool Sample::Initialize(nri::GraphicsAPI graphicsAPI)
     return true;
 }
 
-float lastTime = 0;
-float dt;
+double lastTime = 0;
+double dt;
 uint32_t entityCount;
 
 void Sample::PrepareFrame(uint32_t frameIndex)
@@ -688,7 +688,7 @@ void Sample::PrepareFrame(uint32_t frameIndex)
     BeginUI();
     dt = glfwGetTime() - lastTime;
     lastTime = glfwGetTime();
-    float fps = 1 / dt;
+    double fps = 1 / dt;
     //    exit(0);
     //}
     ProzessAddRrmRequests();
@@ -741,7 +741,9 @@ void Sample::PrepareFrame(uint32_t frameIndex)
     
 
     m_Camera.Update(desc, frameIndex);
-    SceneManager::GetPhysicsWorld()->Sync();
+    /*if (SceneManager::GetPhysicsWorld()) {
+        SceneManager::GetPhysicsWorld()->Sync();
+    }*/
 
     // update (game logic)
 
@@ -754,9 +756,9 @@ void Sample::RenderFrame(uint32_t frameIndex)
 
     m_batchCount = PrepareEntities();
 
-    if (SceneManager::GetPhysicsWorld()) {
-        SceneManager::GetPhysicsWorld()->Step(dt);
-    }
+    /*if (SceneManager::GetPhysicsWorld()) {
+        SceneManager::GetPhysicsWorld()->Step((float)dt);
+    }*/
 
     const uint32_t bufferedFrameIndex = frameIndex % BUFFERED_FRAME_MAX_NUM;
     const Frame1& frame = m_Frames[bufferedFrameIndex];
@@ -966,7 +968,7 @@ void Sample::UpdateEntityTransform(entt::entity e, TransformComponent& transform
             }
             else {
                 EntityManager::SetDirty(child);
-                UpdateEntityTransform(child, EntityManager::GetComponent<TransformComponent>(child), EntityManager::GetComponent<IdentityComponent>(child), true);
+                UpdateEntityTransform(child, EntityManager::GetComponent<TransformComponent>(child), EntityManager::GetComponent<IdentityComponent>(child), EntityManager::GetComponent<FDirty>(child), true);
             }
         }
         //transform.localMat.Invert();
@@ -1030,16 +1032,16 @@ void IterateEntities(entt::entity e, float4x4 mat) {
 
 uint32_t Sample::PrepareEntities()
 {
-    float timeBef = glfwGetTime();
+    double timeBef = glfwGetTime();
 
     descs.clear();
     dummys.clear();
     //float uploadTime = 0;
 
-    float iterTime = glfwGetTime();
+    double iterTime = glfwGetTime();
     for (auto&& [e, t, id, dirty] : EntityManager::GetWorld().group<TransformComponent>(entt::get<IdentityComponent, FDirty>).each())
     {
-        UpdateEntityTransform(e, t, id);
+        UpdateEntityTransform(e, t, id, dirty);
     }
     iterTime = glfwGetTime() - iterTime;
     Log::Message("Renderer", "Iterating Took " + std::to_string(iterTime * 1000) + "ms");
@@ -1050,8 +1052,6 @@ uint32_t Sample::PrepareEntities()
         uploadTime = glfwGetTime() - uploadTime;
         //Log::Message("Renderer", "Uploading Took " + std::to_string(uploadTime * 1000) + "ms");
     }*/
-
-    float dt = glfwGetTime() - timeBef;
     //Log::Message("Renderer", "Preparing Took " + std::to_string(dt * 1000) + "ms");
     
     return MAX_TRANSFORMS;
@@ -1139,7 +1139,7 @@ void Sample::Reload()
 
 void Sample::ReloadMeshes()
 {
-    return;
+    return;/*
     RenderScene* rScene = SceneManager::GetRenderScene();
     if (!rScene) {
         return;
@@ -1188,7 +1188,7 @@ void Sample::ReloadMeshes()
     resourceGroupDesc.textureNum = (uint32_t)m_Textures.size();
     resourceGroupDesc.textures = m_Textures.data();
 
-    uint32_t baseAllocation = m_MemoryAllocations.size();
+    uint32_t baseAllocation = (uint32_t)m_MemoryAllocations.size();
     uint32_t allocationNum = NRI.CalculateAllocationNumber(*m_Device, resourceGroupDesc);
     m_MemoryAllocations.resize(baseAllocation + allocationNum, nullptr);
     NRI_ABORT_ON_FAILURE(NRI.AllocateAndBindMemory(*m_Device, resourceGroupDesc, m_MemoryAllocations.data() + baseAllocation));
@@ -1225,7 +1225,7 @@ void Sample::ReloadMeshes()
         {rScene->indicesCPU.data(), helper::GetByteSizeOf(rScene->verticesCPU), m_Buffers[INDEX_BUFFER], 0, {nri::AccessBits::INDEX_BUFFER}},
     };
 
-    NRI_ABORT_ON_FAILURE(NRI.UploadData(*m_CommandQueue, nullptr, 0, bufferData, helper::GetCountOf(bufferData)));
+    NRI_ABORT_ON_FAILURE(NRI.UploadData(*m_CommandQueue, nullptr, 0, bufferData, helper::GetCountOf(bufferData)));*/
 }
 
 void Sample::ReloadTextures()                                       /// todo                todo                            todo
@@ -1240,7 +1240,7 @@ void Sample::ReloadMaterials()                                      /// todo    
 
 RenderID Sample::GetFreeGPUInstance()
 {
-    static RenderID last = -1;
+    static RenderID last = INVALID_RENDER_ID;
 
     last++;
     if (last >= MAX_TRANSFORMS) {

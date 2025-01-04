@@ -1,12 +1,10 @@
 #pragma once
 
-#include <memory>
+//#include <memory>
 #include <filesystem>
 #include "NRIFramework.h"
 #include "JSON/json.hpp"
 #include "Rendering/RenderTypes.h"
-#include <Jolt/Jolt.h>
-#include <Jolt/RegisterTypes.h>
 
 //#include "../Rendering/VirtualGeometry/MeshletStructs.h"
 //#include "../ECS/components.h"
@@ -215,7 +213,7 @@ class AConvexCollider : public AssetBase {
 public:
 	AConvexCollider() { type = AssetType::ConvexCollider; };
 
-	bool Load(std::vector<JPH::Ref<JPH::Shape>>& shapes);
+	//bool Load(/*std::vector<JPH::Ref<JPH::Shape>>& shapes*/);
 
 	nlohmann::json Save() override;
 

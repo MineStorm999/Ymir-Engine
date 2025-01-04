@@ -7,6 +7,7 @@
 #include "Assets/assetTypes.h"
 #include "components.h"
 #include "../World/SceneManager.h"
+#include "Log/Log.h"
 
 using ECSWorld = entt::registry;
 
@@ -70,23 +71,26 @@ public:
 		SetDirty(e);
 		GetWorld().remove<C>(e);
 	};
-
+	/*
 	template<>
 	static void RemoveComponent<RigidBodyComponent>(entt::entity e) {
-		if (SceneManager::GetPhysicsWorld() != nullptr) {
+		if (SceneManager::GetPhysicsWorld() == nullptr) {
 			GetWorld().remove<RigidBodyComponent>(e);
 			return;
 		}
-		
-		if (HasComponent<ColliderComponent>(e)) {
-			SceneManager::GetPhysicsWorld()->GetPhysicsSystem().GetBodyInterface().DeactivateBody(GetComponent<RigidBodyComponent>(e).id);
+		RigidBodyComponent& rbComp = GetComponent<RigidBodyComponent>(e);
+		if (rbComp.colliderCount > 0) {
+			physx::PxRigidDynamic* rbDyn = dynamic_cast<physx::PxRigidDynamic*>(rbComp.body);
+			if (rbDyn) {
+				rbDyn->setRigidBodyFlag(physx::PxRigidBodyFlag::eKINEMATIC, true);
+			}
 		}
 		else {
-			SceneManager::GetPhysicsWorld()->DestroyBody(GetComponent<RigidBodyComponent>(e).id);
+			SceneManager::GetPhysicsWorld()->DestroyBody(*rbComp.body);
 		}
 
 		GetWorld().remove<RigidBodyComponent>(e);
-	};
+	};*/
 };
 
 
@@ -101,15 +105,17 @@ namespace Components{
 
 	class RigidBody {
 	public:
-		static float3 GetVelocity(entt::entity e, RigidBodyComponent& rb);
+		/*static float3 GetVelocity(entt::entity e, RigidBodyComponent& rb);
 		static float3 GetAngularVelocity(entt::entity e, RigidBodyComponent& rb);
+
+		// todo
 		static float3 GetCenterOfMass(entt::entity e, RigidBodyComponent& rb);
 		static float GetMass(entt::entity e, RigidBodyComponent& rb);
 
 		static void SetVelocity(entt::entity e, RigidBodyComponent& rb, const float3& velocity);
 		static void SetAngularVelocity(entt::entity e, RigidBodyComponent& rb, const float3& angularVelocity);
 
-		static void AddForce(entt::entity e, RigidBodyComponent& rb, const float3& force);
-		static void AddTorque(entt::entity e, RigidBodyComponent& rb, const float3& torque);
+		static void AddForce(entt::entity e, RigidBodyComponent& rb, const float3& force, physx::PxForceMode::Enum forceMode);
+		static void AddTorque(entt::entity e, RigidBodyComponent& rb, const float3& torque, physx::PxForceMode::Enum forceMode);*/
 	};
 };

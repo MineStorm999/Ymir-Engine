@@ -2,7 +2,7 @@
 
 #include "Assets/AssetManager.h"
 #include "RenderScene.h"
-#include "PhysicsWorld.h"
+//#include "PhysicsWorld.h"
 class SceneManager {
 public:
 	static AScene* GetSceneAsset();
@@ -10,5 +10,5 @@ public:
 	static AssetID GetSceneID();
 	static void UseScene(AssetID id);
 	
-	static PhyisicsWorld* GetPhysicsWorld();
+	//static PhyisicsWorld* GetPhysicsWorld();
 };

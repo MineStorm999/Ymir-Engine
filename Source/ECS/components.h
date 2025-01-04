@@ -2,20 +2,22 @@
 
 #include "NRIFramework.h"
 #include "entt/entt.hpp"
-#include "..//World/PhysicsWorld.h"
+//#include "..//World/PhysicsWorld.h"
 #include "Assets/AssetManager.h"
 
 struct FActive {};
 struct FInActive {};
 
+
 struct TransformComponent {
 	float4x4 localMat{ float4x4::Identity() };
-	
+
 	float3 localPos{ 0,0,0 };
 	float3 localScale{ 1,1,1 };
 	float3 localRot{ 0,0,0 };
 
 	float4x4 localToWorldMat{float4x4::Identity()};
+	bool isStatic;
 };
 
 struct MeshInstanceComponent {
@@ -36,11 +38,14 @@ struct IdentityComponent {
 
 struct ColliderComponent {
 	entt::entity connectedRigidBody;
-	JPH::Ref<JPH::Shape> shape;
+	/*physx::PxShape* collider;
+	physx::PxConvexMeshGeometry test;*/
 };
 
 struct RigidBodyComponent {
-	JPH::BodyID id;
+	//physx::PxRigidActor* body;
+	bool kinematic;
+	uint32_t colliderCount{0};
 };
 
 struct CameraComponent {

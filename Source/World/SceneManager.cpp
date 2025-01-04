@@ -6,7 +6,7 @@ AssetID curSceneAssetID{INVALID_ASSET_ID};
 
 RenderScene* renderScene{nullptr};
 
-PhyisicsWorld* physicsWorld{ nullptr };
+//PhyisicsWorld* physicsWorld{ nullptr };
 
 AScene* SceneManager::GetSceneAsset()
 {
@@ -51,10 +51,11 @@ void SceneManager::UseScene(AssetID id)
 
 	renderScene = new RenderScene(id);
 
-	physicsWorld = new PhyisicsWorld(id);
+	//physicsWorld = new PhyisicsWorld(id);
 }
 
+/*
 PhyisicsWorld* SceneManager::GetPhysicsWorld()
 {
 	return physicsWorld;
-}
+}*/

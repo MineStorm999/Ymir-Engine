@@ -123,8 +123,8 @@ void RenderScene::LoadMeshes()
 		}
 
 
-		uint32_t vertexOffSet = verticesCPU.size();
-		uint32_t indexOffSet = indicesCPU.size();
+		size_t vertexOffSet = verticesCPU.size();
+		size_t indexOffSet = indicesCPU.size();
 
 		bool result = m->Load(indicesCPU, verticesCPU);
 		if (!result) {
@@ -139,11 +139,11 @@ void RenderScene::LoadMeshes()
 		{
 			MeshData data;
 			// vertices
-			data.vtxOffset = vertexOffSet;
+			data.vtxOffset = (uint32_t)vertexOffSet;
 			data.vtxCount = m->vertCount;
 
 			// indices
-			data.idxOffset = indexOffSet;
+			data.idxOffset = (uint32_t)indexOffSet;
 			data.idxCount = lod.lenght;
 
 			indexOffSet += lod.lenght;
@@ -156,7 +156,7 @@ void RenderScene::LoadMeshes()
 
 		Log::Message("RenderScene", "Load Meshes " + std::to_string((i++ + 1)) + "/" + std::to_string(sceneAsset->usedMeshes.size()));
 	}
-	modelCount = meshesCPU.size();
+	modelCount = (uint32_t)meshesCPU.size();
 }
 
 void RenderScene::LoadTextures()

@@ -1,5 +1,5 @@
 #include "AssetManager.h"
-#include "../Rendering/VirtualGeometry/VirtualGeometryBuilder.h"
+//#include "../Rendering/VirtualGeometry/VirtualGeometryBuilder.h"
 
 #include <unordered_map>
 #include <map>

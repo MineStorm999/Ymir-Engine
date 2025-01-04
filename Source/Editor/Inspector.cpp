@@ -221,7 +221,7 @@ void Inspector::ShowEntity()
 				for (AssetID id : meshes)
 				{
 					ImGui::PushID(id);
-					bool selected = id == m.modelID;
+					selected = id == m.modelID;
 					if (ImGui::Selectable(AssetManager::GetAsset(id)->name.c_str(), selected)) {
 						m.modelID = id;
 						if (rs) {
@@ -253,7 +253,7 @@ void Inspector::ShowEntity()
 				for (AssetID id : materials)
 				{
 					ImGui::PushID(id);
-					bool selected = id == m.materialID;
+					selected = id == m.materialID;
 					if (ImGui::Selectable(AssetManager::GetAsset(id)->name.c_str(), selected)) {
 						m.materialID = id;
 						if (rs) {
