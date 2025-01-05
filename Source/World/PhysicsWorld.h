@@ -1,5 +1,5 @@
 #pragma once
-#define PHYSX_PHYSICS
+//#define PHYSX_PHYSICS
 
 #ifdef PHYSX_PHYSICS
 
