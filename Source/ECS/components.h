@@ -5,8 +5,8 @@
 //#include "..//World/PhysicsWorld.h"
 #include "Assets/AssetManager.h"
 
-struct FActive {};
-struct FInActive {};
+struct FActive { uint8_t d; };
+struct FInActive { uint8_t d; };
 
 
 struct TransformComponent {

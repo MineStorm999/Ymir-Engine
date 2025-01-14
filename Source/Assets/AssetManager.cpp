@@ -101,6 +101,8 @@ void AssetManager::Init()
             scene->usedTextures.push_back(j["Textures"][std::to_string(i)]);
         }
 
+        scene->worldData = j["Worlds"];
+
         return dynamic_cast<AssetBase*>(scene);
         };
 
@@ -133,7 +135,7 @@ void AssetManager::Init()
     curPath = utils::GetCFullPath("", utils::CustomFolder::ASSETDIR);
     rootPath = curPath;
 
-    
+    EntityManager::Init();
     
     std::fstream fStream(utils::GetCFullPath((std::string("AssetSave.") + SAVE_SHORT), utils::CustomFolder::SAVEFILES));
     if (!fStream.is_open()) {
@@ -176,49 +178,7 @@ void AssetManager::Init()
         CreateDefaultScene();
     }
     else {
-        SceneManager::UseScene(lastOpenScene);
-        AScene* scene = SceneManager::GetSceneAsset();
-        RenderScene* rScene = SceneManager::GetRenderScene();
-        if (scene && rScene) {
-            for (AssetID id : scene->usedMeshes)
-            {
-#if false
-                entt::entity p = entt::null;
-                uint32_t x = 0, y = 0;
-                for (size_t j = 0; j < x; j++)
-                {
-                    AssetBase* asset = GetAsset(id);
-                    if (!asset) {
-                        rScene->Remove(id);
-                        continue;
-                    }
-                    /*
-                    entt::entity e = EntityManager::CreateEntity(asset->name + "first" + std::to_string(j), id, p);
-                    Transform& t = EntityManager::GetWorld().get<Transform>(e);
-                    t.localPos = { 2 * (float)j, 1, 0 };
-                    t.localScale = float3(1);
-                    t.localRot = { 0, 0, 0 };*/
-                    //p = e;
-
-                    for (size_t i = 0; i < y; i++)
-                    {
-                        AssetBase* asset = GetAsset(id);
-                        if (!asset) {
-                            rScene->Remove(id);
-                            continue;
-                        }
-                        entt::entity e = EntityManager::CreateEntity(asset->name + std::to_string(i + (y * j)) + "/" + std::to_string(x * y), id, p);
-                        Transform& t = EntityManager::GetWorld().get<Transform>(e);
-                        t.localPos = { 4 * (float)j, 4 * (float)i, 0 };
-                        t.localScale = float3(1);
-                        t.localRot = { 0, 0, 0 };
-                        //p = e;
-                    }
-                    p = EntityManager::GetRoot();
-                }
-#endif
-            }
-        }
+        SceneManager::UseScene(lastOpenScene, false);
     }
     /*Node* tRoot = LoadDir(j["VirtualFSys"], nullptr);
     if (tRoot) {
@@ -236,13 +196,6 @@ void AssetManager::Init()
 
 void AssetManager::Save()
 {
-    std::ofstream ofStream(utils::GetCFullPath((std::string("AssetSave.") + SAVE_SHORT), utils::CustomFolder::SAVEFILES));
-
-    if (!ofStream.is_open()) {
-        Log::Error("AssetManager", "Wrong Path");
-        return;
-    }
-
     nlohmann::json j;
 
     uint32_t i = 0;
@@ -298,7 +251,15 @@ void AssetManager::Save()
 
     j["LastID"] = lastID;
     j["LastOpenScene"] = SceneManager::GetSceneID();
+
+    std::ofstream ofStream(utils::GetCFullPath((std::string("AssetSave.") + SAVE_SHORT), utils::CustomFolder::SAVEFILES));
+
+    if (!ofStream.is_open()) {
+        Log::Error("AssetManager", "Wrong Path");
+        return;
+    }
     ofStream << std::setw(4) << j << "\n";
+    ofStream.close();
 }
 
 bool isImPorting;
@@ -641,7 +602,7 @@ AssetID AssetManager::CreateDefaultScene()
         return INVALID_ASSET_ID;
     }
     rScene->Add(defMesh);
-    Save();
+    //Save();
 
     return INVALID_ASSET_ID;
 }

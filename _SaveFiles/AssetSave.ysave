@@ -4,17 +4,136 @@
             "ID": 0,
             "Lenght": 3452816845,
             "MaterialCount": 0,
-            "MeshCount": 2,
+            "MeshCount": 1,
             "Meshes": {
-                "0": 7,
-                "1": 16
+                "0": 7
             },
             "Name": "Default_Scene",
             "Offset": 3452816845,
             "OriginalPath": "",
             "Path": "AssetDirectory/_Default_/Scene",
             "TextureCount": 0,
-            "Type": "Scene"
+            "Type": "Scene",
+            "Worlds": {
+                "ECS": {
+                    "Entities": {
+                        "0": {
+                            "Active": "True",
+                            "Components": {
+                                "MeshInstance": {
+                                    "MaterialID": 4294967295,
+                                    "MeshID": 4294967295
+                                },
+                                "Transform": {
+                                    "Position": {
+                                        "X": -5.0,
+                                        "Y": 1.5,
+                                        "Z": 0.0
+                                    },
+                                    "Rotation": {
+                                        "X": 0.0,
+                                        "Y": 0.0,
+                                        "Z": 0.0
+                                    },
+                                    "Scale": {
+                                        "X": 1.0,
+                                        "Y": 1.0,
+                                        "Z": 1.0
+                                    },
+                                    "Static": {
+                                        "Value": "False"
+                                    }
+                                }
+                            },
+                            "Name": "New Entity Child Child",
+                            "Parent": 1
+                        },
+                        "1": {
+                            "Active": "True",
+                            "Components": {
+                                "Transform": {
+                                    "Position": {
+                                        "X": 0.0,
+                                        "Y": 0.0,
+                                        "Z": 0.0
+                                    },
+                                    "Rotation": {
+                                        "X": 0.0,
+                                        "Y": 0.0,
+                                        "Z": 0.0
+                                    },
+                                    "Scale": {
+                                        "X": 1.0,
+                                        "Y": 1.0,
+                                        "Z": 1.0
+                                    },
+                                    "Static": {
+                                        "Value": "False"
+                                    }
+                                }
+                            },
+                            "Name": "New Entity Child",
+                            "Parent": 2
+                        },
+                        "2": {
+                            "Active": "True",
+                            "Components": {
+                                "Transform": {
+                                    "Position": {
+                                        "X": 0.0,
+                                        "Y": 0.0,
+                                        "Z": 0.0
+                                    },
+                                    "Rotation": {
+                                        "X": 0.0,
+                                        "Y": 0.0,
+                                        "Z": 0.0
+                                    },
+                                    "Scale": {
+                                        "X": 1.0,
+                                        "Y": 1.0,
+                                        "Z": 1.0
+                                    },
+                                    "Static": {
+                                        "Value": "False"
+                                    }
+                                }
+                            },
+                            "Name": "New Entity",
+                            "Parent": 3
+                        },
+                        "3": {
+                            "Active": "True",
+                            "Components": {
+                                "Transform": {
+                                    "Position": {
+                                        "X": 0.0,
+                                        "Y": 0.0,
+                                        "Z": 0.0
+                                    },
+                                    "Rotation": {
+                                        "X": 0.0,
+                                        "Y": 0.0,
+                                        "Z": 0.0
+                                    },
+                                    "Scale": {
+                                        "X": 1.0,
+                                        "Y": 1.0,
+                                        "Z": 1.0
+                                    },
+                                    "Static": {
+                                        "Value": "False"
+                                    }
+                                }
+                            },
+                            "Name": "Root",
+                            "Parent": 4294967295
+                        }
+                    },
+                    "EntityCount": 4,
+                    "Root": 3
+                }
+            }
         },
         "1": {
             "ID": 1,
@@ -24,98 +143,6 @@
             "OriginalPath": "_Data/Textures/black.png",
             "Path": "AssetDirectory/_Default_/Assets/YMIR_Mesh/Textures/",
             "Type": "Texture"
-        },
-        "10": {
-            "ID": 10,
-            "Lenght": 4294967295,
-            "Name": "Ymirtert_texture_2",
-            "Offset": 3452816845,
-            "OriginalPath": "_Data/Textures/checkerboard0.dds",
-            "Path": "AssetDirectory/new folder/Ymirtert/Textures/",
-            "Type": "Texture"
-        },
-        "11": {
-            "ID": 11,
-            "Lenght": 4294967295,
-            "Name": "Ymirtert_texture_3",
-            "Offset": 3452816845,
-            "OriginalPath": "_Data/Textures/flatnormal.png",
-            "Path": "AssetDirectory/new folder/Ymirtert/Textures/",
-            "Type": "Texture"
-        },
-        "12": {
-            "ID": 12,
-            "Lenght": 4294967295,
-            "Name": "Ymirtert_texture_4",
-            "Offset": 3452816845,
-            "OriginalPath": "_Data/Textures/scrambling_ranking_128x128_2d_4spp.png",
-            "Path": "AssetDirectory/new folder/Ymirtert/Textures/",
-            "Type": "Texture"
-        },
-        "13": {
-            "ID": 13,
-            "Lenght": 4294967295,
-            "Name": "Ymirtert_texture_5",
-            "Offset": 3452816845,
-            "OriginalPath": "_Data/Textures/sobol_256_4d.png",
-            "Path": "AssetDirectory/new folder/Ymirtert/Textures/",
-            "Type": "Texture"
-        },
-        "14": {
-            "ID": 14,
-            "Lenght": 4294967295,
-            "Name": "Ymirtert_texture_6",
-            "Offset": 3452816845,
-            "OriginalPath": "C:\\packman-repo\\chk\\nri_data\\2.3\\Scenes\\Ymir_Default_Scene\\textures/Image_0.jpg",
-            "Path": "AssetDirectory/new folder/Ymirtert/Textures/",
-            "Type": "Texture"
-        },
-        "15": {
-            "AlphaMode": 0,
-            "BaseColorAndMetallic": {
-                "W": 0.0,
-                "X": 1.0,
-                "Y": 1.0,
-                "Z": 1.0
-            },
-            "BaseTexture": 14,
-            "EmissiveColorAndRoughness": {
-                "W": 0.800000011920929,
-                "X": 0.0,
-                "Y": 0.0,
-                "Z": 0.0
-            },
-            "EmissiveTexture": 8,
-            "ID": 15,
-            "Lenght": 3452816845,
-            "Name": "",
-            "NormalTexture": 11,
-            "Offset": 3452816845,
-            "OriginalPath": "",
-            "Path": "",
-            "RoughnessTexture": 9,
-            "Type": "Material"
-        },
-        "16": {
-            "DefaultMat": 0,
-            "IBuffLenght": 34297,
-            "ID": 16,
-            "IndexCount": 89997,
-            "LODCount": 1,
-            "Lenght": 513501,
-            "Lods": {
-                "0": {
-                    "Distance": 10.0,
-                    "IndexCount": 89997,
-                    "IndexOffset": 0
-                }
-            },
-            "Name": "Ymirtert",
-            "Offset": 7,
-            "OriginalPath": "F:\\GameEngines\\NRISamples\\_Data\\Scenes\\Ymir_Default_Scene\\model1.gltf",
-            "Path": "AssetDirectory/new folder/Ymirtert",
-            "Type": "Model",
-            "VertexCount": 24381
         },
         "2": {
             "ID": 2,
@@ -182,29 +209,11 @@
             "Path": "AssetDirectory/_Default_/Assets/YMIR_Mesh",
             "Type": "Model",
             "VertexCount": 1984
-        },
-        "8": {
-            "ID": 8,
-            "Lenght": 4294967295,
-            "Name": "Ymirtert_texture_0",
-            "Offset": 3452816845,
-            "OriginalPath": "_Data/Textures/black.png",
-            "Path": "AssetDirectory/new folder/Ymirtert/Textures/",
-            "Type": "Texture"
-        },
-        "9": {
-            "ID": 9,
-            "Lenght": 4294967295,
-            "Name": "Ymirtert_texture_1",
-            "Offset": 3452816845,
-            "OriginalPath": "_Data/Textures/white.png",
-            "Path": "AssetDirectory/new folder/Ymirtert/Textures/",
-            "Type": "Texture"
         }
     },
     "Head": {
-        "Count": 17
+        "Count": 8
     },
-    "LastID": 16,
+    "LastID": 7,
     "LastOpenScene": 0
 }

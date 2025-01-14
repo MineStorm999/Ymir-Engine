@@ -229,10 +229,12 @@ public:
 	std::vector<AssetID> usedMeshes;
 	std::vector<AssetID> usedTextures;
 	std::vector<AssetID> usedMaterials;
-	std::vector<AssetID> usedConvexCollider;
+	//std::vector<AssetID> usedConvexCollider;
 
 	// TODO
 	nlohmann::json Save() override;
+
+	nlohmann::json worldData;
 private:
 	uint32_t lastRenderID;
 };

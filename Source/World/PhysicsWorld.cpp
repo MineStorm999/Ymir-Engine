@@ -11,7 +11,7 @@ PhyisicsWorld::~PhyisicsWorld()
 	}
 }
 
-void PhyisicsWorld::Init(/*AssetID id*/)
+void PhyisicsWorld::Init(uint32_t id)
 {
 	PxDefaultErrorCallback gDefaultErrorCallback;
 	PxDefaultAllocator gDefaultAllocatorCallback;
@@ -34,8 +34,8 @@ void PhyisicsWorld::Init(/*AssetID id*/)
 	if (!m_Physics)
 		Log::Error("PxCreatePhysics failed!");
 
-	/*if (!PxInitExtensions(*m_Physics, nullptr))
-		Log::Error("PxInitExtensions failed!");*/
+	if (!PxInitExtensions(*m_Physics, nullptr))
+		Log::Error("PxInitExtensions failed!");
 
 	m_Scene = m_Physics->createScene(PxSceneDesc(PxTolerancesScale()));
 	if (!m_Scene) {
@@ -55,11 +55,13 @@ void PhyisicsWorld::Step(float dt)
 			m_Scene->fetchResults(true);
 		}
 	}
-	
 }
 
 void PhyisicsWorld::Sync()
 {
+	if (!m_Scene) {
+		return;
+	}
 	m_Scene->fetchResults(true);
 }
 
@@ -70,9 +72,8 @@ void PhyisicsWorld::AddBody(physx::PxActor& body)
 void PhyisicsWorld::DestroyBody(physx::PxActor& body)
 {
 }
-/*
 void PhyisicsWorld::HandleRequests()
 {
-}*/
+}
 
 #endif //PHYSX_PHYSICS

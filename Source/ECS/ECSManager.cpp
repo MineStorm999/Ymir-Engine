@@ -7,6 +7,7 @@
 #include "World/SceneManager.h"
 
 #include "MathLib/ml.h"
+#include "Assets/AssetHelper.h"
 
 ECSWorld* curWorld;
 entt::entity root;
@@ -31,32 +32,135 @@ void EntityManager::SetWorld(ECSWorld* w)
     else {
         root = w->group<FRoot>()[0];
     }
-
     Init();
 }
 
-ECSWorld& EntityManager::LoadWorld(nlohmann::json& json)
-{
-    ECSWorld* ret = new ECSWorld();
 
-    // temp!!!!
-    json.is_binary();
-    //ret.from_json();
-    return *ret;
-}
-
-nlohmann::json EntityManager::SerializeWorld(ECSWorld& w)
+nlohmann::json EntityManager::SerializeWorld()
 {
-    // temp
-    entt::entity e = w.create();
-    w.emplace<TransformComponent>(e);
-    //flecs::string val = w.to_json();
-    return nlohmann::json();
+    nlohmann::json j;
+    
+    std::unordered_map<entt::entity, uint32_t> entSerMap;
+    uint32_t i = 0;
+    
+    auto view = GetWorld().view<IdentityComponent, TransformComponent>();
+
+    for (auto e : view)
+    {
+        entSerMap[e] = i;
+        i++;
+    }
+
+    j["EntityCount"] = i;
+
+    i = 0;
+    for (auto [e, id, t] : view.each()) {
+        nlohmann::json eJ;
+        eJ["Name"] = id.name;
+        eJ["Parent"] = (entSerMap.find(id.parent) != entSerMap.end()) ? entSerMap[id.parent] : entt::null;
+        {
+            //TransformComponent& t = GetWorld().get<TransformComponent>(e);
+            nlohmann::json tJ;
+            tJ["Position"] = JSONHelper::TJson(t.localPos);
+            tJ["Scale"] = JSONHelper::TJson(t.localScale);
+            tJ["Rotation"] = JSONHelper::TJson(t.localRot);
+            tJ["Static"] = JSONHelper::TJson(t.isStatic);
+            eJ["Components"]["Transform"] = tJ;
+        }
+        if (auto* mesh = GetWorld().try_get<MeshInstanceComponent>(e)) {
+            nlohmann::json mJ;
+            mJ["MaterialID"] = mesh->materialID;
+            mJ["MeshID"] = mesh->modelID;
+            //mJ["Has"] = "True";
+            eJ["Components"]["MeshInstance"] = mJ;
+        }
+        else {
+            //eJ["Components"]["MeshInstance"]["Has"] = "False";
+        }
+        
+        eJ["Active"] = HasComponent<FInActive>(e) ? "False" : "True";
+
+        j["Entities"][std::to_string(i)] = eJ;
+        i++;
+    }
+    j["EntityCount"] = i;
+
+    j["Root"] = entSerMap[GetRoot()];
+    return j;
 }
 
 void EntityManager::UpdateMatrizes()
 {}
 
+void EntityManager::Init(nlohmann::json& json, bool save)
+{
+    if (json.empty()) {
+        return;
+    }
+
+    if (curWorld) {
+        if (save) {
+            AssetManager::Save();
+        }
+        delete curWorld;
+        curWorld = nullptr;
+    }
+    
+    //std::cout << json << std::endl;
+    delete curWorld;
+    curWorld = nullptr;
+    ECSWorld* w = new ECSWorld();
+
+    curWorld = w;
+
+    root = CreateEntity("Root");
+    w->emplace<FRoot>(root);
+
+    std::unordered_map<uint32_t, entt::entity> entDeSerMap;
+
+    uint32_t entCount = json["EntityCount"];
+
+    // create entites
+    for (size_t i = 0; i < entCount; i++)
+    {
+        nlohmann::json eJ = json["Entities"][std::to_string(i)];
+        if (eJ["Name"] == "Root") {
+            entDeSerMap[i] = entt::null;
+            continue;
+        }
+        entt::entity e = CreateEntity(eJ["Name"]);
+        if (!IsValid(e)) {
+            entDeSerMap[i] = entt::null;
+            continue;
+        }
+        Log::Message("Entity Manager", "Loaded Entity " + std::string(eJ["Name"]) + std::string("   ") + std::to_string(i + 1) + std::string("/") + std::to_string(entCount));
+        entDeSerMap[i] = e;
+        {
+            nlohmann::json tJ = eJ["Components"]["Transform"];
+            TransformComponent& t = GetWorld().get<TransformComponent>(e);
+
+            Components::Transform::SetPosition(e, JSONHelper::FrmJsonf3(tJ["Position"]), t);
+            Components::Transform::SetRotation(e, JSONHelper::FrmJsonf3(tJ["Rotation"]), t);
+            Components::Transform::SetScale(e, JSONHelper::FrmJsonf3(tJ["Scale"]), t);
+            t.isStatic = JSONHelper::FrmJsonb(tJ["Static"]);
+        }
+        if (eJ["Components"].contains("MeshInstance")) {
+            nlohmann::json mJ = eJ["Components"]["MeshInstance"];
+            auto meshComp = AddComponent<MeshInstanceComponent>(e);
+            meshComp.modelID = mJ["MeshID"];
+            meshComp.materialID = mJ["MaterialID"];
+        }
+        
+    }
+
+    // relations
+    for (size_t i = 0; i < entCount; i++)
+    {
+        nlohmann::json eJ = json["Entities"][std::to_string(i)];
+        
+        SetParent(entDeSerMap[eJ["Parent"]], entDeSerMap[i]);
+    }
+}
 
 void EntityManager::Init()
 {
@@ -65,6 +169,8 @@ void EntityManager::Init()
         SetWorld(world);
     }
 }
+
+
 
 void EntityManager::DeleteEntity(entt::entity e)
 {
@@ -143,7 +249,7 @@ entt::entity EntityManager::CreateEntity(std::string name, AssetID assetOriginal
 
 void EntityManager::SetDirty(entt::entity e, DirtyFlags flags)
 {
-    GetWorld().emplace_or_replace<FDirty>(e);
+    GetWorld().emplace_or_replace<FDirty>(e).flags = flags;
 }
 
 void EntityManager::DestroyEntity(entt::entity e)
@@ -153,6 +259,12 @@ void EntityManager::DestroyEntity(entt::entity e)
 
 void EntityManager::AddChild(entt::entity parent, entt::entity child)
 {
+    if (!IsValid(child)) {
+        return;
+    }
+    if (!IsValid(parent)) {
+        return;
+    }
     IdentityComponent& parentId = GetComponent<IdentityComponent>(parent);
     IdentityComponent& childId = GetComponent<IdentityComponent>(child);
     
@@ -161,10 +273,21 @@ void EntityManager::AddChild(entt::entity parent, entt::entity child)
             return;
         }
         IdentityComponent& oldParentId = GetComponent<IdentityComponent>(childId.parent);
+        auto index = std::find(oldParentId.childs.begin(), oldParentId.childs.end(), child);
+        if (index != oldParentId.childs.end()) {
+            oldParentId.childs.erase(index);
+        }
     }
 
     parentId.childs.push_back(child);
     childId.parent = parent;
+}
+
+void EntityManager::SetParent(entt::entity parent, entt::entity child)
+{
+    if (IsValid(parent)) {
+        AddChild(parent, child);
+    }
 }
 
 void Components::Transform::SetPosition(entt::entity e, const float3& pos, TransformComponent& t)

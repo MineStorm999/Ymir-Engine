@@ -5,6 +5,7 @@
 #include "AssetHelper.h"
 
 #include "World/SceneManager.h"
+#include "ECS/ECSManager.h"
 
 bool AModel::Load(std::vector<uint32_t>& indexes, std::vector<utils::Vertex>& vertices)
 {
@@ -249,6 +250,13 @@ nlohmann::json AScene::Save()
 	{
 		j["Textures"][std::to_string(i)] = usedTextures[i];
 	}
+	
+	if (SceneManager::GetSceneAsset() != this) {
+		j["Worlds"]["ECS"] = worldData["Worlds"]["ECS"];
+		return j;
+	}
+	j["Worlds"]["ECS"] = EntityManager::SerializeWorld();
+	worldData["Worlds"]["ECS"] = j["Worlds"]["ECS"];
 	return j;
 }
 
@@ -262,7 +270,23 @@ utils::Texture* ATexture::GetTexture()
 {
 	utils::Texture* texture = new utils::Texture();
 	std::filesystem::path pt(path);
-	pt /= (name + ".ytex");
+	// todo use custom format
+	pt /= (name + ".png");
+
+	if (utils::LoadTexture(pt.string(), *texture)) {
+		return texture;
+	}
+	pt = (path);
+	// todo use custom format
+	pt /= (name + ".jpg");
+
+	if (utils::LoadTexture(pt.string(), *texture)) {
+		return texture;
+	}
+
+	pt = (path);
+	// todo use custom format
+	pt /= (name + ".dds");
 
 	if (utils::LoadTexture(pt.string(), *texture)) {
 		return texture;
@@ -284,7 +308,6 @@ nlohmann::json AMaterial::Save()
 	j["RoughnessTexture"] = roughnessMetalnessTex;
 	j["NormalTexture"] = normalTex;
 	j["EmissiveTexture"] = emissiveTex;
-
 	return j;
 }
 /*

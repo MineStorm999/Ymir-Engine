@@ -18,6 +18,14 @@ RenderScene::RenderScene(AssetID id)
 	rel = true;
 }
 
+RenderID RenderScene::GetRenderID(AssetID id)
+{
+	if (!IsLoaded(id)) {
+		return INVALID_RENDER_ID;
+	}
+	return renderIds[id];
+}
+
 void RenderScene::Add(AssetID id)
 {
 	Log::Message("RenderScene", "Adding " + std::to_string(id));
@@ -48,8 +56,7 @@ void RenderScene::Add(AssetID id)
 			relTextures = true;
 		}
 	}
-
-	
+	AssetManager::Save();
 }
 
 void RenderScene::Remove(AssetID id)
@@ -161,53 +168,83 @@ void RenderScene::LoadMeshes()
 
 void RenderScene::LoadTextures()
 {
-	RenderID lastRenderID = 0;
+	lastTextureRenderID = 0;
 
 	texturesCPU.reserve(sceneAsset->usedTextures.size());
 	for (AssetID id : sceneAsset->usedTextures)
 	{
-		ATexture* texAsset = dynamic_cast<ATexture*>(AssetManager::GetAsset(id));
-		if (!texAsset) {
-			continue;
-		}
-
-		// temporary
-		utils::Texture* tex = texAsset->GetTexture();
-		if (!tex) {
-			continue;
-		}
-		texturesCPU.push_back(tex);
-
-		renderIds[id] = lastRenderID;
-		lastRenderID++;
+		LoadTexture(id);
 	}
 	texturesCPU.shrink_to_fit();
 }
 
 void RenderScene::LoadMaterials()
 {
-	RenderID lastRenderID = 0;
+	lastMaterialRenderID = 0;
 
 	materialsCPU.reserve(sceneAsset->usedMaterials.size());
-	for (AssetID id : sceneAsset->usedTextures)
+	for (AssetID id : sceneAsset->usedMaterials)
 	{
-		AMaterial* matAsset = dynamic_cast<AMaterial*>(AssetManager::GetAsset(id));
-		if (!matAsset) {
-			continue;
-		}
-
-		MaterialData data;
-		data.baseColorAndMetallic = matAsset->baseColorAndMetallic;
-		data.emissiveColorAndRoughness = matAsset->emissiveColorAndRoughness;
-
-		data.baseColorTexIndex = renderIds[matAsset->baseColorTex];
-		data.normalTexIndex = renderIds[matAsset->normalTex];
-		data.emissiveTexIndex = renderIds[matAsset->emissiveTex];
-		data.roughnessMetalnessTexIndex = renderIds[matAsset->roughnessMetalnessTex];
-
-		materialsCPU.push_back(data);
-
-		renderIds[id] = lastRenderID;
-		lastRenderID++;
+		LoadMaterial(id);
 	}
+}
+
+void RenderScene::LoadTexture(AssetID texID)
+{
+	ATexture* texAsset = dynamic_cast<ATexture*>(AssetManager::GetAsset(texID));
+	if (!texAsset) {
+		return;
+	}
+	Log::Message("RenderScene", std::string("Load Texture: ") + texAsset->name);
+	// temporary
+	utils::Texture* tex = texAsset->GetTexture();
+	if (!tex) {
+		Log::Error("RenderScene", std::string("Load Texture: ") + std::to_string(texID) + std::string(" Failed"));
+		return;
+	}
+	texturesCPU.push_back(tex);
+
+
+	renderIds[texID] = lastTextureRenderID;
+	lastTextureRenderID++;
+}
+
+void RenderScene::LoadMaterial(AssetID matID)
+{
+	AMaterial* matAsset = dynamic_cast<AMaterial*>(AssetManager::GetAsset(matID));
+	if (!matAsset) {
+		Log::Error("RenderScene", std::string("Load Material: ") + std::to_string(matID) + std::string(" Failed"));
+		return;
+	}
+	Log::Message("RenderScene", std::string("Load Material: ") + matAsset->name);
+	MaterialData data;
+	data.baseColorAndMetallic = matAsset->baseColorAndMetallic;
+	data.emissiveColorAndRoughness = matAsset->emissiveColorAndRoughness;
+
+	if (!IsLoaded(matAsset->baseColorTex)) {
+		LoadTexture(matAsset->baseColorTex);
+		Add(matAsset->baseColorTex);
+	}
+	if (!IsLoaded(matAsset->normalTex)) {
+		LoadTexture(matAsset->normalTex);
+		Add(matAsset->normalTex);
+	}
+	if (!IsLoaded(matAsset->emissiveTex)) {
+		LoadTexture(matAsset->emissiveTex);
+		Add(matAsset->emissiveTex);
+	}
+	if (!IsLoaded(matAsset->roughnessMetalnessTex)) {
+		LoadTexture(matAsset->roughnessMetalnessTex);
+		Add(matAsset->roughnessMetalnessTex);
+	}
+
+	data.baseColorTexIndex = renderIds[matAsset->baseColorTex];
+	data.normalTexIndex = renderIds[matAsset->normalTex];
+	data.emissiveTexIndex = renderIds[matAsset->emissiveTex];
+	data.roughnessMetalnessTexIndex = renderIds[matAsset->roughnessMetalnessTex];
+
+	materialsCPU.push_back(data);
+
+	renderIds[matID] = lastMaterialRenderID;
+	lastMaterialRenderID++;
 }

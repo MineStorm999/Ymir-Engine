@@ -10,7 +10,6 @@
 #include "World/SceneManager.h"
 #include "Log/Log.h"
 
-
 Sample::~Sample()
 {
     NRI.WaitForIdle(*m_CommandQueue);
@@ -62,9 +61,10 @@ bool Sample::Initialize(nri::GraphicsAPI graphicsAPI)
     AssetManager::Init();
     
     if (graphicsAPI == nri::GraphicsAPI::D3D11) {
-        printf("This sample supports only D3D12 and Vulkan.");
+        Log::Error("GraphicBackend", "We don't support D3D11");
         return false;
     }
+    Log::Message("GraphicsBackend", "Using " + (graphicsAPI == nri::GraphicsAPI::D3D12 ? std::string("D3D12") : std::string("Vulkan")) + "Backend");
 
     nri::AdapterDesc bestAdapterDesc = {};
     uint32_t adapterDescsNum = 1;
@@ -636,13 +636,14 @@ bool Sample::Initialize(nri::GraphicsAPI graphicsAPI)
             {nullptr, 0,  m_Buffers[INDIRECT_BUFFER], 0, {nri::AccessBits::ARGUMENT_BUFFER, nri::StageBits::INDIRECT }},
             {dummyInstances, MAX_TRANSFORMS * sizeof(InstanceData), m_Buffers[INSTANCE_BUFFER], 0,  {nri::AccessBits::SHADER_RESOURCE, nri::StageBits::FRAGMENT_SHADER | nri::StageBits::COMPUTE_SHADER}},
             {scene->meshesCPU.data(), scene->meshesCPU.size() * sizeof(MeshData), m_Buffers[MESH_BUFFER], 0,  {nri::AccessBits::SHADER_RESOURCE, nri::StageBits::FRAGMENT_SHADER | nri::StageBits::COMPUTE_SHADER}},
-            //{scene->materialsCPU.data(), scene->materialsCPU.size() * sizeof(MaterialData), m_Buffers[MATERIAL_BUFFER], 0,  {nri::AccessBits::SHADER_RESOURCE, nri::StageBits::FRAGMENT_SHADER | nri::StageBits::COMPUTE_SHADER}},
+            {scene->materialsCPU.data(), scene->materialsCPU.size() * sizeof(MaterialData), m_Buffers[MATERIAL_BUFFER], 0,  {nri::AccessBits::SHADER_RESOURCE, nri::StageBits::FRAGMENT_SHADER | nri::StageBits::COMPUTE_SHADER}},
             {scene->verticesCPU.data(), helper::GetByteSizeOf(scene->verticesCPU), m_Buffers[VERTEX_BUFFER], 0, {nri::AccessBits::VERTEX_BUFFER}},
             {scene->indicesCPU.data(), helper::GetByteSizeOf(scene->indicesCPU), m_Buffers[INDEX_BUFFER], 0, {nri::AccessBits::INDEX_BUFFER}},
         };
 
-        NRI_ABORT_ON_FAILURE(NRI.UploadData(*m_CommandQueue, /*textureData.data() */nullptr , 0/*(uint32_t)textureData.size()*/, bufferData, helper::GetCountOf(bufferData)));
+        NRI_ABORT_ON_FAILURE(NRI.UploadData(*m_CommandQueue, textureData.data(), (uint32_t)textureData.size(), bufferData, helper::GetCountOf(bufferData)));
         free(dummyInstances);
+        scene->UnLoad();
     }
 
     { // Pipeline statistics
@@ -653,7 +654,7 @@ bool Sample::Initialize(nri::GraphicsAPI graphicsAPI)
         NRI_ABORT_ON_FAILURE(NRI.CreateQueryPool(*m_Device, queryPoolDesc, m_QueryPool));
     }
 
-    scene->UnLoad();
+    
 
     // Code to time here...
     auto end = std::chrono::high_resolution_clock::now();
@@ -741,11 +742,14 @@ void Sample::PrepareFrame(uint32_t frameIndex)
     
 
     m_Camera.Update(desc, frameIndex);
-    /*if (SceneManager::GetPhysicsWorld()) {
-        SceneManager::GetPhysicsWorld()->Sync();
-    }*/
 
-    // update (game logic)
+#ifdef PHYSX_PHYSICS
+    if (SceneManager::GetPhysicsWorld()) {
+        SceneManager::GetPhysicsWorld()->Sync();
+    }
+#endif // PHYSX_PHYSICS
+
+    // update game logic
 
     // update end
     NRI.CopyStreamerUpdateRequests(*m_Streamer);
@@ -756,9 +760,11 @@ void Sample::RenderFrame(uint32_t frameIndex)
 
     m_batchCount = PrepareEntities();
 
-    /*if (SceneManager::GetPhysicsWorld()) {
+#ifdef PHYSX_PHYSICS
+    if (SceneManager::GetPhysicsWorld()) {
         SceneManager::GetPhysicsWorld()->Step((float)dt);
-    }*/
+    }
+#endif // PHYSX_PHYSICS
 
     const uint32_t bufferedFrameIndex = frameIndex % BUFFERED_FRAME_MAX_NUM;
     const Frame1& frame = m_Frames[bufferedFrameIndex];
@@ -997,6 +1003,10 @@ void Sample::UpdateEntityTransform(entt::entity e, TransformComponent& transform
 
             // parent
             dummy.parent = INVALID_RENDER_ID;
+            if (SceneManager::GetRenderScene()->GetRenderID(mesh.materialID) == INVALID_RENDER_ID) {
+                SceneManager::GetRenderScene()->Add(mesh.materialID);
+            }
+            dummy.materialIndex = SceneManager::GetRenderScene()->GetRenderID(mesh.materialID);
             // upload
             nri::BufferUploadDesc bufferData[] =
             {
@@ -1044,15 +1054,7 @@ uint32_t Sample::PrepareEntities()
         UpdateEntityTransform(e, t, id, dirty);
     }
     iterTime = glfwGetTime() - iterTime;
-    Log::Message("Renderer", "Iterating Took " + std::to_string(iterTime * 1000) + "ms");
-    /*
-    if (descs.size() > 0 && !useStreamer) {
-        float uploadTime = glfwGetTime();
-        NRI.UploadData(*m_CommandQueue, nullptr, 0, descs.data(), helper::GetCountOf(descs));
-        uploadTime = glfwGetTime() - uploadTime;
-        //Log::Message("Renderer", "Uploading Took " + std::to_string(uploadTime * 1000) + "ms");
-    }*/
-    //Log::Message("Renderer", "Preparing Took " + std::to_string(dt * 1000) + "ms");
+
     
     return MAX_TRANSFORMS;
 }
@@ -1123,6 +1125,24 @@ void Sample::ReloadMaterialsReq()
         return;
     }
     scene->relMaterials = true;
+}
+
+void Sample::FlushInstances()
+{
+    void* dummyInstances = malloc(MAX_TRANSFORMS * sizeof(InstanceData));
+    if (!dummyInstances) {
+        return;
+    }
+    memset(dummyInstances, (uint8_t)0xff, MAX_TRANSFORMS * sizeof(InstanceData));
+    m_FreeInstances.clear();
+    NRI.AddStreamerBufferUpdateRequest(*m_Streamer, { dummyInstances, MAX_TRANSFORMS * sizeof(InstanceData), m_Buffers[INSTANCE_BUFFER], 0 });
+    NRI.CopyStreamerUpdateRequests(*m_Streamer);
+
+    m_FreeInstances.reserve(MAX_TRANSFORMS);
+    for (size_t i = 0; i < MAX_TRANSFORMS; i++)
+    {
+        m_FreeInstances.push_back(i);
+    }
 }
 
 void Sample::Reload()

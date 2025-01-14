@@ -1,6 +1,6 @@
 // © 2021 NVIDIA Corporation
 
-
+//#define PHYSX_PHYSICS
 //#define REV
 
 //#define EXPERIMENTAL
@@ -967,5 +967,14 @@ void Sample::RenderFrame(uint32_t frameIndex)
 SAMPLE_MAIN(Sample, 0);
 #else
 #include "Renderer.hpp"
-SAMPLE_MAIN(Sample, 0);
+int main(int argc, char** argv) {
+    SampleBase::EnableMemoryLeakDetection(0); 
+    SampleBase* sample = new Sample; 
+    bool result = sample->Create(argc, argv, "Ymir"); 
+    if (result) {
+        sample->RenderLoop();
+    }
+    delete sample;
+    return result ? 0 : 1;
+};
 #endif // REV

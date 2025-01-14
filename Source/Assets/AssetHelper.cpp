@@ -5,7 +5,7 @@ nlohmann::json JSONHelper::TJson(float2& v)
 {
     nlohmann::json j;
     j["X"] = v.x;
-    j["Y"] = v.x;
+    j["Y"] = v.y;
     return j;
 }
 
@@ -21,7 +21,7 @@ nlohmann::json JSONHelper::TJson(float3& v)
 {
     nlohmann::json j;
     j["X"] = v.x;
-    j["Y"] = v.x;
+    j["Y"] = v.y;
     j["Z"] = v.z;
     return j;
 }
@@ -39,7 +39,7 @@ nlohmann::json JSONHelper::TJson(float4& v)
 {
     nlohmann::json j;
     j["X"] = v.x;
-    j["Y"] = v.x;
+    j["Y"] = v.y;
     j["Z"] = v.z;
     j["W"] = v.w;
     return j;
@@ -53,4 +53,16 @@ float4 JSONHelper::FrmJsonf4(nlohmann::json& j)
     f.z = j["Z"];
     f.w = j["W"];
     return f;
+}
+
+nlohmann::json JSONHelper::TJson(bool b)
+{
+    nlohmann::json j;
+    j["Value"] = b ? "True" : "False";
+    return j;
+}
+
+bool JSONHelper::FrmJsonb(nlohmann::json& j)
+{
+    return (j["Value"] == "True") ? true : false;
 }

@@ -26,12 +26,12 @@ public:
 
 	static void SetWorld(ECSWorld* w);
 
-	static ECSWorld& LoadWorld(nlohmann::json& json);
-	static nlohmann::json SerializeWorld(ECSWorld& w);
+	static nlohmann::json SerializeWorld();
 
 	static void UpdateMatrizes();
 
 	static void Init();
+	static void Init(nlohmann::json& json, bool save = false);
 
 	// todo
 	static void DeleteEntity(entt::entity e);
@@ -44,7 +44,9 @@ public:
 	static void DestroyEntity(entt::entity e);
 
 
+
 	static void AddChild(entt::entity parent, entt::entity child);
+	static void SetParent(entt::entity parent, entt::entity child);
 
 	static bool IsValid(entt::entity e) {
 		return GetWorld().valid(e);
@@ -61,16 +63,27 @@ public:
 		return GetWorld().emplace_or_replace<C>(e);
 	};
 
+	template<>
+	static MeshInstanceComponent& AddComponent<MeshInstanceComponent>(entt::entity e) {
+		SetDirty(e, DirtyFlags::Transform);
+		return GetWorld().emplace_or_replace<MeshInstanceComponent>(e);
+	};
+
+
+
 	template<typename C>
 	static C& GetComponent(entt::entity e) {
 		return GetWorld().get<C>(e);
 	};
+
 
 	template<typename C>
 	static void RemoveComponent(entt::entity e) {
 		SetDirty(e);
 		GetWorld().remove<C>(e);
 	};
+	
+
 	/*
 	template<>
 	static void RemoveComponent<RigidBodyComponent>(entt::entity e) {

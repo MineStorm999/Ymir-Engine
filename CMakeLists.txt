@@ -26,7 +26,7 @@ set (CMAKE_C_STANDARD 99)
 # add physx
 set(PHYSX_BUILD_TYPE "debug")
 
-include_directories(External/PhysX_5/physx/include)
+
 
 if(PHYSX_BUILD_TYPE AND PHYSX_BUILD_TYPE STREQUAL "debug")
     message("Building snippet in debug configuration")
@@ -41,7 +41,6 @@ else()
 endif()
 
 
-
 if (MSVC)
     set (CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 endif ()
@@ -52,6 +51,13 @@ if (WIN32)
 else ()
     set (PACKMAN_EXT ".sh")
 endif ()
+
+if(WIN32)
+    message("Using DirectX 12")
+else()
+    message("Using Vulkan")
+endif()
+link_directories("External/FidelityFXSDK/bin/ffx_sdk")
 
 if ((CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64") OR(CMAKE_SYSTEM_PROCESSOR MATCHES "AMD64"))
     if (WIN32)
@@ -209,19 +215,33 @@ function (add_sample NAME EXT)
     target_include_directories (${NAME} PRIVATE "Source/")
     #target_include_directories (${NAME} PRIVATE "External/ImNodes/")
 
-
+    # include fidelity fx
+    add_subdirectory("External/FidelityFXSDK")
+    target_link_libraries(${NAME} PRIVATE 
+    ffx_backend_dx12_x64d 
+    ffx_brixelizer_x64d
+    ffx_brixelizergi_x64d
+    ffx_sssr_x64d
+    ffx_cacao_x64d
+    )
 
     target_include_directories (${NAME} PRIVATE "External/NRIFramework/External")
     target_include_directories (${NAME} PRIVATE "External/NRIFramework/External/NRI/Include")
+    target_include_directories (${NAME} PRIVATE "External/FidelityFXSDK/")
+    target_include_directories (${NAME} PRIVATE "External/FidelityFXSDK/include/")
+    target_include_directories(${NAME} PRIVATE "External/PhysX_5/physx/include")
+
     target_compile_definitions (${NAME} PRIVATE ${COMPILE_DEFINITIONS} PROJECT_NAME=${NAME})
     target_compile_options (${NAME} PRIVATE ${COMPILE_OPTIONS})
+
     target_link_libraries (${NAME} PRIVATE NRIFramework
         NRI
-        #PhysXExtensions_static_64
+        PhysXExtensions_static_64
         PhysX_64
         PhysXPvdSDK_static_64
         PhysXCommon_64
         PhysXFoundation_64
+
     )
 
 

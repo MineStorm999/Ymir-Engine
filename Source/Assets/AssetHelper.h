@@ -15,4 +15,9 @@ public:
 	// float4 
 	static nlohmann::json TJson(float4& v);
 	static float4 FrmJsonf4(nlohmann::json& j);
+
+	// bool 
+	static nlohmann::json TJson(bool b);
+	static bool FrmJsonb(nlohmann::json& j);
+
 };

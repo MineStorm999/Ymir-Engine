@@ -11,8 +11,6 @@ AssetID sAsset;
 entt::entity sEntity;
 
 
-
-
 void Inspector::Select(AssetID a)
 {
 	if (!AssetManager::IsValid(a)) {
@@ -76,16 +74,10 @@ void Inspector::ShowAsset()
 		//sAsset->name = name;
 	}
 
-
-	AModel* m = dynamic_cast<AModel*>(AssetManager::GetAsset(sAsset));
-	switch (AssetManager::GetAsset(sAsset)->type)
-	{
-	case AssetType::None:
-		break;
-	case AssetType::Model:
-		//VModel* m = dynamic_cast<VModel*>(sAsset);
+	if (AssetManager::GetAsset(sAsset)->type == AssetType::Model) {
+		AModel* m = dynamic_cast<AModel*>(AssetManager::GetAsset(sAsset));
 		if (!m) {
-			break;
+			return;
 		}
 		ImGui::Text("Current Render ID: %i", m->GetRenderID(0, sAsset));
 		if (ImGui::Button("Default Material")) {
@@ -107,37 +99,15 @@ void Inspector::ShowAsset()
 
 			ImGui::TreePop();
 		}
-
-		/*
-		if (ImGui::TreeNode("Defaults Transforms")) {
-
-			uint32_t i = 0;
-			for (Transform& t : m->defaultTransforms)
-			{
-
-				if (ImGui::TreeNode(std::to_string(i).c_str())) {
-					
-					ImGui::Text("Local Position: %.3fx %.3fy %.3fz", t.localPos.x, t.localPos.y, t.localPos.z);
-					ImGui::Text("Local Rotation: %.3fY %.3fP %.3fR", t.localRot.x, t.localRot.y, t.localRot.z);
-					ImGui::Text("Local Scale: %.3fx %.3fy %.3fz", t.localScale.x, t.localScale.y, t.localScale.z);
-
-					ImGui::TreePop();
-				}
-				i++;
-			}
-
-			ImGui::TreePop();
-		}*/
-
-	case AssetType::Texture:
-		break;
-	case AssetType::Material:
-		break;
-	case AssetType::Audio:
-		break;
-	default:
-		break;
 	}
+	else if (AssetManager::GetAsset(sAsset)->type == AssetType::Material) {
+		AMaterial* mat = dynamic_cast<AMaterial*>(AssetManager::GetAsset(sAsset));
+		if (!mat) {
+			return;
+		}
+		ImGui::Text("Current Render ID: %i", SceneManager::GetRenderScene()->GetRenderID(sAsset));
+	}
+	
 
 	ImGui::Text("Asset ID: %i", sAsset);
 	ImGui::Text("Asset Original Path: %s", AssetManager::GetAsset(sAsset)->originalPath.c_str());
@@ -178,21 +148,21 @@ void Inspector::ShowEntity()
 			
 			ImGui::DragFloat3("Postion", (float*)&t.localPos, 0.1f);
 			if (b.x != t.localPos.x || b.y != t.localPos.y || b.z != t.localPos.z) {
-				EntityManager::SetDirty(sEntity);
+				EntityManager::SetDirty(sEntity, DirtyFlags::Transform);
 			}
 
 			b = t.localRot;
 			
 			ImGui::DragFloat3("Rotation", (float*)&t.localRot);
 			if (b.x != t.localRot.x || b.y != t.localRot.y || b.z != t.localRot.z) {
-				EntityManager::SetDirty(sEntity);
+				EntityManager::SetDirty(sEntity, DirtyFlags::Transform);
 			}
 
 			//ImGui::Checkbox("Lock", &lock);
 			b = t.localScale;
 			ImGui::DragFloat3("Scale", (float*)&t.localScale, 0.2f);
 			if (b.x != t.localScale.x || b.y != t.localScale.y || b.z != t.localScale.z) {
-				EntityManager::SetDirty(sEntity);
+				EntityManager::SetDirty(sEntity, DirtyFlags::Transform);
 			}
 
 			ImGui::TreePop();
@@ -227,7 +197,7 @@ void Inspector::ShowEntity()
 						if (rs) {
 							rs->Add(id);
 						}
-						EntityManager::SetDirty(sEntity);
+						EntityManager::SetDirty(sEntity, DirtyFlags::Transform);
 					}
 					if (selected) {
 						ImGui::SetItemDefaultFocus();
@@ -247,19 +217,23 @@ void Inspector::ShowEntity()
 				bool selected = INVALID_ASSET_ID == m.modelID;
 				if (ImGui::Selectable("Nothing", selected)) {
 					m.materialID = INVALID_ASSET_ID;
-					EntityManager::SetDirty(sEntity);
+					EntityManager::SetDirty(sEntity, DirtyFlags::Transform);
 				}
 				ImGui::PopID();
+				uint32_t i = 0;
 				for (AssetID id : materials)
 				{
+					AMaterial* mat = dynamic_cast<AMaterial*>(AssetManager::GetAsset(id));
+					i++;
 					ImGui::PushID(id);
 					selected = id == m.materialID;
-					if (ImGui::Selectable(AssetManager::GetAsset(id)->name.c_str(), selected)) {
+					//Log::Message("Inspector", "Material Option" + std::to_string(i) + mat->name);
+					if (ImGui::Selectable(mat->name.c_str(), selected)) {
 						m.materialID = id;
 						if (rs) {
 							rs->Add(id);
 						}
-						EntityManager::SetDirty(sEntity);
+						EntityManager::SetDirty(sEntity, DirtyFlags::Transform);
 					}
 					if (selected) {
 						ImGui::SetItemDefaultFocus();
@@ -289,6 +263,11 @@ void Inspector::ShowEntity()
 		if (!mesh) {
 			if (ImGui::Selectable("Mesh", false)) {
 				EntityManager::AddComponent<MeshInstanceComponent>(sEntity);
+			}
+		}
+		if (!identity) {
+			if (ImGui::Selectable("Identity", false)) {
+				EntityManager::AddComponent<IdentityComponent>(sEntity);
 			}
 		}
 		if (!identity) {

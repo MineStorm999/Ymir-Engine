@@ -122,7 +122,10 @@ private:
     nri::Format m_DepthFormat = nri::Format::UNKNOWN;
 
     utils::Scene m_Scene;
+    
 private:
+    void FlushInstances();
+
     void Reload();
 
     void ReloadMeshes();

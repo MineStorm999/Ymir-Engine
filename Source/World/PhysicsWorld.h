@@ -1,5 +1,5 @@
 #pragma once
-//#define PHYSX_PHYSICS
+
 
 #ifdef PHYSX_PHYSICS
 
@@ -10,11 +10,13 @@
 
 #define STEPS_PER_FRAME 2
 
+
+
 class PhyisicsWorld {
 public:
-	PhyisicsWorld(/*AssetID id*/) { Init(/*id*/ ); };
+	PhyisicsWorld(uint32_t id) { Init(id); };
 	~PhyisicsWorld();
-	void Init(/*AssetID id*/);
+	void Init(uint32_t id);
 	void Step(float dt);
 	
 	void Sync();
@@ -33,11 +35,11 @@ private:
 	physx::PxDefaultCpuDispatcher* m_Dispatcher = NULL;
 	physx::PxScene* m_Scene = NULL;
 
-	/*
+	
 	// adding removing
 	void HandleRequests();
 	std::vector<physx::PxActor*> addRequests;
 
-	std::vector<physx::PxActor*> removeRequests;*/
+	std::vector<physx::PxActor*> removeRequests;
 };
 #endif // PHYSX_PHYSICS
